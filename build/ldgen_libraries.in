@@ -60,6 +60,7 @@ $<TARGET_FILE:__idf_expat>
 $<TARGET_FILE:__idf_wear_levelling>
 $<TARGET_FILE:__idf_fatfs>
 $<TARGET_FILE:__idf_freemodbus>
+$<TARGET_FILE:__idf_test>
 $<TARGET_FILE:__idf_jsmn>
 $<TARGET_FILE:__idf_json>
 $<TARGET_FILE:__idf_libsodium>
@@ -72,3 +73,6 @@ $<TARGET_FILE:__idf_ulp>
 $<TARGET_FILE:__idf_wifi_provisioning>
 $<TARGET_FILE:__idf_main>
 $<TARGET_FILE:__idf_protocol_examples_common>
+$<TARGET_FILE:__idf_led_strip>
+$<TARGET_FILE:__idf_backup>
+$<TARGET_FILE:__idf_cJSON>

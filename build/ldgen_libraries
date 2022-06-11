@@ -60,6 +60,7 @@
 /home/yuan/esp/tcp/build/esp-idf/wear_levelling/libwear_levelling.a
 /home/yuan/esp/tcp/build/esp-idf/fatfs/libfatfs.a
 /home/yuan/esp/tcp/build/esp-idf/freemodbus/libfreemodbus.a
+/home/yuan/esp/tcp/build/esp-idf/test/libtest.a
 /home/yuan/esp/tcp/build/esp-idf/jsmn/libjsmn.a
 /home/yuan/esp/tcp/build/esp-idf/json/libjson.a
 /home/yuan/esp/tcp/build/esp-idf/libsodium/liblibsodium.a
@@ -72,3 +73,6 @@
 /home/yuan/esp/tcp/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
 /home/yuan/esp/tcp/build/esp-idf/main/libmain.a
 /home/yuan/esp/tcp/build/esp-idf/protocol_examples_common/libprotocol_examples_common.a
+/home/yuan/esp/tcp/build/esp-idf/led_strip/libled_strip.a
+/home/yuan/esp/tcp/build/esp-idf/backup/libbackup.a
+/home/yuan/esp/tcp/build/esp-idf/cJSON/libcJSON.a
