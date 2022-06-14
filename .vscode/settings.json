@@ -28,6 +28,8 @@
     "functional": "cpp",
     "regex": "cpp",
     "tuple": "cpp",
-    "utility": "cpp"
+    "utility": "cpp",
+    "thread": "c",
+    "typeinfo": "c"
   }
 }

@@ -10,6 +10,7 @@ esp_err_t test_app_1(void);
 
 typedef struct
 {
+    uint32_t uuid;
     char topic_subscribe[50];
     char topic_publish[50];
     //char switch_name[10];
@@ -19,7 +20,7 @@ typedef struct
     uint8_t status;     //status upload
     uint8_t water;
     uint8_t pressure_alarm;
-    int64_t timestamp;
+    double timestamp;
     char msg_id[30];
 
 }PARAMETER_BRUSH;

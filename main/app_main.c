@@ -61,8 +61,9 @@ extern PARAMETER_BRUSH bursh_para;
 void sw_key_read(uint8_t io_num);
 uint8_t KEY_READ(uint8_t io_num);
 void data_process(char *data);
-void data_publish(char *data);
+void data_publish(char *data,uint8_t case_pub);
 esp_err_t get_chip_id(uint32_t* chip_id);
+void para_init(void);
 
 
 static const char *TAG = "MQTT_EXAMPLE";
@@ -92,20 +93,21 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
     char topic_sub_1[] ="/topic/qos0";
-    char topic_sub_2[] ="/pneumatic-brush-device/switch-control";
-    char topic_pub_1[] ="/topic/qos1";
-    char topic_pub_2[] ="/pneumatic-brush-device/states";
-
-    char data_pub_1[100] = "data_3";
+    char topic_sub_2[] ="/pneumatic-brush-device/switch-control";  //"/pneumatic_brush/switch_control";
+    char topic_sub_3[] ="/emergency-control"; 
     
+    char topic_pub_1[] ="/topic/qos1";
+    char topic_pub_2[] ="/pneumatic-brush-device/states"; //"/pneumatic_brush/states";
+    char topic_pub_3[] ="device-register";
+    char data_pub_1[300] = "init";
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        data_publish(data_pub_1);   //data
-        msg_id = esp_mqtt_client_publish(client, topic_pub_1, data_pub_1, 0, 1, 0);
+        data_publish(data_pub_1,0);   //data
+        msg_id = esp_mqtt_client_publish(client, topic_pub_2, data_pub_1, 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
-        msg_id = esp_mqtt_client_subscribe(client, topic_sub_1, 0);
+        msg_id = esp_mqtt_client_subscribe(client, topic_sub_2, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
         // msg_id = esp_mqtt_client_subscribe(client, topic_pub_1, 1);
@@ -120,8 +122,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        msg_id = esp_mqtt_client_publish(client, topic_sub_1, "SUBSCRIBED", 0, 0, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        // msg_id = esp_mqtt_client_publish(client, topic_sub_1, "SUBSCRIBED", 0, 0, 0);
+        // ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
@@ -134,6 +136,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
         data_process(event->data);
+        data_publish(data_pub_1,1); 
+        msg_id = esp_mqtt_client_publish(client, topic_pub_2, data_pub_1, 0, 1, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -290,9 +295,7 @@ void sw_key_read(uint8_t io_num)
 
 void app_main(void)
 {
-    uint32_t id ;
-    get_chip_id(&id);
-    printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
+    para_init();
 
     ESP_LOGI(TAG, "[APP] Startup..");
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
@@ -407,54 +410,66 @@ void data_process(char *data)
                 if(json_value->valueint){
                     gpio_set_level(GPIO_OUTPUT_IO_0, 1);
                     bursh_para.nozzle = 1;
-                    printf("bursh_para.nozzle = 1");}
+                    printf("bursh_para.nozzle = 1\n");}
                 else{
                     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
                     bursh_para.nozzle = 0;
-                    printf("bursh_para.nozzle = 0");}
+                    printf("bursh_para.nozzle = 0\n");}
             }
             else if(strcmp(json_switch_name->valuestring,"centralizer")==0){
                 if(json_value->valueint){
                     gpio_set_level(GPIO_OUTPUT_IO_0, 1);
                     bursh_para.centralizer = 1;
-                    printf("bursh_para.centralizer = 1");}
+                    printf("bursh_para.centralizer = 1\n");}
                 else{
                     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
                     bursh_para.centralizer = 0;
-                    printf("bursh_para.centralizer = 0");}
+                    printf("bursh_para.centralizer = 0\n");}
             }
             else if(strcmp(json_switch_name->valuestring,"rotation")==0){
                 if(json_value->valueint){
                     gpio_set_level(GPIO_OUTPUT_IO_0, 1);
                     bursh_para.rotation = 1;
-                    printf("bursh_para.rotation = 1");}
+                    printf("bursh_para.rotation = 1\n");}
                 else{
                     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
                     bursh_para.rotation = 0;
-                    printf("bursh_para.rotation = 0");}
+                    printf("bursh_para.rotation = 0\n");}
             }
         }
     }
     cJSON *json_timestamp = cJSON_GetObjectItem(json_str_xy, "timestamp");
     if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
-        bursh_para.timestamp = json_timestamp->valueint;
-        printf("timestamp = %d\n", json_timestamp->valueint);
+        bursh_para.timestamp = json_timestamp->valuedouble;
+        printf("timestamp = %f\n", json_timestamp->valuedouble);
     }
     cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
     if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
         strcpy(bursh_para.msg_id,json_msg_id->valuestring);
         printf("msg_id = %s\n", json_msg_id->valuestring);
     }
+    //cJSON_Delete(json_str_xy);
 }
 
-void data_publish(char *data)
+void data_publish(char *data,uint8_t case_pub)
 {
     cJSON*root = cJSON_CreateObject();
-    //cJSON_AddNumberToObject(root, "nozzle",1);
-    cJSON_AddNumberToObject(root, "status",1);
-    cJSON_AddNumberToObject(root, "water",1);
-    cJSON_AddNumberToObject(root, "pressure_alarm",1);
-    cJSON_AddNumberToObject(root, "timestamp",1654585625000);
+    if(case_pub){
+        cJSON_AddNumberToObject(root, "status",bursh_para.status);
+        cJSON_AddNumberToObject(root, "water",bursh_para.water);
+        cJSON_AddNumberToObject(root, "pressure_alarm",bursh_para.pressure_alarm);
+        cJSON_AddNumberToObject(root, "nozzle",bursh_para.nozzle);
+        cJSON_AddNumberToObject(root, "centralizer",bursh_para.centralizer);
+        cJSON_AddNumberToObject(root, "rotation",bursh_para.rotation);           
+        cJSON_AddNumberToObject(root, "timestamp",1654585625000);
+        cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(""));
+        }
+    else{
+        cJSON_AddNumberToObject(root, "device_sn",bursh_para.uuid);
+        cJSON_AddNumberToObject(root, "timestamp",1654585625000);
+        cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("pneumatic-brush-device"));
+        }
+
     char *msg = cJSON_Print(root);
     printf("%s\n",msg); 
     strcpy(data,msg);
@@ -487,4 +502,17 @@ void cJSON_init(void)
     cJSON_Delete(root);
 
     return 0;
+}
+void para_init(void)
+{
+    uint32_t id;
+    get_chip_id(&id);
+    printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
+    bursh_para.uuid = id;
+    bursh_para.nozzle = 0;
+    bursh_para.centralizer = 0;
+    bursh_para.rotation = 0;
+    bursh_para.status = 0;
+    bursh_para.water = 0;
+    bursh_para.pressure_alarm = 0;
 }
