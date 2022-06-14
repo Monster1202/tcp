@@ -62,27 +62,8 @@ void sw_key_read(uint8_t io_num);
 uint8_t KEY_READ(uint8_t io_num);
 void data_process(char *data);
 void data_publish(char *data);
-//
-// #include <WiFi.h>
-// #define ssid      "yyg"
-// #define psw      "123456789"
+esp_err_t get_chip_id(uint32_t* chip_id);
 
-// #include "freertos/event_groups.h"
-// #include "lwip/err.h"
-// #include "lwip/sys.h"
-// #define EXAMPLE_ESP_WIFI_SSID      "yyg"
-// #define EXAMPLE_ESP_WIFI_PASS      "123456789"
-// #define EXAMPLE_ESP_MAXIMUM_RETRY  5
- /* FreeRTOS event group to signal when we are connected*/
-// static EventGroupHandle_t s_wifi_event_group;
-// /* The event group allows multiple bits for each event, but we only care about two events:
-//  * - we are connected to the AP with an IP
-//  * - we failed to connect after the maximum amount of retries */
-// #define WIFI_CONNECTED_BIT BIT0
-// #define WIFI_FAIL_BIT      BIT1
-// //static const char *TAG = "wifi station";
-
-// static int s_retry_num = 0;
 
 static const char *TAG = "MQTT_EXAMPLE";
 
@@ -116,18 +97,19 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     char topic_pub_2[] ="/pneumatic-brush-device/states";
 
     char data_pub_1[100] = "data_3";
-    data_publish(data_pub_1);   //data
+    
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+        data_publish(data_pub_1);   //data
         msg_id = esp_mqtt_client_publish(client, topic_pub_1, data_pub_1, 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
         msg_id = esp_mqtt_client_subscribe(client, topic_sub_1, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
-        msg_id = esp_mqtt_client_subscribe(client, topic_pub_1, 1);
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        // msg_id = esp_mqtt_client_subscribe(client, topic_pub_1, 1);
+        // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
         // msg_id = esp_mqtt_client_unsubscribe(client, topic_pub_1);
         // ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
@@ -138,7 +120,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-        msg_id = esp_mqtt_client_publish(client, topic_sub_1, "data", 0, 0, 0);
+        msg_id = esp_mqtt_client_publish(client, topic_sub_1, "SUBSCRIBED", 0, 0, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_UNSUBSCRIBED:
@@ -151,7 +133,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
-        
+        data_process(event->data);
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -305,28 +287,13 @@ void sw_key_read(uint8_t io_num)
     vTaskDelay(10 / portTICK_RATE_MS);
     //delay_us(10000);
 }
-void cJSON_init(void)
-{
-    cJSON*root = cJSON_CreateObject();
-    cJSON *item = cJSON_CreateObject();
 
-    // cJSON_AddItemToObject(root, "MQTT",cJSON_CreateString("MQTT->ID"));
-    // cJSON_AddItemToObject(root, "id",cJSON_CreateString("192.168.0.1"));
-    // cJSON_AddItemToObject(root, "params",cJSON_CreateString("123456"));
-    // cJSON_AddItemToObject(root, "temperature",cJSON_CreateString("30"));
-    // cJSON_AddItemToObject(root, "Version",cJSON_CreateString("1.0011"));
-//CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
-    cJSON_AddNumberToObject(root, "nozzle",1);
-    cJSON_AddNumberToObject(root, "status",1);
-    char *msg = cJSON_Print(root);
-    printf("%s\n",msg);
-
-    cJSON_Delete(root);
-
-    return 0;
-}
 void app_main(void)
 {
+    uint32_t id ;
+    get_chip_id(&id);
+    printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
+
     ESP_LOGI(TAG, "[APP] Startup..");
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
@@ -354,24 +321,13 @@ void app_main(void)
     //   ret = nvs_flash_init();
     // }
     // ESP_ERROR_CHECK(ret);
-
-    // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-     //wifi_init_sta();
-
-//   WiFi.begin(ssid,psw);
-//   while(WiFi.status()!=WL_CONNECTED){      //未连接上
-//     delay(500);
-//     Serial.println("connect to wifi...");
-//   }
-//   Serial.println("successfully connected");  
-
+    // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");7
     mqtt_app_start();
 
-//GPIO
-    test_app_1();
-    cJSON_init();
-    bursh_para.nozzle = 1;
+    //test_app_1();
+    //cJSON_init();   //test cjson
     //get_conf();
+//GPIO
     configure_led();
     //zero-initialize the config structure.
     gpio_config_t io_conf = {};
@@ -420,142 +376,115 @@ void app_main(void)
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
     int cnt = 0;
     while(1) {
-        printf("cnt: %d\n", cnt++);
-        ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
+        // printf("cnt: %d\n", cnt++);
+        // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
         blink_led();
         /* Toggle the LED state */
         s_led_state = !s_led_state;
         vTaskDelay(1000 / portTICK_RATE_MS);
         gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
         gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
-
         //get_conf();
     }
 }
 
 void data_process(char *data)
 {
-    char s1[]="1";
-    if(strcmp(data,s1)==0)
-    {
-       gpio_set_level(GPIO_OUTPUT_IO_0, 1);    
+    cJSON *json_str_xy = cJSON_Parse(data);
+    // --判断是否可以解析为json
+    if(json_str_xy == NULL) {
+        //printf("字符串不是标准的json格式!\n");
+        cJSON_Delete(json_str_xy);
+        return 0;
     }
-    else
-        printf("error:data unmatch: %s\n",data); 
+    cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
+    if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
+        printf("switch_name = %s\n", json_switch_name->valuestring);
+        cJSON *json_value = cJSON_GetObjectItem(json_str_xy, "value");
+        if(json_value != NULL && json_value->type == cJSON_Number) {
+            printf("value = %d\n", json_value->valueint);
+            if(strcmp(json_switch_name->valuestring,"nozzle")==0){
+                if(json_value->valueint){
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                    bursh_para.nozzle = 1;
+                    printf("bursh_para.nozzle = 1");}
+                else{
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+                    bursh_para.nozzle = 0;
+                    printf("bursh_para.nozzle = 0");}
+            }
+            else if(strcmp(json_switch_name->valuestring,"centralizer")==0){
+                if(json_value->valueint){
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                    bursh_para.centralizer = 1;
+                    printf("bursh_para.centralizer = 1");}
+                else{
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+                    bursh_para.centralizer = 0;
+                    printf("bursh_para.centralizer = 0");}
+            }
+            else if(strcmp(json_switch_name->valuestring,"rotation")==0){
+                if(json_value->valueint){
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                    bursh_para.rotation = 1;
+                    printf("bursh_para.rotation = 1");}
+                else{
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+                    bursh_para.rotation = 0;
+                    printf("bursh_para.rotation = 0");}
+            }
+        }
+    }
+    cJSON *json_timestamp = cJSON_GetObjectItem(json_str_xy, "timestamp");
+    if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
+        bursh_para.timestamp = json_timestamp->valueint;
+        printf("timestamp = %d\n", json_timestamp->valueint);
+    }
+    cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
+    if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
+        strcpy(bursh_para.msg_id,json_msg_id->valuestring);
+        printf("msg_id = %s\n", json_msg_id->valuestring);
+    }
 }
 
 void data_publish(char *data)
 {
     cJSON*root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "nozzle",1);
+    //cJSON_AddNumberToObject(root, "nozzle",1);
     cJSON_AddNumberToObject(root, "status",1);
+    cJSON_AddNumberToObject(root, "water",1);
+    cJSON_AddNumberToObject(root, "pressure_alarm",1);
+    cJSON_AddNumberToObject(root, "timestamp",1654585625000);
     char *msg = cJSON_Print(root);
     printf("%s\n",msg); 
     strcpy(data,msg);
+    cJSON_Delete(root);
 }
 
+esp_err_t get_chip_id(uint32_t* chip_id){
+    esp_err_t status = ESP_OK;
+    *chip_id = (REG_READ(0x3FF00050) & 0xFF000000) |
+                         (REG_READ(0x3ff0005C) & 0xFFFFFF);
+    return status;
+}
 
+void cJSON_init(void)
+{
+    cJSON*root = cJSON_CreateObject();
+    cJSON *item = cJSON_CreateObject();
 
-//WIFI
-// static void event_handler(void* arg, esp_event_base_t event_base,
-//                                 int32_t event_id, void* event_data)
-// {
-//     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-//         esp_wifi_connect();
-//     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-//         if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
-//             esp_wifi_connect();
-//             s_retry_num++;
-//             ESP_LOGI(TAG, "retry to connect to the AP");
-//         } else {
-//             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
-//         }
-//         ESP_LOGI(TAG,"connect to the AP fail");
-//     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-//         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-//         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
-//         s_retry_num = 0;
-//         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
-//     }
-// }
+    // cJSON_AddItemToObject(root, "MQTT",cJSON_CreateString("MQTT->ID"));
+    // cJSON_AddItemToObject(root, "id",cJSON_CreateString("192.168.0.1"));
+    // cJSON_AddItemToObject(root, "params",cJSON_CreateString("123456"));
+    // cJSON_AddItemToObject(root, "temperature",cJSON_CreateString("30"));
+    // cJSON_AddItemToObject(root, "Version",cJSON_CreateString("1.0011"));
+    //CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
+    cJSON_AddNumberToObject(root, "nozzle",1);
+    cJSON_AddNumberToObject(root, "status",1);
+    char *msg = cJSON_Print(root);
+    printf("%s\n",msg);
 
-// void wifi_init_sta(void)
-// {
-//     s_wifi_event_group = xEventGroupCreate();
+    cJSON_Delete(root);
 
-//     ESP_ERROR_CHECK(esp_netif_init());
-
-//     ESP_ERROR_CHECK(esp_event_loop_create_default());
-//     esp_netif_create_default_wifi_sta();
-
-//     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-//     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-//     esp_event_handler_instance_t instance_any_id;
-//     esp_event_handler_instance_t instance_got_ip;
-//     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
-//                                                         ESP_EVENT_ANY_ID,
-//                                                         &event_handler,
-//                                                         NULL,
-//                                                         &instance_any_id));
-//     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,
-//                                                         IP_EVENT_STA_GOT_IP,
-//                                                         &event_handler,
-//                                                         NULL,
-//                                                         &instance_got_ip));
-
-//     wifi_config_t wifi_config = {
-//         .sta = {
-//             .ssid = EXAMPLE_ESP_WIFI_SSID,
-//             .password = EXAMPLE_ESP_WIFI_PASS,
-//             /* Setting a password implies station will connect to all security modes including WEP/WPA.
-//              * However these modes are deprecated and not advisable to be used. Incase your Access point
-//              * doesn't support WPA2, these mode can be enabled by commenting below line */
-// 	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-//         },
-//     };
-//     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
-//     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
-//     ESP_ERROR_CHECK(esp_wifi_start() );
-
-//     ESP_LOGI(TAG, "wifi_init_sta finished.");
-
-//     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
-//      * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
-//     EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
-//             WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
-//             pdFALSE,
-//             pdFALSE,
-//             portMAX_DELAY);
-
-//     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
-//      * happened. */
-//     if (bits & WIFI_CONNECTED_BIT) {
-//         ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
-//                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-//     } else if (bits & WIFI_FAIL_BIT) {
-//         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
-//                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-//     } else {
-//         ESP_LOGE(TAG, "UNEXPECTED EVENT");
-//     }
-
-//     /* The event will not be processed after unregister */
-//     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
-//     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-//     vEventGroupDelete(s_wifi_event_group);
-// }
-
-// void app_main(void)
-// {
-//     //Initialize NVS
-//     esp_err_t ret = nvs_flash_init();
-//     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-//       ESP_ERROR_CHECK(nvs_flash_erase());
-//       ret = nvs_flash_init();
-//     }
-//     ESP_ERROR_CHECK(ret);
-
-//     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-//     wifi_init_sta();
-// }
+    return 0;
+}
