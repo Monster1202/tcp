@@ -40,11 +40,19 @@
 #define CONFIG_BLINK_LED_RMT_CHANNEL 0
 static uint8_t s_led_state = 0;
 static led_strip_t *pStrip_a;
-#define GPIO_OUTPUT_IO_0    18
-#define GPIO_OUTPUT_IO_1    19
+#define GPIO_OUTPUT_IO_STRETCH    39
+#define GPIO_OUTPUT_IO_DRAW    40
+#define GPIO_OUTPUT_IO_ROTATEX    41
+#define GPIO_OUTPUT_IO_ROTATEY    42
+#define GPIO_OUTPUT_IO_WATER    19
+#define GPIO_OUTPUT_IO_BUBBLE    20
+#define GPIO_OUTPUT_IO_STOP    21
+#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_STRETCH) | (1ULL<<GPIO_OUTPUT_IO_DRAW)| (1ULL<<GPIO_OUTPUT_IO_ROTATEX)| (1ULL<<GPIO_OUTPUT_IO_ROTATEY)| (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_IO_STOP))
+#define GPIO_OUTPUT_IO_0 17
+#define GPIO_OUTPUT_IO_1 18
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0) | (1ULL<<GPIO_OUTPUT_IO_1))
-#define GPIO_INPUT_IO_0     4
-#define GPIO_INPUT_IO_1     5
+#define GPIO_INPUT_IO_0     6
+#define GPIO_INPUT_IO_1     7
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -93,23 +101,25 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
     char topic_sub_1[] ="/topic/qos0";
-    char topic_sub_2[] ="/pneumatic-brush-device/switch-control";  //"/pneumatic_brush/switch_control";
+    char topic_sub_2[] ="/pneumatic-brush-device/switch-control"; 
     char topic_sub_3[] ="/emergency-control"; 
     
     char topic_pub_1[] ="/topic/qos1";
-    char topic_pub_2[] ="/pneumatic-brush-device/states"; //"/pneumatic_brush/states";
-    char topic_pub_3[] ="device-register";
+    char topic_pub_2[] ="/pneumatic-brush-device/states"; 
+    char topic_pub_3[] ="/device-register";
     char data_pub_1[300] = "init";
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         data_publish(data_pub_1,0);   //data
-        msg_id = esp_mqtt_client_publish(client, topic_pub_2, data_pub_1, 0, 1, 0);
+        msg_id = esp_mqtt_client_publish(client, topic_pub_3, data_pub_1, 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
         msg_id = esp_mqtt_client_subscribe(client, topic_sub_2, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
+        msg_id = esp_mqtt_client_subscribe(client, topic_sub_3, 0);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
         // msg_id = esp_mqtt_client_subscribe(client, topic_pub_1, 1);
         // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
@@ -385,8 +395,8 @@ void app_main(void)
         /* Toggle the LED state */
         s_led_state = !s_led_state;
         vTaskDelay(1000 / portTICK_RATE_MS);
-        gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
-        gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
+        // gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
+        // gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
         //get_conf();
     }
 }
@@ -400,6 +410,19 @@ void data_process(char *data)
         cJSON_Delete(json_str_xy);
         return 0;
     }
+    cJSON *json_stop = cJSON_GetObjectItem(json_str_xy, "stop");
+    if(json_stop != NULL && json_stop->type == cJSON_Number) {
+        bursh_para.timestamp = json_stop->valueint;
+        printf("stop = %d\n", json_stop->valueint);
+        if(json_stop->valueint){
+            gpio_set_level(GPIO_OUTPUT_IO_STOP, 1);
+            bursh_para.stop = 1;
+            printf("bursh_para.stop = 1\n");}
+        else{
+            gpio_set_level(GPIO_OUTPUT_IO_STOP, 0);
+            bursh_para.stop = 0;
+            printf("bursh_para.stop = 0\n");}
+    }
     cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
     if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
         printf("switch_name = %s\n", json_switch_name->valuestring);
@@ -407,37 +430,59 @@ void data_process(char *data)
         if(json_value != NULL && json_value->type == cJSON_Number) {
             printf("value = %d\n", json_value->valueint);
             if(strcmp(json_switch_name->valuestring,"nozzle")==0){
-                if(json_value->valueint){
-                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                if(json_value->valueint == 1){
+                    gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
+                    gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
                     bursh_para.nozzle = 1;
                     printf("bursh_para.nozzle = 1\n");}
+                else if(json_value->valueint == 2){
+                    gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
+                    bursh_para.nozzle = 2;
+                    printf("bursh_para.nozzle = 2\n");}
                 else{
-                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
-                    bursh_para.nozzle = 0;
+                    gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+                    bursh_para.nozzle = 2;
                     printf("bursh_para.nozzle = 0\n");}
             }
             else if(strcmp(json_switch_name->valuestring,"centralizer")==0){
-                if(json_value->valueint){
-                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                if(json_value->valueint == 1){
+                    gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 1);
+                    gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
                     bursh_para.centralizer = 1;
                     printf("bursh_para.centralizer = 1\n");}
+                else if(json_value->valueint == 2){
+                    gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
+                    gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+                    bursh_para.centralizer = 2;
+                    printf("bursh_para.centralizer = 0\n");}
                 else{
-                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
                     bursh_para.centralizer = 0;
                     printf("bursh_para.centralizer = 0\n");}
             }
             else if(strcmp(json_switch_name->valuestring,"rotation")==0){
-                if(json_value->valueint){
-                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                if(json_value->valueint==1){
+                    gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 1);
+                    gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
                     bursh_para.rotation = 1;
                     printf("bursh_para.rotation = 1\n");}
+                else if(json_value->valueint==2){
+                    gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 1);
+                    bursh_para.rotation = 2;
+                    printf("bursh_para.rotation = 2\n");}
                 else{
-                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
+                    gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
                     bursh_para.rotation = 0;
-                    printf("bursh_para.rotation = 0\n");}
+                    printf("bursh_para.rotation = 0\n");}    
             }
         }
     }
+    
     cJSON *json_timestamp = cJSON_GetObjectItem(json_str_xy, "timestamp");
     if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
         bursh_para.timestamp = json_timestamp->valuedouble;
@@ -461,12 +506,12 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "nozzle",bursh_para.nozzle);
         cJSON_AddNumberToObject(root, "centralizer",bursh_para.centralizer);
         cJSON_AddNumberToObject(root, "rotation",bursh_para.rotation);           
-        cJSON_AddNumberToObject(root, "timestamp",1654585625000);
-        cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(""));
+        cJSON_AddNumberToObject(root, "timestamp",bursh_para.timestamp);
+        cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(bursh_para.msg_id)); //
         }
     else{
         cJSON_AddNumberToObject(root, "device_sn",bursh_para.uuid);
-        cJSON_AddNumberToObject(root, "timestamp",1654585625000);
+        cJSON_AddNumberToObject(root, "timestamp",bursh_para.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("pneumatic-brush-device"));
         }
 
@@ -515,4 +560,7 @@ void para_init(void)
     bursh_para.status = 0;
     bursh_para.water = 0;
     bursh_para.pressure_alarm = 0;
+    bursh_para.stop = 0;
+    bursh_para.timestamp = 1654585625000;
+    strcpy(bursh_para.msg_id,"msg_id");
 }
