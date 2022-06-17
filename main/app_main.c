@@ -32,7 +32,8 @@
 #include "cJSON.h"
 #include "para_list.h"
 //#include "dev_para.h"
-
+#include "ds18b20.h"
+//#include "pid_ctrl.h"
 //gpio
 #include "driver/gpio.h"
 #include "led_strip.h"
@@ -48,13 +49,15 @@ static led_strip_t *pStrip_a;
 #define GPIO_OUTPUT_IO_BUBBLE    20
 #define GPIO_OUTPUT_IO_STOP    21
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_STRETCH) | (1ULL<<GPIO_OUTPUT_IO_DRAW)| (1ULL<<GPIO_OUTPUT_IO_ROTATEX)| (1ULL<<GPIO_OUTPUT_IO_ROTATEY)| (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_IO_STOP))
-#define GPIO_OUTPUT_IO_0 17
-#define GPIO_OUTPUT_IO_1 18
-#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0) | (1ULL<<GPIO_OUTPUT_IO_1))
+// #define GPIO_OUTPUT_IO_0 17
+// #define GPIO_OUTPUT_IO_1 18
+// #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0) | (1ULL<<GPIO_OUTPUT_IO_1))
 #define GPIO_INPUT_IO_0     6
 #define GPIO_INPUT_IO_1     7
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
 #define ESP_INTR_FLAG_DEFAULT 0
+// #define GPIO_IO_DS18B20    8
+// #define GPIO_INOUT_PIN_SEL  (1ULL<<GPIO_IO_DS18B20)
 
 #define KEY_SPEED_LONG 200 //long press debug time(ms)
 #define KEY_SPEED_DOUBLE 10 //double press debug time(ms)
@@ -103,6 +106,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     char topic_sub_1[] ="/topic/qos0";
     char topic_sub_2[] ="/pneumatic-brush-device/switch-control"; 
     char topic_sub_3[] ="/emergency-control"; 
+    char topic_sub_4[] ="/timestamp";
     
     char topic_pub_1[] ="/topic/qos1";
     char topic_pub_2[] ="/pneumatic-brush-device/states"; 
@@ -119,6 +123,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
         msg_id = esp_mqtt_client_subscribe(client, topic_sub_3, 0);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+
+        msg_id = esp_mqtt_client_subscribe(client, topic_sub_4, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
         // msg_id = esp_mqtt_client_subscribe(client, topic_pub_1, 1);
         // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
@@ -337,7 +344,7 @@ void app_main(void)
     // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");7
     mqtt_app_start();
 
-    //test_app_1();
+    //test_app();
     //cJSON_init();   //test cjson
     //get_conf();
 //GPIO
@@ -387,14 +394,38 @@ void app_main(void)
     gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
 
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
+//GPIO_IO_DS18B20    GPIO_INOUT_PIN_SEL
+    // io_conf.intr_type = GPIO_INTR_DISABLE;
+    // io_conf.mode = GPIO_MODE_INPUT_OUTPUT;
+    // io_conf.pin_bit_mask = GPIO_INOUT_PIN_SEL;
+    // io_conf.pull_down_en = 0;
+    // io_conf.pull_up_en = 0;
+    // gpio_config(&io_conf);
     int cnt = 0;
+    int data_temp = 0;
+    // int msg_id;
+    // char topic_pub_2[] ="/pneumatic-brush-device/states"; 
+    // char data_pub_1[300] = "init";
     while(1) {
         // printf("cnt: %d\n", cnt++);
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
         blink_led();
         /* Toggle the LED state */
         s_led_state = !s_led_state;
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(10000 / portTICK_RATE_MS);
+        ReadTemperature();
+        // DS18B20_Start();    
+        // data_temp = DS18B20_ReadByte();
+        // data_temp = data_temp<<8;
+        // data_temp += DS18B20_ReadByte();
+        // printf("data_temp: %x\n", data_temp);
+        // data_temp = 0;
+        // bursh_para.counter_1s++;
+        // if(bursh_para.counter_1s%10==1){
+        //     data_publish(data_pub_1,1); 
+        //     msg_id = esp_mqtt_client_publish(client, topic_pub_2, data_pub_1, 0, 1, 0);
+        //     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        // }
         // gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
         // gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
         //get_conf();
@@ -528,26 +559,7 @@ esp_err_t get_chip_id(uint32_t* chip_id){
     return status;
 }
 
-void cJSON_init(void)
-{
-    cJSON*root = cJSON_CreateObject();
-    cJSON *item = cJSON_CreateObject();
 
-    // cJSON_AddItemToObject(root, "MQTT",cJSON_CreateString("MQTT->ID"));
-    // cJSON_AddItemToObject(root, "id",cJSON_CreateString("192.168.0.1"));
-    // cJSON_AddItemToObject(root, "params",cJSON_CreateString("123456"));
-    // cJSON_AddItemToObject(root, "temperature",cJSON_CreateString("30"));
-    // cJSON_AddItemToObject(root, "Version",cJSON_CreateString("1.0011"));
-    //CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
-    cJSON_AddNumberToObject(root, "nozzle",1);
-    cJSON_AddNumberToObject(root, "status",1);
-    char *msg = cJSON_Print(root);
-    printf("%s\n",msg);
-
-    cJSON_Delete(root);
-
-    return 0;
-}
 void para_init(void)
 {
     uint32_t id;
@@ -563,4 +575,20 @@ void para_init(void)
     bursh_para.stop = 0;
     bursh_para.timestamp = 1654585625000;
     strcpy(bursh_para.msg_id,"msg_id");
+    bursh_para.counter_1s = 0;
+}
+
+void cJSON_init(void)
+{
+    cJSON*root = cJSON_CreateObject();
+    cJSON *item = cJSON_CreateObject();
+    //CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
+    cJSON_AddNumberToObject(root, "nozzle",1);
+    cJSON_AddNumberToObject(root, "status",1);
+    char *msg = cJSON_Print(root);
+    printf("%s\n",msg);
+
+    cJSON_Delete(root);
+
+    return 0;
 }

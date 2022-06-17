@@ -30,6 +30,12 @@
     "tuple": "cpp",
     "utility": "cpp",
     "thread": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "ds18b20.h": "c",
+    "task.h": "c",
+    "stdarg.h": "c",
+    "gpio.h": "c",
+    "esp_err.h": "c",
+    "pid_ctrl.h": "c"
   }
 }

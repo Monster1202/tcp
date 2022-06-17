@@ -709,3 +709,10 @@
 /home/yuan/esp/tcp/build/esp-idf/cJSON/CMakeFiles/rebuild_cache.dir
 /home/yuan/esp/tcp/build/esp-idf/cJSON/CMakeFiles/install.dir
 /home/yuan/esp/tcp/build/esp-idf/cJSON/CMakeFiles/list_install_components.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/install/strip.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/install/local.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/edit_cache.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/__idf_ds18b20.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/rebuild_cache.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/install.dir
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/CMakeFiles/list_install_components.dir

@@ -126,6 +126,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/yuan/esp/tcp/build/esp-idf/led_strip/cmake_install.cmake")
   include("/home/yuan/esp/tcp/build/esp-idf/backup/cmake_install.cmake")
   include("/home/yuan/esp/tcp/build/esp-idf/cJSON/cmake_install.cmake")
+  include("/home/yuan/esp/tcp/build/esp-idf/ds18b20/cmake_install.cmake")
 
 endif()
 

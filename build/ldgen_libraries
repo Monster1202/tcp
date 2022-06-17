@@ -76,3 +76,4 @@
 /home/yuan/esp/tcp/build/esp-idf/led_strip/libled_strip.a
 /home/yuan/esp/tcp/build/esp-idf/backup/libbackup.a
 /home/yuan/esp/tcp/build/esp-idf/cJSON/libcJSON.a
+/home/yuan/esp/tcp/build/esp-idf/ds18b20/libds18b20.a

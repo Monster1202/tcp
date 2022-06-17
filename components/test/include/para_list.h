@@ -23,6 +23,7 @@ typedef struct
     uint8_t stop;
     double timestamp;
     char msg_id[30];
+    uint8_t counter_1s;
 
 }PARAMETER_BRUSH;
 
