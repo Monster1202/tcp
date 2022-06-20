@@ -268,7 +268,8 @@ void app_main(void)
      * Read "Establishing Wi-Fi or Ethernet Connection" section in
      * examples/protocols/README.md for more information about this function.
      */
-    ESP_ERROR_CHECK(example_connect());   //wifi connect
+//wifi connect
+    ESP_ERROR_CHECK(example_connect());   
     // esp_err_t ret = nvs_flash_init();
     // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
     //   ESP_ERROR_CHECK(nvs_flash_erase());
@@ -276,23 +277,12 @@ void app_main(void)
     // }
     // ESP_ERROR_CHECK(ret);
     // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");7
-    //mqtt_app_start();
-
+//MQTT enable    
+    mqtt_app_start();
     //test_app();
     //cJSON_init();   //test cjson
     //get_conf();
     // int cnt = 0;
-     
-    // printf("ds18b20_init\n");
-    //ds18b20_init(TEMP_BUS);
-    // printf("ds18b20_init1\n");
-	// getTempAddresses(tempSensors);
-    // printf("ds18b20_init2\n");
-	// ds18b20_setResolution(tempSensors,2,10);
-
-	// printf("Address 0: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[0][0],tempSensors[0][1],tempSensors[0][2],tempSensors[0][3],tempSensors[0][4],tempSensors[0][5],tempSensors[0][6],tempSensors[0][7]);
-	// printf("Address 1: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[1][0],tempSensors[1][1],tempSensors[1][2],tempSensors[1][3],tempSensors[1][4],tempSensors[1][5],tempSensors[1][6],tempSensors[1][7]);
-    
     uint8_t s_led_state = 0;
     while(1) {
         // printf("cnt: %d\n", cnt++);
@@ -300,21 +290,8 @@ void app_main(void)
          blink_led(s_led_state);
         // /* Toggle the LED state */
         s_led_state = !s_led_state;
-        vTaskDelay(10000 / portTICK_RATE_MS);
-
-        // ds18b20_requestTemperatures();
-		// float temp1 = ds18b20_getTempF((DeviceAddress *)tempSensors[0]);
-		// float temp2 = ds18b20_getTempF((DeviceAddress *)tempSensors[1]);
-		// float temp3 = ds18b20_getTempC((DeviceAddress *)tempSensors[0]);
-		// float temp4 = ds18b20_getTempC((DeviceAddress *)tempSensors[1]);
-		// printf("Temperatures: %0.1fF %0.1fF\n", temp1,temp2);
-		// printf("Temperatures: %0.1fC %0.1fC\n", temp3,temp4);
-
-		// float cTemp = ds18b20_get_temp();
-		// printf("Temperature: %0.1fC\n", cTemp);
-         ReadTemperature();
-        // DS18B20_Start();    
-
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        bursh_para.temperature = ReadTemperature();
 
         // gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
         // gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
@@ -425,7 +402,8 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "nozzle",bursh_para.nozzle);
         cJSON_AddNumberToObject(root, "centralizer",bursh_para.centralizer);
         cJSON_AddNumberToObject(root, "rotation",bursh_para.rotation);
-        cJSON_AddNumberToObject(root, "emergency_stop",bursh_para.emergency_stop);             
+        cJSON_AddNumberToObject(root, "emergency_stop",bursh_para.emergency_stop);  
+        cJSON_AddNumberToObject(root, "temperature",bursh_para.temperature);           
         cJSON_AddNumberToObject(root, "timestamp",bursh_para.timestamp);
         cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(bursh_para.msg_id)); //
         }
@@ -464,6 +442,7 @@ void para_init(void)
     bursh_para.emergency_stop = 0;
     bursh_para.timestamp = 1654585625000;
     strcpy(bursh_para.msg_id,"msg_id");
+    bursh_para.temperature = 0;
     bursh_para.counter_1s = 0;
 }
 
@@ -650,4 +629,29 @@ void mqtt_active_pub(void)
         //     msg_id = esp_mqtt_client_publish(client, topic_pub_2, data_pub_1, 0, 1, 0);
         //     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         // }
+}
+void test(void)
+{
+        // printf("ds18b20_init\n");
+    //ds18b20_init(TEMP_BUS);
+    // printf("ds18b20_init1\n");
+	// getTempAddresses(tempSensors);
+    // printf("ds18b20_init2\n");
+	// ds18b20_setResolution(tempSensors,2,10);
+
+	// printf("Address 0: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[0][0],tempSensors[0][1],tempSensors[0][2],tempSensors[0][3],tempSensors[0][4],tempSensors[0][5],tempSensors[0][6],tempSensors[0][7]);
+	// printf("Address 1: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[1][0],tempSensors[1][1],tempSensors[1][2],tempSensors[1][3],tempSensors[1][4],tempSensors[1][5],tempSensors[1][6],tempSensors[1][7]);
+    
+            // ds18b20_requestTemperatures();
+		// float temp1 = ds18b20_getTempF((DeviceAddress *)tempSensors[0]);
+		// float temp2 = ds18b20_getTempF((DeviceAddress *)tempSensors[1]);
+		// float temp3 = ds18b20_getTempC((DeviceAddress *)tempSensors[0]);
+		// float temp4 = ds18b20_getTempC((DeviceAddress *)tempSensors[1]);
+		// printf("Temperatures: %0.1fF %0.1fF\n", temp1,temp2);
+		// printf("Temperatures: %0.1fC %0.1fC\n", temp3,temp4);
+
+		// float cTemp = ds18b20_get_temp();
+		// printf("Temperature: %0.1fC\n", cTemp);
+        
+        // DS18B20_Start();    
 }

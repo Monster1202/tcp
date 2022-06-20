@@ -67,8 +67,8 @@ extern "C" {
 
 //test2
 esp_err_t test_app(void);
-void ReadTemperature(void);
- #define GPIO_IO_DS18B20    14
+double ReadTemperature(void);
+ #define GPIO_IO_DS18B20    9
 
 // #define GPIO_INPUT_PIN_SEL  (1ULL<<GPIO_IO_DS18B20)
 
