@@ -20,7 +20,7 @@ typedef struct
     uint8_t status;     //status upload
     uint8_t water;
     uint8_t pressure_alarm;
-    uint8_t stop;
+    uint8_t emergency_stop;
     double timestamp;
     char msg_id[30];
     uint8_t counter_1s;

@@ -36,6 +36,8 @@
     "stdarg.h": "c",
     "gpio.h": "c",
     "esp_err.h": "c",
-    "pid_ctrl.h": "c"
+    "pid_ctrl.h": "c",
+    "stddef.h": "c",
+    "algorithm": "c"
   }
 }
