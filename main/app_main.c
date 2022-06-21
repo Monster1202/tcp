@@ -56,7 +56,7 @@ static led_strip_t *pStrip_a;
 #define GPIO_INPUT_IO_1     7
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
 #define ESP_INTR_FLAG_DEFAULT 0
-// #define GPIO_IO_DS18B20    8
+// #define GPIO_IO_DS18B20    9
 // #define GPIO_INOUT_PIN_SEL  (1ULL<<GPIO_IO_DS18B20)
 
 #define KEY_SPEED_LONG 200 //long press debug time(ms)
@@ -208,41 +208,6 @@ static void mqtt_app_start(void)
     esp_mqtt_client_start(client);
 }
 
-// #define TEMP_BUS 14
-// #define LED 2
-// #define HIGH 1
-// #define LOW 0
-// #define digitalWrite gpio_set_level
-
-// DeviceAddress tempSensors[2];
-
-// void getTempAddresses(DeviceAddress *tempSensorAddresses) {
-// 	unsigned int numberFound = 0;
-// 	reset_search();
-// 	// search for 2 addresses on the oneWire protocol
-// 	while (search(tempSensorAddresses[numberFound],true)) {
-// 		numberFound++;
-// 		if (numberFound == 2) break;
-// 	}
-    
-// 	// if 2 addresses aren't found then flash the LED rapidly
-// 	while (numberFound != 2) {
-// 		numberFound = 0;
-// 		blink_led(1);//digitalWrite(LED, HIGH);
-// 		vTaskDelay(100 / portTICK_PERIOD_MS);
-// 		blink_led(0);//digitalWrite(LED, LOW);
-// 		vTaskDelay(100 / portTICK_PERIOD_MS);
-// 		// search in the loop for the temp sensors as they may hook them up
-// 		reset_search();
-//         //printf("getTempAddresses\n");
-// 		while (search(tempSensorAddresses[numberFound],true)) {
-// 			numberFound++;
-// 			if (numberFound == 2) break;
-// 		}
-// 	}
-//     printf("getTempAddresses2\n");
-// 	return;
-// }
 
 void app_main(void)
 {
@@ -655,3 +620,39 @@ void test(void)
         
         // DS18B20_Start();    
 }
+
+// #define TEMP_BUS 14
+// #define LED 2
+// #define HIGH 1
+// #define LOW 0
+// #define digitalWrite gpio_set_level
+
+// DeviceAddress tempSensors[2];
+
+// void getTempAddresses(DeviceAddress *tempSensorAddresses) {
+// 	unsigned int numberFound = 0;
+// 	reset_search();
+// 	// search for 2 addresses on the oneWire protocol
+// 	while (search(tempSensorAddresses[numberFound],true)) {
+// 		numberFound++;
+// 		if (numberFound == 2) break;
+// 	}
+    
+// 	// if 2 addresses aren't found then flash the LED rapidly
+// 	while (numberFound != 2) {
+// 		numberFound = 0;
+// 		blink_led(1);//digitalWrite(LED, HIGH);
+// 		vTaskDelay(100 / portTICK_PERIOD_MS);
+// 		blink_led(0);//digitalWrite(LED, LOW);
+// 		vTaskDelay(100 / portTICK_PERIOD_MS);
+// 		// search in the loop for the temp sensors as they may hook them up
+// 		reset_search();
+//         //printf("getTempAddresses\n");
+// 		while (search(tempSensorAddresses[numberFound],true)) {
+// 			numberFound++;
+// 			if (numberFound == 2) break;
+// 		}
+// 	}
+//     printf("getTempAddresses2\n");
+// 	return;
+// }
