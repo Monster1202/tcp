@@ -276,11 +276,23 @@ void data_process(char *data)
         bursh_para.timestamp = json_emergency_stop->valueint;
         printf("emergency_stop = %d\n", json_emergency_stop->valueint);
         if(json_emergency_stop->valueint){
-            gpio_set_level(GPIO_OUTPUT_IO_STOP, 1);
+            //gpio_set_level(GPIO_OUTPUT_IO_STOP, 1);
             bursh_para.emergency_stop = 1;
-            printf("bursh_para.emergency_stop = 1\n");}
+            printf("bursh_para.emergency_stop = 1\n");
+            gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+            gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+            bursh_para.nozzle = 0;
+            printf("bursh_para.nozzle = 0\n");
+            gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
+            gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+            bursh_para.centralizer = 0;
+            printf("bursh_para.centralizer = 0\n");
+            gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
+            gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
+            bursh_para.rotation = 0;
+            printf("bursh_para.rotation = 0\n");}            
         else{
-            gpio_set_level(GPIO_OUTPUT_IO_STOP, 0);
+            //gpio_set_level(GPIO_OUTPUT_IO_STOP, 0);
             bursh_para.emergency_stop = 0;
             printf("bursh_para.emergency_stop = 0\n");}
     }
@@ -304,7 +316,7 @@ void data_process(char *data)
                 else{
                     gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
                     gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-                    bursh_para.nozzle = 2;
+                    bursh_para.nozzle = 0;
                     printf("bursh_para.nozzle = 0\n");}
             }
             else if(strcmp(json_switch_name->valuestring,"centralizer")==0){
