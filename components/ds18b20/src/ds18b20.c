@@ -11,16 +11,16 @@
 // #include "sdkconfig.h"
 // #include "esp_flash.h"
 // #include "esp_attr.h"
-esp_err_t test_app(void)
-{
-    printf("KEY_ONCE\n");
-    //delay_us(750);
-    vTaskDelay(1000 / portTICK_RATE_MS);
-    usleep(1000);
-   // gpio_set_level(GPIO_IO_DS18B20, 1);	
-    return ESP_OK;
+// esp_err_t test_app(void)
+// {
+//     printf("KEY_ONCE\n");
+//     //delay_us(750);
+//     vTaskDelay(1000 / portTICK_RATE_MS);
+//     usleep(1000);
+//    // gpio_set_level(GPIO_IO_DS18B20, 1);	
+//     return ESP_OK;
     
-}
+// }
 void delay_us(int cnt)
 {
   //vTaskDelay(1 / portTICK_RATE_MS);
@@ -48,8 +48,8 @@ void Init_DS18B20(void)
 {
 	unsigned char t = 0;
 	DS_DIR_OUT();  //让GPIO口为推挽输出模式
-	gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
-	delay_us(1); 
+	// gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
+	// delay_us(1); 
 	gpio_set_level(GPIO_IO_DS18B20, 0);  //发送复位脉冲 ds18b20 DQ管脚接到单片机的PB9
 	delay_us(300); 		//延时（>480us) 
 	gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
@@ -75,8 +75,8 @@ void Init_DS18B20(void)
 //单片机向DS18B20写一位  0  对应上图里面 左上方的图
 void Write_Bit_0(void)
 {
-	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
-	delay_us(1); 
+	// gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
+	// delay_us(1); 
 	gpio_set_level(GPIO_IO_DS18B20, 0); //拉低
 	delay_us(60);  //在60us --- 120us之间
 	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
@@ -85,8 +85,8 @@ void Write_Bit_0(void)
 //单片机向DS18B20写一位 1
 void Write_Bit_1(void)
 {
-	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
-	delay_us(1); 
+	// gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
+	// delay_us(1); 
 	gpio_set_level(GPIO_IO_DS18B20, 0); //拉低 
 	delay_us(10);  //拉低大于1us
 	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高

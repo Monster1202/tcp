@@ -66,7 +66,7 @@ extern "C" {
 // bool search(uint8_t *newAddr, bool search_mode);
 
 //test2
-esp_err_t test_app(void);
+//esp_err_t test_app(void);
 double ReadTemperature(void);
  #define GPIO_IO_DS18B20    9
 

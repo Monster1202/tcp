@@ -8,6 +8,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -31,9 +32,10 @@
 #include "mqtt_client.h"
 #include "cJSON.h"
 #include "para_list.h"
-//#include "dev_para.h"
 #include "ds18b20.h"
+#include "uart485.h"
 //#include "pid_ctrl.h"
+
 //gpio
 #include "driver/gpio.h"
 #include "led_strip.h"
@@ -79,7 +81,7 @@ void gpio_init(void);
 static void blink_led(uint8_t s_led_state);
 static void configure_led(void);
 static const char *TAG = "MQTT_EXAMPLE";
-
+void ds18b20_read(void* arg);
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -229,10 +231,10 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
+//DS18B20 task
+    xTaskCreate(ds18b20_read, "ds18b20_read", 2048, NULL, 11, NULL);
+//uart read/write example without event queue;
+    xTaskCreate(uart485_task, "uart_echo_task", 2048, NULL, 12, NULL);
 //wifi connect
     ESP_ERROR_CHECK(example_connect());   
     // esp_err_t ret = nvs_flash_init();
@@ -256,13 +258,13 @@ void app_main(void)
         // /* Toggle the LED state */
         s_led_state = !s_led_state;
         vTaskDelay(2000 / portTICK_RATE_MS);
-        bursh_para.temperature = ReadTemperature();
-
+        //bursh_para.temperature = ReadTemperature();
         // gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
         // gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
         //get_conf();
     }
 }
+
 
 void data_process(char *data)
 {
@@ -368,6 +370,53 @@ void data_process(char *data)
     }
     //cJSON_Delete(json_str_xy);
 }
+
+int Compare_double(const void* a, const void* b)
+{
+	double arg1 = *(const double*)a;
+	double arg2 = *(const double*)b;
+	double arg3 = arg1 - arg2;
+	double eps = 1e-6;
+	if (-eps <= arg3 && arg3 <= eps)
+	{
+		return 0;
+	}
+	if (eps <= arg3 )
+	{
+		return 1;
+	}
+	if ( arg3 <= -eps)
+	{
+		return -1;
+	}
+    return 0;
+}
+
+void ds18b20_read(void* arg)
+{
+    double temp[5]={0};
+    //int temp_int[5]={0};
+    double temp_mid = 0;
+    for(;;)
+    {
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        temp[0]=ReadTemperature();
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        temp[1]=ReadTemperature();
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        temp[2]=ReadTemperature();
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        temp[3]=ReadTemperature();
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        temp[4]=ReadTemperature();
+        qsort(temp, 5, sizeof(temp[0]), Compare_double); 
+        temp_mid = temp[2];
+        bursh_para.temperature = temp_mid;//ReadTemperature();
+        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
+
+    }
+}
+
 
 void data_publish(char *data,uint8_t case_pub)
 {

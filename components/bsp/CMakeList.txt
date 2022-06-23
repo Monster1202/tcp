@@ -1,7 +1,0 @@
-
-set(srcs "src/dev_para.c")
-
-idf_component_register(SRCS "${srcs}"
-                       INCLUDE_DIRS "include")
-
-
