@@ -234,7 +234,7 @@ void app_main(void)
 //DS18B20 task
     xTaskCreate(ds18b20_read, "ds18b20_read", 2048, NULL, 11, NULL);
 //uart read/write example without event queue;
-    xTaskCreate(uart485_task, "uart_echo_task", 2048, NULL, 12, NULL);
+    //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 //wifi connect
     ESP_ERROR_CHECK(example_connect());   
     // esp_err_t ret = nvs_flash_init();
@@ -399,20 +399,24 @@ void ds18b20_read(void* arg)
     double temp_mid = 0;
     for(;;)
     {
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[0]=ReadTemperature();
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[1]=ReadTemperature();
+               
         vTaskDelay(2000 / portTICK_RATE_MS);
-        temp[0]=ReadTemperature();
-        vTaskDelay(2000 / portTICK_RATE_MS);
-        temp[1]=ReadTemperature();
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        taskENTER_CRITICAL();
+        //taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//
         temp[2]=ReadTemperature();
-        vTaskDelay(2000 / portTICK_RATE_MS);
-        temp[3]=ReadTemperature();
-        vTaskDelay(2000 / portTICK_RATE_MS);
-        temp[4]=ReadTemperature();
-        qsort(temp, 5, sizeof(temp[0]), Compare_double); 
+        //taskENTER_CRITICAL_FROM_ISR();//taskEXIT_CRITICAL();//vPortExitCritical();//
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[3]=ReadTemperature();
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[4]=ReadTemperature();
+        // qsort(temp, 5, sizeof(temp[0]), Compare_double); 
         temp_mid = temp[2];
         bursh_para.temperature = temp_mid;//ReadTemperature();
-        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
+        //printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
 
     }
 }
