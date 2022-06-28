@@ -7,12 +7,13 @@ cmake_minimum_required(VERSION 3.5)
 set(EXTRA_COMPONENT_DIRS 
 $ENV{IDF_PATH}/examples/common_components/protocol_examples_common
 $ENV{IDF_PATH}/examples/common_components/led_strip)
+
 #$ENV{IDF_PATH}/examples/common_components/bsp)
 #$ENV{IDF_PATH}/examples/common_components/cjson)
 #$ENV{IDF_PATH}/examples/common_components/test)
-#set(EXTRA_COMPONENT_DIRS "S{EXTRA_COMPONENT_DIRS} component")
-#register_component()
-#/home/yuan/esp/tcp/component/bsp)
+# set(EXTRA_COMPONENT_DIRS "S{EXTRA_COMPONENT_DIRS} components")
+# register_component()
+# /home/yuan/esp/tcp/components/para_list)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(mqtt_tcp)

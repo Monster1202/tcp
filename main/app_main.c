@@ -33,8 +33,8 @@
 #include "cJSON.h"
 #include "para_list.h"
 #include "ds18b20.h"
-#include "uart485.h"
-//#include "pid_ctrl.h"
+//#include "uart485.h"
+#include "pressure_i2c.h"
 
 //#include "portmacro.h"
 //gpio
@@ -82,7 +82,8 @@ void gpio_init(void);
 static void blink_led(uint8_t s_led_state);
 static void configure_led(void);
 static const char *TAG = "MQTT_EXAMPLE";
-void ds18b20_read(void* arg);
+//void ds18b20_read(void* arg);
+//void pressure_read(void* arg);
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -240,6 +241,8 @@ void app_main(void)
     xTaskCreate(ds18b20_read, "ds18b20_read", 2048, NULL, 11, NULL);
 //uart read/write example without event queue;
     //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
+//pressure_read
+    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //wifi connect
     ESP_ERROR_CHECK(example_connect());   
     // esp_err_t ret = nvs_flash_init();
@@ -259,13 +262,10 @@ void app_main(void)
     while(1) {
         // printf("cnt: %d\n", cnt++);
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
-         blink_led(s_led_state);
+        blink_led(s_led_state);
         // /* Toggle the LED state */
         s_led_state = !s_led_state;
         vTaskDelay(2000 / portTICK_RATE_MS);
-        //bursh_para.temperature = ReadTemperature();
-        // gpio_set_level(GPIO_OUTPUT_IO_0, cnt % 2);
-        // gpio_set_level(GPIO_OUTPUT_IO_1, cnt % 2);
         //get_conf();
     }
 }
@@ -376,68 +376,7 @@ void data_process(char *data)
     //cJSON_Delete(json_str_xy);
 }
 
-int Compare_double(const void* a, const void* b)
-{
-	double arg1 = *(const double*)a;
-	double arg2 = *(const double*)b;
-	double arg3 = arg1 - arg2;
-	double eps = 1e-6;
-	if (-eps <= arg3 && arg3 <= eps)
-	{
-		return 0;
-	}
-	if (eps <= arg3 )
-	{
-		return 1;
-	}
-	if ( arg3 <= -eps)
-	{
-		return -1;
-	}
-    return 0;
-}
 
-void ds18b20_read(void* arg)
-{
-    static double temp[5]={0};
-    double temp_sorted[5]={0};
-    //int temp_int[5]={0};
-    double temp_mid = 0;
-    for(;;)
-    {
-        vTaskDelay(2000 / portTICK_RATE_MS);
-        temp[4]=ReadTemperature();
-        for(uint8_t i=0;i<5;i++)
-            temp_sorted[i] = temp[i];
-        qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
-        temp_mid = temp_sorted[2];
-        bursh_para.temperature = temp_mid;
-//        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
-        printf("qsort-temp_mid:%f\n",temp_mid);
-        for(uint8_t i=1;i<5;i++)
-            temp[i-1] = temp[i];
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[0]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[1]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[2]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[3]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[4]=ReadTemperature();
-        // qsort(temp, 5, sizeof(temp[0]), Compare_double); 
-        // temp_mid = temp[2];
-        // bursh_para.temperature = temp_mid;//ReadTemperature();
-         //printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
-        // taskENTER_CRITICAL();
-        // vPortEnterCritical();      
-        // portENABLE_INTERRUPTS();
-        // taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//  
-        // portDISABLE_INTERRUPTS();
-        // taskENTER_CRITICAL_FROM_ISR();//taskEXIT_CRITICAL();//vPortExitCritical();//
-    }
-}
 
 
 void data_publish(char *data,uint8_t case_pub)

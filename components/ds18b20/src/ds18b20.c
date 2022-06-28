@@ -2,25 +2,17 @@
 #include <sys/param.h>
 #include "esp_check.h"
 #include "esp_log.h"
-//#include "pid_ctrl.h"
+
 #include "ds18b20.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sys/unistd.h"
+#include "para_list.h"
 // #include <stdarg.h>
 // #include "sdkconfig.h"
 // #include "esp_flash.h"
 // #include "esp_attr.h"
-// esp_err_t test_app(void)
-// {
-//     printf("KEY_ONCE\n");
-//     //delay_us(750);
-//     vTaskDelay(1000 / portTICK_RATE_MS);
-//     usleep(1000);
-//    // gpio_set_level(GPIO_IO_DS18B20, 1);	
-//     return ESP_OK;
-    
-// }
+
 void delay_us(int cnt)
 {
   //vTaskDelay(1 / portTICK_RATE_MS);
@@ -173,6 +165,69 @@ double ReadTemperature(void)
 	temp = (double)sdata * 0.0625;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
 	printf("temp=%f\r\n",temp);
 	return temp;
+}
+
+int Compare_double(const void* a, const void* b)
+{
+	double arg1 = *(const double*)a;
+	double arg2 = *(const double*)b;
+	double arg3 = arg1 - arg2;
+	double eps = 1e-6;
+	if (-eps <= arg3 && arg3 <= eps)
+	{
+		return 0;
+	}
+	if (eps <= arg3 )
+	{
+		return 1;
+	}
+	if ( arg3 <= -eps)
+	{
+		return -1;
+	}
+    return 0;
+}
+void ds18b20_read(void* arg)
+{
+    static double temp[5]={0};
+    double temp_sorted[5]={0};
+    //int temp_int[5]={0};
+    double temp_mid = 0;
+    for(;;)
+    {
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        temp[4]=ReadTemperature();
+        for(uint8_t i=0;i<5;i++)
+            temp_sorted[i] = temp[i];
+        qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
+        temp_mid = temp_sorted[2];
+        //bursh_para.temperature = temp_mid;
+		parameter_write_temperature(temp_mid);
+//        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
+        printf("qsort-temp_mid:%f\n",temp_mid);
+        for(uint8_t i=1;i<5;i++)
+            temp[i-1] = temp[i];
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[0]=ReadTemperature();
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[1]=ReadTemperature();
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[2]=ReadTemperature();
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[3]=ReadTemperature();
+        // vTaskDelay(2000 / portTICK_RATE_MS);
+        // temp[4]=ReadTemperature();
+        // qsort(temp, 5, sizeof(temp[0]), Compare_double); 
+        // temp_mid = temp[2];
+        // bursh_para.temperature = temp_mid;//ReadTemperature();
+         //printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
+        // taskENTER_CRITICAL();
+        // vPortEnterCritical();      
+        // portENABLE_INTERRUPTS();
+        // taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//  
+        // portDISABLE_INTERRUPTS();
+        // taskENTER_CRITICAL_FROM_ISR();//taskEXIT_CRITICAL();//vPortExitCritical();//
+    }
 }
 /*******************************************************************************
   * 函数名：DS18B20_set

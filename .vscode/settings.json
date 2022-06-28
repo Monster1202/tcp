@@ -43,6 +43,8 @@
     "uart485.h": "c",
     "para_list.h": "c",
     "queue.h": "c",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "pressure_i2c.h": "c",
+    "unistd.h": "c"
   }
 }
