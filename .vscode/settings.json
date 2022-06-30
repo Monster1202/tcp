@@ -45,6 +45,10 @@
     "queue.h": "c",
     "freertos.h": "c",
     "pressure_i2c.h": "c",
-    "unistd.h": "c"
+    "unistd.h": "c",
+    "string.h": "c",
+    "nvs_flash.h": "c",
+    "bitset": "c",
+    "chrono": "c"
   }
 }

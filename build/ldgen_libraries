@@ -73,9 +73,10 @@
 /home/yuan/esp/tcp/build/esp-idf/main/libmain.a
 /home/yuan/esp/tcp/build/esp-idf/protocol_examples_common/libprotocol_examples_common.a
 /home/yuan/esp/tcp/build/esp-idf/led_strip/libled_strip.a
-/home/yuan/esp/tcp/build/esp-idf/backup/libbackup.a
+/home/yuan/esp/tcp/build/esp-idf/backup1/libbackup1.a
 /home/yuan/esp/tcp/build/esp-idf/cJSON/libcJSON.a
 /home/yuan/esp/tcp/build/esp-idf/para_list/libpara_list.a
 /home/yuan/esp/tcp/build/esp-idf/ds18b20/libds18b20.a
 /home/yuan/esp/tcp/build/esp-idf/pressure_i2c/libpressure_i2c.a
 /home/yuan/esp/tcp/build/esp-idf/uart485/libuart485.a
+/home/yuan/esp/tcp/build/esp-idf/wifi/libwifi.a

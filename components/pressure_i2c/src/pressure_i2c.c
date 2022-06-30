@@ -66,16 +66,22 @@ static esp_err_t i2c_master_init(void)
     return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
-void pressure_read(void* arg)//;//void pressure_i2c(void)
+void pressure_read(void* arg)
 {
     uint8_t data[2];
     ESP_ERROR_CHECK(i2c_master_init());
     ESP_LOGI(TAG, "I2C initialized successfully");
     uint16_t pressure = 0;
-    /* Read the MPU9250 WHO_AM_I register, on power up the register should have the value 0x71 */
+    esp_err_t err_print = 0;
     while(1)
     {
-        ESP_ERROR_CHECK(register_read(REG_ADDR, data, 2));
+        //2 in 8 registers 
+        data[0]=0;
+        data[1]=0;
+        err_print = register_read(REG_ADDR, data, 2);
+        if(err_print == -1)
+            printf("i2c_register_read_err_print: %d\n", err_print);
+        //ESP_ERROR_CHECK(register_read(REG_ADDR, data, 2));
         pressure = data[0]+(uint16_t)(data[1]<<8);
         ESP_LOGI(TAG, "pressure = %d kpa", pressure);
         parameter_write_pressure(pressure);
@@ -86,6 +92,5 @@ void pressure_read(void* arg)//;//void pressure_i2c(void)
 
     // ESP_ERROR_CHECK(i2c_driver_delete(I2C_MASTER_NUM));
     // ESP_LOGI(TAG, "I2C unitialized successfully");
-
 }
 

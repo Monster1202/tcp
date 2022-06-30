@@ -147,7 +147,7 @@ double ReadTemperature(void)
 	Init_DS18B20(); 					//初始化
 	WriteOneChar(0xcc); 				//跳过读序列号的操作
 	WriteOneChar(0x44); 				//启动温度转换
-	delay_us(1000);					    //转换需要一点时间，延时 
+	delay_us(10000);					    //转换需要一点时间，延时 
 	Init_DS18B20(); 					//初始化
 	WriteOneChar(0xcc); 				//跳过读序列号的操作 
 	WriteOneChar(0xbe); 				//读温度寄存器（头两个值分别为温度的低位和高位）	

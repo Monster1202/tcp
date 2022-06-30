@@ -13,6 +13,9 @@ uint16_t parameter_read_pressure(void);
 void parameter_write_pressure(uint16_t pressure);
 void parameter_write_temperature(uint16_t temperature);
 uint16_t parameter_read_temperature(void);
+void para_init(void);
+esp_err_t get_chip_id(uint32_t* chip_id);
+
 
 typedef struct
 {

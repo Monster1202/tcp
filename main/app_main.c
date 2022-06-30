@@ -35,6 +35,7 @@
 #include "ds18b20.h"
 //#include "uart485.h"
 #include "pressure_i2c.h"
+#include "wifi_sta.h"
 
 //#include "portmacro.h"
 //gpio
@@ -68,7 +69,7 @@ static led_strip_t *pStrip_a;
 #define KEY_ONCE 1
 #define KEY_TWICE 2
 #define KEY_LONG 3
-
+#define MQTT_BROKER_URL "mqtt://172.16.161.171"
 
 extern PARAMETER_BRUSH bursh_para;
 
@@ -76,8 +77,7 @@ void sw_key_read(uint8_t io_num);
 uint8_t KEY_READ(uint8_t io_num);
 void data_process(char *data);
 void data_publish(char *data,uint8_t case_pub);
-esp_err_t get_chip_id(uint32_t* chip_id);
-void para_init(void);
+
 void gpio_init(void);
 static void blink_led(uint8_t s_led_state);
 static void configure_led(void);
@@ -183,7 +183,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = CONFIG_BROKER_URL,
+        .uri = MQTT_BROKER_URL,//CONFIG_BROKER_URL,
     };
 #if CONFIG_BROKER_URL_FROM_STDIN
     char line[128];
@@ -233,30 +233,20 @@ void app_main(void)
     esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
     esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
 //DS18B20 task
-    xTaskCreate(ds18b20_read, "ds18b20_read", 2048, NULL, 11, NULL);
+    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 30, NULL);
 //uart read/write example without event queue;
     //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 //pressure_read
     xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
-//wifi connect
-    ESP_ERROR_CHECK(example_connect());   
-    // esp_err_t ret = nvs_flash_init();
-    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    //   ESP_ERROR_CHECK(nvs_flash_erase());
-    //   ret = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK(ret);
-    // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");7
+//wifi connect STA
+    wifi_connect();
+    // ESP_ERROR_CHECK(nvs_flash_init());
+    // ESP_ERROR_CHECK(esp_netif_init());
+    // ESP_ERROR_CHECK(esp_event_loop_create_default());
+    //    ESP_ERROR_CHECK(example_connect());  
 //MQTT enable    
     mqtt_app_start();
-    //test_app();
-    //cJSON_init();   //test cjson
-    //get_conf();
     // int cnt = 0;
     uint8_t s_led_state = 0;
     while(1) {
@@ -406,32 +396,7 @@ void data_publish(char *data,uint8_t case_pub)
     cJSON_Delete(root);
 }
 
-esp_err_t get_chip_id(uint32_t* chip_id){
-    esp_err_t status = ESP_OK;
-    *chip_id = (REG_READ(0x3FF00050) & 0xFF000000) |
-                         (REG_READ(0x3ff0005C) & 0xFFFFFF);
-    return status;
-}
 
-
-void para_init(void)
-{
-    uint32_t id;
-    get_chip_id(&id);
-    printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
-    bursh_para.uuid = id;
-    bursh_para.nozzle = 0;
-    bursh_para.centralizer = 0;
-    bursh_para.rotation = 0;
-    bursh_para.status = 1;
-    bursh_para.water = 0;
-    bursh_para.pressure_alarm = 0;
-    bursh_para.emergency_stop = 0;
-    bursh_para.timestamp = 1654585625000;
-    strcpy(bursh_para.msg_id,"msg_id");
-    bursh_para.temperature = 0;
-    bursh_para.counter_1s = 0;
-}
 
 void cJSON_init(void)
 {
