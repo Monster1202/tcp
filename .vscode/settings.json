@@ -49,6 +49,7 @@
     "string.h": "c",
     "nvs_flash.h": "c",
     "bitset": "c",
-    "chrono": "c"
+    "chrono": "c",
+    "ota_app.h": "c"
   }
 }

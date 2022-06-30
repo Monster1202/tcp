@@ -36,6 +36,7 @@
 //#include "uart485.h"
 #include "pressure_i2c.h"
 #include "wifi_sta.h"
+#include "ota_app.h"
 
 //#include "portmacro.h"
 //gpio
@@ -247,10 +248,16 @@ void app_main(void)
     //    ESP_ERROR_CHECK(example_connect());  
 //MQTT enable    
     mqtt_app_start();
-    // int cnt = 0;
+    vTaskDelay(10000 / portTICK_RATE_MS);
+    ota_app();
+    //get_sha256_of_partitions();
+    //xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
+    //int cnt = 0;
     uint8_t s_led_state = 0;
     while(1) {
         // printf("cnt: %d\n", cnt++);
+        // if(cnt>10)
+            
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
         blink_led(s_led_state);
         // /* Toggle the LED state */
