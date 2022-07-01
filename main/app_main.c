@@ -248,16 +248,16 @@ void app_main(void)
     //    ESP_ERROR_CHECK(example_connect());  
 //MQTT enable    
     mqtt_app_start();
+//OTA enable
     vTaskDelay(10000 / portTICK_RATE_MS);
-    ota_app();
+    native_ota_app();
+    // ota_app();
     //get_sha256_of_partitions();
     //xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
     //int cnt = 0;
     uint8_t s_led_state = 0;
     while(1) {
         // printf("cnt: %d\n", cnt++);
-        // if(cnt>10)
-            
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
         blink_led(s_led_state);
         // /* Toggle the LED state */
@@ -516,7 +516,6 @@ void sw_key_read(uint8_t io_num)
         break;
     }
     vTaskDelay(10 / portTICK_RATE_MS);
-    //delay_us(10000);
 }
 void gpio_init(void)
 {
@@ -576,77 +575,6 @@ void gpio_init(void)
     // gpio_config(&io_conf);
 }
 
-void mqtt_active_pub(void)
-{
-        // int msg_id;
-    // char topic_pub_2[] ="/pneumatic-brush-device/states"; 
-    // char data_pub_1[300] = "init";
 
-            // bursh_para.counter_1s++;
-        // if(bursh_para.counter_1s%10==1){
-        //     data_publish(data_pub_1,1); 
-        //     msg_id = esp_mqtt_client_publish(client, topic_pub_2, data_pub_1, 0, 1, 0);
-        //     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
-        // }
-}
-void test(void)
-{
-        // printf("ds18b20_init\n");
-    //ds18b20_init(TEMP_BUS);
-    // printf("ds18b20_init1\n");
-	// getTempAddresses(tempSensors);
-    // printf("ds18b20_init2\n");
-	// ds18b20_setResolution(tempSensors,2,10);
 
-	// printf("Address 0: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[0][0],tempSensors[0][1],tempSensors[0][2],tempSensors[0][3],tempSensors[0][4],tempSensors[0][5],tempSensors[0][6],tempSensors[0][7]);
-	// printf("Address 1: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[1][0],tempSensors[1][1],tempSensors[1][2],tempSensors[1][3],tempSensors[1][4],tempSensors[1][5],tempSensors[1][6],tempSensors[1][7]);
-    
-            // ds18b20_requestTemperatures();
-		// float temp1 = ds18b20_getTempF((DeviceAddress *)tempSensors[0]);
-		// float temp2 = ds18b20_getTempF((DeviceAddress *)tempSensors[1]);
-		// float temp3 = ds18b20_getTempC((DeviceAddress *)tempSensors[0]);
-		// float temp4 = ds18b20_getTempC((DeviceAddress *)tempSensors[1]);
-		// printf("Temperatures: %0.1fF %0.1fF\n", temp1,temp2);
-		// printf("Temperatures: %0.1fC %0.1fC\n", temp3,temp4);
 
-		// float cTemp = ds18b20_get_temp();
-		// printf("Temperature: %0.1fC\n", cTemp);
-        
-        // DS18B20_Start();    
-}
-
-// #define TEMP_BUS 14
-// #define LED 2
-// #define HIGH 1
-// #define LOW 0
-// #define digitalWrite gpio_set_level
-
-// DeviceAddress tempSensors[2];
-
-// void getTempAddresses(DeviceAddress *tempSensorAddresses) {
-// 	unsigned int numberFound = 0;
-// 	reset_search();
-// 	// search for 2 addresses on the oneWire protocol
-// 	while (search(tempSensorAddresses[numberFound],true)) {
-// 		numberFound++;
-// 		if (numberFound == 2) break;
-// 	}
-    
-// 	// if 2 addresses aren't found then flash the LED rapidly
-// 	while (numberFound != 2) {
-// 		numberFound = 0;
-// 		blink_led(1);//digitalWrite(LED, HIGH);
-// 		vTaskDelay(100 / portTICK_PERIOD_MS);
-// 		blink_led(0);//digitalWrite(LED, LOW);
-// 		vTaskDelay(100 / portTICK_PERIOD_MS);
-// 		// search in the loop for the temp sensors as they may hook them up
-// 		reset_search();
-//         //printf("getTempAddresses\n");
-// 		while (search(tempSensorAddresses[numberFound],true)) {
-// 			numberFound++;
-// 			if (numberFound == 2) break;
-// 		}
-// 	}
-//     printf("getTempAddresses2\n");
-// 	return;
-// }

@@ -1,4 +1,4 @@
-set(srcs "src/ota_app.c")
+set(srcs "src/native_ota_example.c")
 
 idf_component_register(SRCS "${srcs}"
                        INCLUDE_DIRS "include"

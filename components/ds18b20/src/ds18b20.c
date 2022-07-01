@@ -195,7 +195,7 @@ void ds18b20_read(void* arg)
     double temp_mid = 0;
     for(;;)
     {
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_RATE_MS);
         temp[4]=ReadTemperature();
         for(uint8_t i=0;i<5;i++)
             temp_sorted[i] = temp[i];
@@ -851,6 +851,31 @@ void ds18b20_read(void* arg)
 // }
 //TEST2 
 
+// void test(void)
+// {
+//         printf("ds18b20_init\n");
+//     ds18b20_init(TEMP_BUS);
+//     printf("ds18b20_init1\n");
+// 	getTempAddresses(tempSensors);
+//     printf("ds18b20_init2\n");
+// 	ds18b20_setResolution(tempSensors,2,10);
+
+// 	printf("Address 0: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[0][0],tempSensors[0][1],tempSensors[0][2],tempSensors[0][3],tempSensors[0][4],tempSensors[0][5],tempSensors[0][6],tempSensors[0][7]);
+// 	printf("Address 1: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x \n", tempSensors[1][0],tempSensors[1][1],tempSensors[1][2],tempSensors[1][3],tempSensors[1][4],tempSensors[1][5],tempSensors[1][6],tempSensors[1][7]);
+    
+//             ds18b20_requestTemperatures();
+// 		float temp1 = ds18b20_getTempF((DeviceAddress *)tempSensors[0]);
+// 		float temp2 = ds18b20_getTempF((DeviceAddress *)tempSensors[1]);
+// 		float temp3 = ds18b20_getTempC((DeviceAddress *)tempSensors[0]);
+// 		float temp4 = ds18b20_getTempC((DeviceAddress *)tempSensors[1]);
+// 		printf("Temperatures: %0.1fF %0.1fF\n", temp1,temp2);
+// 		printf("Temperatures: %0.1fC %0.1fC\n", temp3,temp4);
+
+// 		float cTemp = ds18b20_get_temp();
+// 		printf("Temperature: %0.1fC\n", cTemp);
+        
+//         DS18B20_Start();    
+// }
 
 
 
