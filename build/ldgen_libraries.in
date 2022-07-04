@@ -77,6 +77,8 @@ $<TARGET_FILE:__idf_backup>
 $<TARGET_FILE:__idf_cJSON>
 $<TARGET_FILE:__idf_para_list>
 $<TARGET_FILE:__idf_ds18b20>
+$<TARGET_FILE:__idf_gpio_ctrl>
+$<TARGET_FILE:__idf_mqtt_app>
 $<TARGET_FILE:__idf_ota_app>
 $<TARGET_FILE:__idf_pressure_i2c>
 $<TARGET_FILE:__idf_uart485>

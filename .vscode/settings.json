@@ -50,6 +50,11 @@
     "nvs_flash.h": "c",
     "bitset": "c",
     "chrono": "c",
-    "ota_app.h": "c"
+    "ota_app.h": "c",
+    "esp_wifi.h": "c",
+    "cjson.h": "c",
+    "led_strip.h": "c",
+    "gpio_app.h": "c",
+    "mqtt_app.h": "c"
   }
 }
