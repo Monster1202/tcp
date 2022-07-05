@@ -195,7 +195,7 @@ void ds18b20_read(void* arg)
     double temp_mid = 0;
     for(;;)
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(5000 / portTICK_RATE_MS);
         temp[4]=ReadTemperature();
         for(uint8_t i=0;i<5;i++)
             temp_sorted[i] = temp[i];

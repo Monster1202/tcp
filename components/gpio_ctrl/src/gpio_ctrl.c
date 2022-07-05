@@ -3,7 +3,7 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "gpio_ctrl.h"
-
+#include "para_list.h"
 
 
 //gpio
@@ -18,7 +18,7 @@ static void gpio_task_example(void* arg)
     uint32_t io_num;
     for(;;) {
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
-            printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+            //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
             sw_key_read(io_num); //judge button press once twice or long
         }
     }
@@ -62,20 +62,147 @@ uint8_t KEY_READ(uint8_t io_num)
     return 0; //no press
 }
 
+void centralizer_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 1);
+        gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
+        //bursh_para.centralizer = 1;
+        parameter_write_centralizer(1);
+        printf("bursh_para.centralizer = 1\n");}
+    else if(value == 2){
+        gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
+        gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+        //bursh_para.centralizer = 2;
+        parameter_write_centralizer(2);
+        printf("bursh_para.centralizer = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+        //bursh_para.centralizer = 0;
+        parameter_write_centralizer(0);
+        printf("bursh_para.centralizer = 0\n");}
+}
+void rotation_io_out(uint8_t value)
+{
+    if(value==1){
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 1);
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
+        //bursh_para.rotation = 1;
+        parameter_write_rotation(1);
+        printf("bursh_para.rotation = 1\n");}
+    else if(value==2){
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 1);
+        //bursh_para.rotation = 2;
+        parameter_write_rotation(2);
+        printf("bursh_para.rotation = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
+        //bursh_para.rotation = 0;
+        parameter_write_rotation(0);
+        printf("bursh_para.rotation = 0\n");} 
+}
+void nozzle_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        //bursh_para.nozzle = 1;
+        parameter_write_nozzle(1);
+        printf("bursh_para.nozzle = 1\n");}
+    else if(value == 2){
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
+        //bursh_para.nozzle = 2;
+        parameter_write_nozzle(2);
+        printf("bursh_para.nozzle = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        //bursh_para.nozzle = 0;
+        parameter_write_nozzle(0);
+        printf("bursh_para.nozzle = 0\n");}
+}
+uint8_t UI_press_output(uint8_t value,uint8_t button)
+{
+    if(value==button)
+        value = 0;
+    else
+        value = button;
+    return value;
+}
+
+void led_gpio_output(uint8_t io_num)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    switch(io_num)
+    {
+        case GPIO_INPUT_IO_1:
+        printf("GPIO_INPUT_IO_1\n");
+        register_value = parameter_read_centralizer();
+        register_afterpress = UI_press_output(register_value,1);
+        centralizer_io_out(register_afterpress);
+        break;
+        case GPIO_INPUT_IO_2:
+        printf("GPIO_INPUT_IO_2\n");
+        register_value = parameter_read_centralizer();
+        register_afterpress = UI_press_output(register_value,2);
+        centralizer_io_out(register_afterpress);
+        break;
+        case GPIO_INPUT_IO_3:
+        printf("GPIO_INPUT_IO_3\n");
+        register_value = parameter_read_rotation();
+        register_afterpress = UI_press_output(register_value,1);
+        rotation_io_out(register_afterpress);
+        break;
+        case GPIO_INPUT_IO_4:
+        printf("GPIO_INPUT_IO_4\n");
+        register_value = parameter_read_rotation();
+        register_afterpress = UI_press_output(register_value,2);
+        rotation_io_out(register_afterpress);
+        break;
+        case GPIO_INPUT_IO_5:
+        printf("GPIO_INPUT_IO_5\n");
+        register_value = parameter_read_nozzle();
+        register_afterpress = UI_press_output(register_value,1);
+        nozzle_io_out(register_afterpress);
+        break;
+        case GPIO_INPUT_IO_6:
+        printf("GPIO_INPUT_IO_6\n");
+        register_value = parameter_read_nozzle();
+        register_afterpress = UI_press_output(register_value,2);
+        nozzle_io_out(register_afterpress);
+        break;
+        case GPIO_INPUT_IO_7:printf("GPIO_INPUT_IO_7\n");break;
+        case GPIO_INPUT_IO_STOP:printf("GPIO_INPUT_IO_STOP\n");break;
+        default:
+        //printf("KEY_default\n");
+        break;
+    }
+}
+
+
+
 void sw_key_read(uint8_t io_num)
 {
     uint8_t key_status = 0;
     key_status=KEY_READ(io_num);
+    //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+
     switch(key_status)
     {
         case KEY_ONCE:
-        printf("KEY_ONCE\n");//LED0=0;
+        led_gpio_output(io_num);
+        printf("KEY_ONCE\n");
         break;
         case KEY_TWICE:
-        printf("KEY_TWICE\n");//LED0=0;
+        printf("KEY_TWICE\n");
         break;
         case KEY_LONG:
-        printf("KEY_LONG\n");//LED0=0;
+        printf("KEY_LONG\n");
         break;
         default:
         //printf("KEY_default\n");
@@ -112,7 +239,7 @@ void gpio_init(void)
     gpio_config(&io_conf);
 
     //change gpio intrrupt type for one pin
-    gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(GPIO_INPUT_IO_STOP, GPIO_INTR_ANYEDGE);
 
     //create a queue to handle gpio event from isr
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
@@ -122,14 +249,19 @@ void gpio_init(void)
     //install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     //hook isr handler for specific gpio pin
-    gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
+    gpio_isr_handler_add(GPIO_INPUT_IO_STOP, gpio_isr_handler, (void*) GPIO_INPUT_IO_STOP);
     //hook isr handler for specific gpio pin
     gpio_isr_handler_add(GPIO_INPUT_IO_1, gpio_isr_handler, (void*) GPIO_INPUT_IO_1);
-
-    //remove isr handler for gpio number.
-    gpio_isr_handler_remove(GPIO_INPUT_IO_0);
-    //hook isr handler for specific gpio pin again
-    gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
+    gpio_isr_handler_add(GPIO_INPUT_IO_2, gpio_isr_handler, (void*) GPIO_INPUT_IO_2);
+    gpio_isr_handler_add(GPIO_INPUT_IO_3, gpio_isr_handler, (void*) GPIO_INPUT_IO_3);
+    gpio_isr_handler_add(GPIO_INPUT_IO_4, gpio_isr_handler, (void*) GPIO_INPUT_IO_4);
+    gpio_isr_handler_add(GPIO_INPUT_IO_5, gpio_isr_handler, (void*) GPIO_INPUT_IO_5);
+    gpio_isr_handler_add(GPIO_INPUT_IO_6, gpio_isr_handler, (void*) GPIO_INPUT_IO_6);
+    gpio_isr_handler_add(GPIO_INPUT_IO_7, gpio_isr_handler, (void*) GPIO_INPUT_IO_7);
+    // //remove isr handler for gpio number.
+    // gpio_isr_handler_remove(GPIO_INPUT_IO_0);
+    // //hook isr handler for specific gpio pin again
+    // gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
 
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 }

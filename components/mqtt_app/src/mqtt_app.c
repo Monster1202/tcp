@@ -24,14 +24,14 @@
 #include "driver/gpio.h"
 #include "cJSON.h"
 #include "para_list.h"
-
-#define GPIO_OUTPUT_IO_STRETCH    39
-#define GPIO_OUTPUT_IO_DRAW    40
-#define GPIO_OUTPUT_IO_ROTATEX    41
-#define GPIO_OUTPUT_IO_ROTATEY    42
-#define GPIO_OUTPUT_IO_WATER    19
-#define GPIO_OUTPUT_IO_BUBBLE    20
-#define GPIO_OUTPUT_IO_STOP    21
+#include "gpio_ctrl.h"
+// #define GPIO_OUTPUT_IO_STRETCH    39
+// #define GPIO_OUTPUT_IO_DRAW    40
+// #define GPIO_OUTPUT_IO_ROTATEX    41
+// #define GPIO_OUTPUT_IO_ROTATEY    42
+// #define GPIO_OUTPUT_IO_WATER    19
+// #define GPIO_OUTPUT_IO_BUBBLE    20
+// #define GPIO_OUTPUT_IO_STOP    21
 
 #define MQTT_BROKER_URL "mqtt://172.16.161.171"
 #define TOPIC_TIMESTAMP "/timestamp"
@@ -270,7 +270,7 @@ void data_process(char *data)
                     gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
                     gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
                     bursh_para.centralizer = 2;
-                    printf("bursh_para.centralizer = 0\n");}
+                    printf("bursh_para.centralizer = 2\n");}
                 else{
                     gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
                     gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);

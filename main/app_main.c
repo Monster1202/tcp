@@ -75,6 +75,7 @@ void app_main(void)
         s_led_state = !s_led_state;
         vTaskDelay(2000 / portTICK_RATE_MS);
         //get_conf();
+        get_rssi();
     }
 }
 

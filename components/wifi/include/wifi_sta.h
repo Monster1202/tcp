@@ -8,6 +8,7 @@ extern "C" {
 
 //esp_err_t test_app(void);
 void wifi_connect(void);
+int8_t get_rssi(void);
 
 #ifdef __cplusplus
 }

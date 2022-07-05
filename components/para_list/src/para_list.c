@@ -62,7 +62,35 @@ void para_init(void)
     #endif
 }
 
+void parameter_write_centralizer(uint8_t value)
+{   
+    bursh_para.centralizer = value;
+}
 
+uint8_t parameter_read_centralizer(void)
+{
+    return bursh_para.centralizer;
+}
+
+void parameter_write_rotation(uint8_t value)
+{   
+    bursh_para.rotation = value;
+}
+
+uint8_t parameter_read_rotation(void)
+{
+    return bursh_para.rotation;
+}
+
+void parameter_write_nozzle(uint8_t value)
+{   
+    bursh_para.nozzle = value;
+}
+
+uint8_t parameter_read_nozzle(void)
+{
+    return bursh_para.nozzle;
+}
 
 void parameter_write_pressure(uint16_t pressure)
 {   

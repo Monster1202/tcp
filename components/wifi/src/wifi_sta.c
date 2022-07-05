@@ -136,3 +136,47 @@ void wifi_connect(void)
     wifi_init_sta();
 }
 
+
+int8_t get_rssi(void)
+{
+    uint16_t number = 1;
+    uint16_t ap_count = 0;
+
+    wifi_ap_record_t ap_info[1];
+    wifi_config_t wifi_sta_cfg;
+
+    ESP_LOGI(TAG,"start scan");
+    memset(ap_info, 0, sizeof(ap_info));
+    if (esp_wifi_get_config(WIFI_IF_STA, &wifi_sta_cfg) != ESP_OK)//获取已连接的ap参数
+    {
+        ESP_LOGI(TAG, "esp_wifi_get_config err");  
+        return -90;
+    }
+
+    wifi_scan_config_t scan_config = { 0 };
+    scan_config.ssid = wifi_sta_cfg.sta.ssid;//限制扫描的ap的ssid
+    scan_config.bssid = wifi_sta_cfg.sta.bssid;//限制扫描的ap的mac地址
+    esp_wifi_scan_start(&scan_config, true);//阻塞扫描ap，scan_config为扫描的参数
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));//获取扫描到的ap信息
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+    //获取扫描到的ap数量，因为限制了ssid和mac，因此最多只会扫描到1个
+    for (int i = 0; (i < 1) && (i < ap_count); i++) {
+        ESP_LOGI(TAG, "SSID \t\t%s", ap_info[i].ssid);
+        ESP_LOGI(TAG, "RSSI \t\t%d", ap_info[i].rssi);
+        ESP_LOGI(TAG, "Channel \t\t%d", ap_info[i].primary);
+        ESP_LOGI(TAG, "BSSID: \t\t%02x:%02x:%02x:%02x:%02x:%02x", 
+                                                        ap_info[i].bssid[0],
+                                                        ap_info[i].bssid[1],
+                                                        ap_info[i].bssid[2],
+                                                        ap_info[i].bssid[3],
+                                                        ap_info[i].bssid[4],
+                                                        ap_info[i].bssid[5]);
+    }
+    esp_wifi_scan_stop(); 
+    //from start to stop need 3210ms
+    ESP_LOGI(TAG,"stop scan\r\n");
+
+    //net_rssi=ap_info[0].rssi;
+
+    return ap_info[0].rssi;
+}
