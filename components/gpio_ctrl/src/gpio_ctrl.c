@@ -3,7 +3,7 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "gpio_ctrl.h"
-#include "para_list.h"
+
 
 
 //gpio
@@ -67,18 +67,24 @@ void centralizer_io_out(uint8_t value)
     if(value == 1){
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 1);
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         //bursh_para.centralizer = 1;
         parameter_write_centralizer(1);
         printf("bursh_para.centralizer = 1\n");}
     else if(value == 2){
-        gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 1);
         //bursh_para.centralizer = 2;
         parameter_write_centralizer(2);
         printf("bursh_para.centralizer = 2\n");}
     else{
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         //bursh_para.centralizer = 0;
         parameter_write_centralizer(0);
         printf("bursh_para.centralizer = 0\n");}
@@ -88,18 +94,24 @@ void rotation_io_out(uint8_t value)
     if(value==1){
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 1);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         //bursh_para.rotation = 1;
         parameter_write_rotation(1);
         printf("bursh_para.rotation = 1\n");}
     else if(value==2){
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 1);
         //bursh_para.rotation = 2;
         parameter_write_rotation(2);
         printf("bursh_para.rotation = 2\n");}
     else{
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         //bursh_para.rotation = 0;
         parameter_write_rotation(0);
         printf("bursh_para.rotation = 0\n");} 
@@ -109,21 +121,51 @@ void nozzle_io_out(uint8_t value)
     if(value == 1){
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
         //bursh_para.nozzle = 1;
         parameter_write_nozzle(1);
         printf("bursh_para.nozzle = 1\n");}
     else if(value == 2){
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
         //bursh_para.nozzle = 2;
         parameter_write_nozzle(2);
         printf("bursh_para.nozzle = 2\n");}
     else{
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
         //bursh_para.nozzle = 0;
         parameter_write_nozzle(0);
         printf("bursh_para.nozzle = 0\n");}
+}
+void emergency_stop_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+        parameter_write_emergency_stop(1);
+        parameter_write_centralizer(0);
+        parameter_write_rotation(0);
+        parameter_write_nozzle(0);
+        printf("bursh_para.emergency_stop = 1\n");}
+    else{
+        parameter_write_emergency_stop(0);
+        printf("bursh_para.emergency_stop = 0\n");}
 }
 uint8_t UI_press_output(uint8_t value,uint8_t button)
 {
@@ -177,7 +219,11 @@ void led_gpio_output(uint8_t io_num)
         nozzle_io_out(register_afterpress);
         break;
         case GPIO_INPUT_IO_7:printf("GPIO_INPUT_IO_7\n");break;
-        case GPIO_INPUT_IO_STOP:printf("GPIO_INPUT_IO_STOP\n");break;
+        case GPIO_INPUT_IO_STOP:printf("GPIO_INPUT_IO_STOP\n");
+        register_value = parameter_read_emergency_stop();
+        register_afterpress = UI_press_output(register_value,1);
+        emergency_stop_io_out(register_afterpress);
+        break;
         default:
         //printf("KEY_default\n");
         break;

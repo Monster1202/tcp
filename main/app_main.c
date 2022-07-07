@@ -74,6 +74,8 @@ void app_main(void)
         // /* Toggle the LED state */
         s_led_state = !s_led_state;
         vTaskDelay(2000 / portTICK_RATE_MS);
+        gpio_set_level(GPIO_SYS_LED, s_led_state);
+        gpio_set_level(GPIO_BEEP, s_led_state);
         //get_conf();
         get_rssi();
     }

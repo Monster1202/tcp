@@ -195,8 +195,10 @@ void ds18b20_read(void* arg)
     double temp_mid = 0;
     for(;;)
     {
-        vTaskDelay(5000 / portTICK_RATE_MS);
+        vTaskDelay(2000 / portTICK_RATE_MS);
+		//portDISABLE_INTERRUPTS();
         temp[4]=ReadTemperature();
+		//portENABLE_INTERRUPTS();
         for(uint8_t i=0;i<5;i++)
             temp_sorted[i] = temp[i];
         qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
@@ -223,9 +225,9 @@ void ds18b20_read(void* arg)
          //printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
         // taskENTER_CRITICAL();
         // vPortEnterCritical();      
-        // portENABLE_INTERRUPTS();
+        // 
         // taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//  
-        // portDISABLE_INTERRUPTS();
+         
         // taskENTER_CRITICAL_FROM_ISR();//taskEXIT_CRITICAL();//vPortExitCritical();//
     }
 }

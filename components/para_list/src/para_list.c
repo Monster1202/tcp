@@ -39,8 +39,6 @@ void para_init(void)
         #ifdef DEVICE_TYPE_BLISTER
             blister_para.uuid = id;
             blister_para.nozzle = 0;
-            blister_para.centralizer = 0;
-            blister_para.rotation = 0;
             blister_para.status = 1;
             blister_para.water = 0;
             blister_para.pressure_alarm = 0;
@@ -60,6 +58,42 @@ void para_init(void)
             strcpy(remote_para.msg_id,"msg_id");
         #endif
     #endif
+}
+
+void get_parameter(PARAMETER_BRUSH *bursh_t)
+{
+    memcpy(bursh_t,&bursh_para,sizeof(PARAMETER_BRUSH));
+}
+
+void parameter_write_msg_id(char *str_msgid)
+{   
+    //bursh_para.msg_id = msg_id;
+    strcpy(bursh_para.msg_id,str_msgid);
+}
+
+char *parameter_read_msg_id(void)
+{
+    return bursh_para.msg_id;
+}
+
+void parameter_write_timestamp(double timestamp)
+{   
+    bursh_para.timestamp = timestamp;
+}
+
+double parameter_read_timestamp(void)
+{
+    return bursh_para.timestamp;
+}
+
+void parameter_write_emergency_stop(uint8_t value)
+{   
+    bursh_para.emergency_stop = value;
+}
+
+uint8_t parameter_read_emergency_stop(void)
+{
+    return bursh_para.emergency_stop;
 }
 
 void parameter_write_centralizer(uint8_t value)
@@ -102,12 +136,12 @@ uint16_t parameter_read_pressure(void)
     return bursh_para.pressure;
 }
 
-void parameter_write_temperature(uint16_t temperature)
+void parameter_write_temperature(double temperature)
 {   
     bursh_para.temperature = temperature;
 }
 
-uint16_t parameter_read_temperature(void)
+double parameter_read_temperature(void)
 {
     return bursh_para.temperature;
 }
