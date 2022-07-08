@@ -8,10 +8,23 @@
 #include "freertos/task.h"
 #include "sys/unistd.h"
 #include "para_list.h"
+//#include "event_groups.h"
 // #include <stdarg.h>
 // #include "sdkconfig.h"
 // #include "esp_flash.h"
 // #include "esp_attr.h"
+PRIVILEGED_DATA static portMUX_TYPE xTask_ds18 = portMUX_INITIALIZER_UNLOCKED;
+#ifdef ESP_PLATFORM
+#define taskCRITICAL_MUX &xTask_ds18
+#undef taskENTER_CRITICAL
+#undef taskEXIT_CRITICAL
+#undef taskENTER_CRITICAL_ISR
+#undef taskEXIT_CRITICAL_ISR
+#define taskENTER_CRITICAL( )     portENTER_CRITICAL( taskCRITICAL_MUX )
+#define taskEXIT_CRITICAL( )            portEXIT_CRITICAL( taskCRITICAL_MUX )
+#define taskENTER_CRITICAL_ISR( )     portENTER_CRITICAL_ISR( taskCRITICAL_MUX )
+#define taskEXIT_CRITICAL_ISR( )        portEXIT_CRITICAL_ISR( taskCRITICAL_MUX )
+#endif
 
 void delay_us(int cnt)
 {
@@ -147,7 +160,7 @@ double ReadTemperature(void)
 	Init_DS18B20(); 					//初始化
 	WriteOneChar(0xcc); 				//跳过读序列号的操作
 	WriteOneChar(0x44); 				//启动温度转换
-	delay_us(1000);					    //转换需要一点时间，延时 
+	delay_us(2000);	//delay_us(1000);					    //转换需要一点时间，延时 
 	Init_DS18B20(); 					//初始化
 	WriteOneChar(0xcc); 				//跳过读序列号的操作 
 	WriteOneChar(0xbe); 				//读温度寄存器（头两个值分别为温度的低位和高位）	
@@ -195,9 +208,13 @@ void ds18b20_read(void* arg)
     double temp_mid = 0;
     for(;;)
     {
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_RATE_MS);
 		//portDISABLE_INTERRUPTS();
+		//taskENTER_CRITICAL();
+		//vTaskSuspendAll();
         temp[4]=ReadTemperature();
+		//xTaskResumeAll();
+		//taskEXIT_CRITICAL();
 		//portENABLE_INTERRUPTS();
         for(uint8_t i=0;i<5;i++)
             temp_sorted[i] = temp[i];
@@ -209,21 +226,8 @@ void ds18b20_read(void* arg)
         printf("qsort-temp_mid:%f\n",temp_mid);
         for(uint8_t i=1;i<5;i++)
             temp[i-1] = temp[i];
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[0]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[1]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[2]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[3]=ReadTemperature();
-        // vTaskDelay(2000 / portTICK_RATE_MS);
-        // temp[4]=ReadTemperature();
-        // qsort(temp, 5, sizeof(temp[0]), Compare_double); 
-        // temp_mid = temp[2];
-        // bursh_para.temperature = temp_mid;//ReadTemperature();
-         //printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp[0],temp[1],temp[2],temp[3],temp[4],temp_mid);
-        // taskENTER_CRITICAL();
+
+         //taskENTER_CRITICAL();
         // vPortEnterCritical();      
         // 
         // taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//  

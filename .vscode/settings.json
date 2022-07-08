@@ -55,6 +55,9 @@
     "cjson.h": "c",
     "led_strip.h": "c",
     "gpio_app.h": "c",
-    "mqtt_app.h": "c"
+    "mqtt_app.h": "c",
+    "timer_app.h": "c",
+    "gpio_ctrl.h": "c",
+    "event_groups.h": "c"
   }
 }

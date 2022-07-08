@@ -3,7 +3,7 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "gpio_ctrl.h"
-
+#include "timer_app.h"
 
 
 //gpio
@@ -16,10 +16,13 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
 static void gpio_task_example(void* arg)
 {
     uint32_t io_num;
+    uint8_t buf_state = 0;
     for(;;) {
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
-            //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-            sw_key_read(io_num); //judge button press once twice or long
+            buf_state = gpio_get_level(io_num);
+            printf("GPIO[%d] intr, val: %d\n", io_num, buf_state);
+            if(buf_state ==1)
+                sw_key_read(io_num); //judge button press once twice or long
         }
     }
 }
@@ -159,12 +162,14 @@ void emergency_stop_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
         parameter_write_emergency_stop(1);
+        gpio_set_level(GPIO_SYS_LED, 1);
         parameter_write_centralizer(0);
         parameter_write_rotation(0);
         parameter_write_nozzle(0);
         printf("bursh_para.emergency_stop = 1\n");}
     else{
         parameter_write_emergency_stop(0);
+        gpio_set_level(GPIO_SYS_LED, 0);
         printf("bursh_para.emergency_stop = 0\n");}
 }
 uint8_t UI_press_output(uint8_t value,uint8_t button)
@@ -180,53 +185,73 @@ void led_gpio_output(uint8_t io_num)
 {
     uint8_t register_value = 0;
     uint8_t register_afterpress = 0;
-    switch(io_num)
+    uint8_t register_emergency_stop = 0;
+    register_emergency_stop = parameter_read_emergency_stop();
+    if(register_emergency_stop)
     {
-        case GPIO_INPUT_IO_1:
-        printf("GPIO_INPUT_IO_1\n");
-        register_value = parameter_read_centralizer();
-        register_afterpress = UI_press_output(register_value,1);
-        centralizer_io_out(register_afterpress);
-        break;
-        case GPIO_INPUT_IO_2:
-        printf("GPIO_INPUT_IO_2\n");
-        register_value = parameter_read_centralizer();
-        register_afterpress = UI_press_output(register_value,2);
-        centralizer_io_out(register_afterpress);
-        break;
-        case GPIO_INPUT_IO_3:
-        printf("GPIO_INPUT_IO_3\n");
-        register_value = parameter_read_rotation();
-        register_afterpress = UI_press_output(register_value,1);
-        rotation_io_out(register_afterpress);
-        break;
-        case GPIO_INPUT_IO_4:
-        printf("GPIO_INPUT_IO_4\n");
-        register_value = parameter_read_rotation();
-        register_afterpress = UI_press_output(register_value,2);
-        rotation_io_out(register_afterpress);
-        break;
-        case GPIO_INPUT_IO_5:
-        printf("GPIO_INPUT_IO_5\n");
-        register_value = parameter_read_nozzle();
-        register_afterpress = UI_press_output(register_value,1);
-        nozzle_io_out(register_afterpress);
-        break;
-        case GPIO_INPUT_IO_6:
-        printf("GPIO_INPUT_IO_6\n");
-        register_value = parameter_read_nozzle();
-        register_afterpress = UI_press_output(register_value,2);
-        nozzle_io_out(register_afterpress);
-        break;
-        case GPIO_INPUT_IO_7:printf("GPIO_INPUT_IO_7\n");break;
-        case GPIO_INPUT_IO_STOP:printf("GPIO_INPUT_IO_STOP\n");
-        register_value = parameter_read_emergency_stop();
-        register_afterpress = UI_press_output(register_value,1);
-        emergency_stop_io_out(register_afterpress);
-        break;
-        default:
-        //printf("KEY_default\n");
-        break;
+        if(io_num == GPIO_INPUT_IO_STOP)
+        {
+            printf("back to normal mode\n");
+            register_value = parameter_read_emergency_stop();
+            register_afterpress = UI_press_output(register_value,1);
+            emergency_stop_io_out(register_afterpress);
+        }
+        else{
+            printf("emergency_stop_error_press\n");
+            timer_periodic();
+        }
+    }
+    else
+    {
+        switch(io_num)
+        {
+            case GPIO_INPUT_IO_1:
+            printf("GPIO_INPUT_IO_1\n");
+            register_value = parameter_read_centralizer();
+            register_afterpress = UI_press_output(register_value,1);
+            centralizer_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_2:
+            printf("GPIO_INPUT_IO_2\n");
+            register_value = parameter_read_centralizer();
+            register_afterpress = UI_press_output(register_value,2);
+            centralizer_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_3:
+            printf("GPIO_INPUT_IO_3\n");
+            register_value = parameter_read_rotation();
+            register_afterpress = UI_press_output(register_value,1);
+            rotation_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_4:
+            printf("GPIO_INPUT_IO_4\n");
+            register_value = parameter_read_rotation();
+            register_afterpress = UI_press_output(register_value,2);
+            rotation_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_5:
+            printf("GPIO_INPUT_IO_5\n");
+            register_value = parameter_read_nozzle();
+            register_afterpress = UI_press_output(register_value,1);
+            nozzle_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_6:
+            printf("GPIO_INPUT_IO_6\n");
+            register_value = parameter_read_nozzle();
+            register_afterpress = UI_press_output(register_value,2);
+            nozzle_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_7:printf("GPIO_INPUT_IO_7\n");break;
+            case GPIO_INPUT_IO_STOP:
+            printf("GPIO_INPUT_IO_STOP\n");
+            register_value = parameter_read_emergency_stop();
+            register_afterpress = UI_press_output(register_value,1);
+            emergency_stop_io_out(register_afterpress);
+            break;
+            default:
+            //printf("KEY_default\n");
+            break;
+        }
     }
 }
 
@@ -234,26 +259,26 @@ void led_gpio_output(uint8_t io_num)
 
 void sw_key_read(uint8_t io_num)
 {
-    uint8_t key_status = 0;
-    key_status=KEY_READ(io_num);
+    // uint8_t key_status = 0;
+    // key_status=KEY_READ(io_num);
     //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-
-    switch(key_status)
-    {
-        case KEY_ONCE:
-        led_gpio_output(io_num);
-        printf("KEY_ONCE\n");
-        break;
-        case KEY_TWICE:
-        printf("KEY_TWICE\n");
-        break;
-        case KEY_LONG:
-        printf("KEY_LONG\n");
-        break;
-        default:
-        //printf("KEY_default\n");
-        break;
-    }
+    led_gpio_output(io_num);
+    // switch(key_status)
+    // {
+    //     case KEY_ONCE:
+    //     led_gpio_output(io_num);
+    //     printf("KEY_ONCE\n");
+    //     break;
+    //     case KEY_TWICE:
+    //     printf("KEY_TWICE\n");
+    //     break;
+    //     case KEY_LONG:
+    //     printf("KEY_LONG\n");
+    //     break;
+    //     default:
+    //     //printf("KEY_default\n");
+    //     break;
+    // }
     vTaskDelay(10 / portTICK_RATE_MS);
 }
 void gpio_init(void)
@@ -290,7 +315,7 @@ void gpio_init(void)
     //create a queue to handle gpio event from isr
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
     //start gpio task
-    xTaskCreate(gpio_task_example, "gpio_task_example", 2048, NULL, 10, NULL);
+    xTaskCreate(gpio_task_example, "gpio_task_example", 4096, NULL, 10, NULL);
 
     //install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);

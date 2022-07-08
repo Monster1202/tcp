@@ -35,13 +35,14 @@
 #include "mqtt_app.h"
 #include "gpio_ctrl.h"
 #include "led_strip.h"
+#include "timer_app.h"
 
 #define BLINK_GPIO 48
 #define CONFIG_BLINK_LED_RMT_CHANNEL 0
 static led_strip_t *pStrip_a;
 static void blink_led(uint8_t s_led_state);
 static void configure_led(void);
-
+void beep_out(void);
 static const char *TAG = "led_strip";
 
 void app_main(void)
@@ -51,7 +52,7 @@ void app_main(void)
 //gpio task in/out    
     gpio_init();
 //DS18B20 task
-    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 30, NULL);
+   xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 30, NULL);
 //pressure_read
     xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //wifi connect STA
@@ -65,7 +66,9 @@ void app_main(void)
 //uart read/write example without event queue;
     //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
     //int cnt = 0;
+    //xTaskCreate(beep_out, "beep_out", 2048, NULL, 9, NULL);
     configure_led();
+    timer_periodic();
     uint8_t s_led_state = 0;
     while(1) {
         // printf("cnt: %d\n", cnt++);
@@ -74,13 +77,17 @@ void app_main(void)
         // /* Toggle the LED state */
         s_led_state = !s_led_state;
         vTaskDelay(2000 / portTICK_RATE_MS);
-        gpio_set_level(GPIO_SYS_LED, s_led_state);
-        gpio_set_level(GPIO_BEEP, s_led_state);
+        //gpio_set_level(GPIO_SYS_LED, s_led_state);
+        //gpio_set_level(GPIO_BEEP, s_led_state);
         //get_conf();
         get_rssi();
+        //timer_app();
+        
     }
 }
 
+
+ 
 static void blink_led(uint8_t s_led_state)
 {
     /* If the addressable LED is enabled */
@@ -105,5 +112,44 @@ static void configure_led(void)
 }
 
 
-
+// void beep_out(void)
+// {
+//     uint8_t beep_state = 0;
+//     int cnt = 0;
+//     uint8_t beep_enable = 1;
+//     uint16_t k = 1;
+//     for(;;)
+//     {
+//         vTaskDelay(9 / portTICK_RATE_MS);
+//         if(beep_enable)
+//         {
+//             beep_state = !beep_state;
+//             gpio_set_level(GPIO_BEEP, beep_state);    
+//             //vTaskDelay(1 / portTICK_RATE_MS);  
+//         }
+//         if(cnt == 300*k)
+//         {
+//             beep_enable = 0;
+//         }
+//         else if(cnt == 600*k)
+//         {
+//             beep_enable = 1;
+//         }    
+//         else if(cnt == 900*k)
+//         {
+//             beep_enable = 0;
+//         }
+//         else if(cnt == 1200*k)
+//         {
+//             beep_enable = 1;
+//         } 
+//         else if(cnt == 1500*k)
+//         {
+//             beep_enable = 0;
+//         } 
+//         if(cnt<2000*k)    
+//             //cnt++;
+//             printf("cnt: %d\n", cnt++);   
+//     }
+// }
 
