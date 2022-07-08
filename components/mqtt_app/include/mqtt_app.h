@@ -9,6 +9,8 @@ extern "C" {
 void mqtt_init(void);
 void data_process(char *data);
 void data_publish(char *data,uint8_t case_pub);
+void mqtt_publish(void);
+
 
 #ifdef __cplusplus
 }

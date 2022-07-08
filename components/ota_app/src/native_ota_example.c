@@ -76,7 +76,7 @@ static void infinite_loop(void)
     ESP_LOGI(TAG, "When a new firmware is available on the server, press the reset button to download it");
     while(1) {
         ESP_LOGI(TAG, "Waiting for a new firmware ... %d", ++i);
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(60000 / portTICK_PERIOD_MS);
     }
 }
 

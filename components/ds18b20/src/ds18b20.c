@@ -208,7 +208,7 @@ void ds18b20_read(void* arg)
     double temp_mid = 0;
     for(;;)
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(5000 / portTICK_RATE_MS);
 		//portDISABLE_INTERRUPTS();
 		//taskENTER_CRITICAL();
 		//vTaskSuspendAll();

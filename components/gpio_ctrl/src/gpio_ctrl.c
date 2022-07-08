@@ -4,7 +4,7 @@
 #include "esp_log.h"
 #include "gpio_ctrl.h"
 #include "timer_app.h"
-
+#include "mqtt_app.h"
 
 //gpio
 static xQueueHandle gpio_evt_queue = NULL;
@@ -253,6 +253,7 @@ void led_gpio_output(uint8_t io_num)
             break;
         }
     }
+    mqtt_publish();
 }
 
 

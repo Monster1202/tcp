@@ -54,7 +54,7 @@ void app_main(void)
 //DS18B20 task
    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 30, NULL);
 //pressure_read
-    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
+    //xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //wifi connect STA
     wifi_connect();
 //MQTT enable    
@@ -69,14 +69,14 @@ void app_main(void)
     //xTaskCreate(beep_out, "beep_out", 2048, NULL, 9, NULL);
     configure_led();
     timer_periodic();
-    uint8_t s_led_state = 0;
+    //uint8_t s_led_state = 0;
     while(1) {
         // printf("cnt: %d\n", cnt++);
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
-        blink_led(s_led_state);
+        //blink_led(s_led_state);
         // /* Toggle the LED state */
-        s_led_state = !s_led_state;
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        //s_led_state = !s_led_state;
+        vTaskDelay(60000 / portTICK_RATE_MS);
         //gpio_set_level(GPIO_SYS_LED, s_led_state);
         //gpio_set_level(GPIO_BEEP, s_led_state);
         //get_conf();

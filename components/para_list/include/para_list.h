@@ -8,6 +8,10 @@
 extern "C" {
 #endif
 
+#define MQTT_BROKER_URL "mqtt://172.16.171.97" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"   
+#define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"
+#define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."
+
 #define DEVICE_TYPE_BRUSH 
 //#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
