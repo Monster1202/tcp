@@ -19,7 +19,7 @@
 */
 //#define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"//CONFIG_ESP_WIFI_SSID  SHKJ2020
 //#define EXAMPLE_ESP_WIFI_PASS      "12345678"//CONFIG_ESP_WIFI_PASSWORD
-#define EXAMPLE_ESP_MAXIMUM_RETRY  100000//CONFIG_ESP_MAXIMUM_RETRY
+#define EXAMPLE_ESP_MAXIMUM_RETRY  10000//CONFIG_ESP_MAXIMUM_RETRY
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -42,11 +42,18 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        
         if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
             esp_wifi_connect();
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP");
-        } else {
+        } 
+        // else if(s_retry_num >= EXAMPLE_ESP_MAXIMUM_RETRY){
+        //     //wifi_reset();
+        //     ESP_LOGI(TAG, "reset STA");
+        //     s_retry_num = 1;
+        // }
+        else {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
         }
         ESP_LOGI(TAG,"connect to the AP fail");
@@ -130,7 +137,7 @@ void wifi_reset(void)
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
     vEventGroupDelete(s_wifi_event_group);
-    ets_delay_us(1000);
+    //ets_delay_us(1000);
     wifi_init_sta();
 }
 
@@ -157,6 +164,8 @@ int8_t get_rssi(void)
     wifi_ap_record_t ap_info[1];
     wifi_config_t wifi_sta_cfg;
 
+    if(s_retry_num>0)
+        return 0;
     ESP_LOGI(TAG,"start scan");
     memset(ap_info, 0, sizeof(ap_info));
     if (esp_wifi_get_config(WIFI_IF_STA, &wifi_sta_cfg) != ESP_OK)//获取已连接的ap参数

@@ -49,12 +49,20 @@
 
 static const char *TAG = "MQTT_EXAMPLE";
 esp_mqtt_client_handle_t mqtt_client;
+static uint16_t buf_disconnect = 0;
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
     if (error_code != 0) {
         ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
     }
+}
+
+void mqtt_reset(void)
+{
+    esp_mqtt_client_destroy(mqtt_client);
+    ets_delay_us(1000);
+    mqtt_app_start();
 }
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
@@ -106,7 +114,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         // ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_DISCONNECTED:
-        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d",buf_disconnect);
+        // mqtt_reset();
+        // ESP_LOGI(TAG, "MQTT_EVENT_RESET");
+        buf_disconnect++;
+        if(buf_disconnect == 10)
+            esp_restart();
         break;
 
     case MQTT_EVENT_SUBSCRIBED:
@@ -128,6 +141,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         data_publish(data_pub_1,1); 
         msg_id = esp_mqtt_client_publish(client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        buf_disconnect = 0;
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -182,6 +196,7 @@ static void mqtt_app_start(void)
     esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(mqtt_client);
 }
+
 
 
 void mqtt_init(void)

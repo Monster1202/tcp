@@ -60,6 +60,27 @@ void para_init(void)
     #endif
 }
 
+void parameter_write_water(uint8_t value)
+{   
+    bursh_para.water = value;
+}
+
+uint8_t parameter_read_water(void)
+{
+    return bursh_para.water;
+}
+
+void parameter_write_pressure_alarm(uint8_t value)
+{   
+    bursh_para.pressure_alarm = value;
+}
+
+uint8_t parameter_read_pressure_alarm(void)
+{
+    return bursh_para.pressure_alarm;
+}
+
+
 void get_parameter(PARAMETER_BRUSH *bursh_t)
 {
     memcpy(bursh_t,&bursh_para,sizeof(PARAMETER_BRUSH));

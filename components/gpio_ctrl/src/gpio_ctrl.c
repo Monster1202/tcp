@@ -210,6 +210,7 @@ void led_gpio_output(uint8_t io_num)
             register_value = parameter_read_centralizer();
             register_afterpress = UI_press_output(register_value,1);
             centralizer_io_out(register_afterpress);
+            parameter_write_water(1);
             break;
             case GPIO_INPUT_IO_2:
             printf("GPIO_INPUT_IO_2\n");

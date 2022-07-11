@@ -9,18 +9,34 @@ extern "C" {
 #endif
 
 #define MQTT_BROKER_URL "mqtt://172.16.171.97" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"   
-#define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"
-#define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."
+#define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"  "yyg"//
+#define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."   "123456789"//
 
 #define DEVICE_TYPE_BRUSH 
 //#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
-
+//#define DEVICE_TYPE_TEST
 
 #define GPIO_IO_DS18B20    4//9
-
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           2      /*!< GPIO number used for I2C master data  */
+#define GPIO_SYS_LED         0
+#define GPIO_BEEP            8
+
+#ifdef DEVICE_TYPE_TEST
+
+#else
+    #ifdef DEVICE_TYPE_BLISTER
+        #define GPIO_OUTPUT_IO_HEATER    11//39
+        #define GPIO_OUTPUT_IO_WATER       10//40
+        #define GPIO_OUTPUT_IO_BUBBLE    9//41        
+    #else
+        #ifdef DEVICE_TYPE_REMOTE
+        #else
+        #endif
+    #endif
+#endif
+
 
 #define GPIO_OUTPUT_IO_STRETCH    14//39
 #define GPIO_OUTPUT_IO_DRAW       13//40
@@ -38,8 +54,7 @@ extern "C" {
 #define GPIO_OUTPUT_LED_5         7
 #define GPIO_OUTPUT_LED_6         6
 
-#define GPIO_SYS_LED         0
-#define GPIO_BEEP            8
+
 
 #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) |(1ULL<<GPIO_OUTPUT_IO_STRETCH) | (1ULL<<GPIO_OUTPUT_IO_DRAW)| (1ULL<<GPIO_OUTPUT_IO_ROTATEX)| (1ULL<<GPIO_OUTPUT_IO_ROTATEY)| (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_IO_7)| (1ULL<<GPIO_OUTPUT_IO_8)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))
 
@@ -85,7 +100,10 @@ void parameter_write_msg_id(char *str_msgid);
 char *parameter_read_msg_id(void);
 void parameter_write_timestamp(double timestamp);
 double parameter_read_timestamp(void);
-
+void parameter_write_water(uint8_t value);
+uint8_t parameter_read_water(void);
+void parameter_write_pressure_alarm(uint8_t value);
+uint8_t parameter_read_pressure_alarm(void);
 
 typedef struct
 {

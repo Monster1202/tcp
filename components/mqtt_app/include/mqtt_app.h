@@ -11,7 +11,7 @@ void data_process(char *data);
 void data_publish(char *data,uint8_t case_pub);
 void mqtt_publish(void);
 
-
+static void mqtt_app_start(void);
 #ifdef __cplusplus
 }
 #endif
