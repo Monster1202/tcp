@@ -12,8 +12,8 @@ extern "C" {
 #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"  "yyg"//
 #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."   "123456789"//
 
-#define DEVICE_TYPE_BRUSH 
-//#define DEVICE_TYPE_BLISTER
+//#define DEVICE_TYPE_BRUSH 
+#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 //#define DEVICE_TYPE_TEST
 
@@ -23,20 +23,7 @@ extern "C" {
 #define GPIO_SYS_LED         0
 #define GPIO_BEEP            8
 
-#ifdef DEVICE_TYPE_TEST
-
-#else
-    #ifdef DEVICE_TYPE_BLISTER
-        #define GPIO_OUTPUT_IO_HEATER    11//39
-        #define GPIO_OUTPUT_IO_WATER       10//40
-        #define GPIO_OUTPUT_IO_BUBBLE    9//41        
-    #else
-        #ifdef DEVICE_TYPE_REMOTE
-        #else
-        #endif
-    #endif
-#endif
-
+#ifdef DEVICE_TYPE_BRUSH
 
 #define GPIO_OUTPUT_IO_STRETCH    14//39
 #define GPIO_OUTPUT_IO_DRAW       13//40
@@ -54,13 +41,6 @@ extern "C" {
 #define GPIO_OUTPUT_LED_5         7
 #define GPIO_OUTPUT_LED_6         6
 
-
-
-#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) |(1ULL<<GPIO_OUTPUT_IO_STRETCH) | (1ULL<<GPIO_OUTPUT_IO_DRAW)| (1ULL<<GPIO_OUTPUT_IO_ROTATEX)| (1ULL<<GPIO_OUTPUT_IO_ROTATEY)| (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_IO_7)| (1ULL<<GPIO_OUTPUT_IO_8)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))
-
-
-//#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_LED_1) | (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))
-
 #define GPIO_INPUT_IO_1     35
 #define GPIO_INPUT_IO_2     36
 #define GPIO_INPUT_IO_3     37
@@ -69,7 +49,47 @@ extern "C" {
 #define GPIO_INPUT_IO_6     40
 #define GPIO_INPUT_IO_7     41
 #define GPIO_INPUT_IO_STOP     42
+#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) |(1ULL<<GPIO_OUTPUT_IO_STRETCH) | (1ULL<<GPIO_OUTPUT_IO_DRAW)| (1ULL<<GPIO_OUTPUT_IO_ROTATEX)| (1ULL<<GPIO_OUTPUT_IO_ROTATEY)| (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_IO_7)| (1ULL<<GPIO_OUTPUT_IO_8)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
+#else
+    #ifdef DEVICE_TYPE_BLISTER
+        #define GPIO_INPUT_IO_1     35
+        #define GPIO_INPUT_IO_2     36
+        #define GPIO_INPUT_IO_3     37
+        #define GPIO_INPUT_IO_STOP     42//stop
+
+        #define GPIO_INPUT_IO_4     38
+        #define GPIO_INPUT_IO_5     39
+        #define GPIO_INPUT_IO_6     40
+        #define GPIO_INPUT_IO_7     41
+
+        #define GPIO_OUTPUT_LED_1         18
+        #define GPIO_OUTPUT_LED_2         17
+        #define GPIO_OUTPUT_LED_3         16
+
+        #define GPIO_OUTPUT_LED_4         15
+        #define GPIO_OUTPUT_LED_5         7
+        #define GPIO_OUTPUT_LED_6         6
+        #define GPIO_SYS_LED         0    //stop
+
+        #define GPIO_OUTPUT_IO_HEATER    14    
+        #define GPIO_OUTPUT_IO_WATER     13
+        #define GPIO_OUTPUT_IO_BUBBLE    12   
+        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
+        #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
+    #else
+        #ifdef DEVICE_TYPE_REMOTE
+        #else
+        #endif
+    #endif
+#endif
+
+
+
+//#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_LED_1) | (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))
+
+
+
 #define ESP_INTR_FLAG_DEFAULT 0
 #define KEY_SPEED_LONG 200 //long press debug time(ms)
 #define KEY_SPEED_DOUBLE 10 //double press debug time(ms)
@@ -105,6 +125,12 @@ uint8_t parameter_read_water(void);
 void parameter_write_pressure_alarm(uint8_t value);
 uint8_t parameter_read_pressure_alarm(void);
 
+void parameter_write_heater(uint8_t value);
+uint8_t parameter_read_heater(void);
+void parameter_write_mode(uint8_t value);
+uint8_t parameter_read_mode(void);
+double blister_read_temperature(void);
+
 typedef struct
 {
     uint32_t uuid;
@@ -131,6 +157,7 @@ typedef struct
     uint8_t status;     //status upload
     uint8_t water;
     uint8_t pressure_alarm;
+    uint8_t liquid_alarm;
     uint8_t emergency_stop;
     double timestamp;
     char msg_id[30];
@@ -152,7 +179,7 @@ typedef struct
 }PARAMETER_REMOTE;
 
 void get_parameter(PARAMETER_BRUSH *bursh_t);
-
+void get_blister_parameter(PARAMETER_BLISTER *blister_t);
 #ifdef __cplusplus
 }
 #endif

@@ -49,16 +49,16 @@ void app_main(void)
 {
 //parameter_init
     para_init();
-//gpio task in/out    
+//gpio task in/out     PRIO 10 
     gpio_init();
 //DS18B20 task
    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 30, NULL);
 //pressure_read
-    //xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
-//wifi connect STA
-    wifi_connect();
-//MQTT enable    
-    //mqtt_app_start();
+    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
+//wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
+    wifi_connect();     
+//MQTT enable     MQTT task priority, default is 5,
+    //mqtt_app_start();  
     mqtt_init();
 //OTA enable
     //vTaskDelay(10000 / portTICK_RATE_MS);
@@ -69,6 +69,8 @@ void app_main(void)
     //xTaskCreate(beep_out, "beep_out", 2048, NULL, 9, NULL);
     configure_led();
     timer_periodic();
+//wifi_scan
+   xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);
     //uint8_t s_led_state = 0;
     while(1) {
         // printf("cnt: %d\n", cnt++);
@@ -80,9 +82,8 @@ void app_main(void)
         //gpio_set_level(GPIO_SYS_LED, s_led_state);
         //gpio_set_level(GPIO_BEEP, s_led_state);
         //get_conf();
-        get_rssi();
+        //get_rssi();
         //timer_app();
-        
     }
 }
 

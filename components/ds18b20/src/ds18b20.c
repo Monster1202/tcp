@@ -200,6 +200,7 @@ int Compare_double(const void* a, const void* b)
 	}
     return 0;
 }
+
 void ds18b20_read(void* arg)
 {
     static double temp[5]={0};

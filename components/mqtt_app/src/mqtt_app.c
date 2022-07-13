@@ -76,9 +76,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        data_publish(data_pub_1,0);   //device_register
-        msg_id = esp_mqtt_client_publish(client, TOPIC_DEVICE_REGISTER, data_pub_1, 0, 1, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
         msg_id = esp_mqtt_client_subscribe(client, TOPIC_EMERGENCY_CONTROL, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
@@ -87,6 +84,10 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
         
     #ifdef DEVICE_TYPE_BRUSH
+        data_publish(data_pub_1,0);   //device_register
+        msg_id = esp_mqtt_client_publish(client, TOPIC_DEVICE_REGISTER, data_pub_1, 0, 1, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+
         msg_id = esp_mqtt_client_subscribe(client, TOPIC_BRUSH_CONTROL, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
@@ -95,10 +96,14 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
     #else
         #ifdef DEVICE_TYPE_BLISTER
+            data_publish(data_pub_1,2);   //device_register
+            msg_id = esp_mqtt_client_publish(client, TOPIC_DEVICE_REGISTER, data_pub_1, 0, 1, 0);
+            ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+
             msg_id = esp_mqtt_client_subscribe(client, TOPIC_BLISTER_CONTROL, 0);
             ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
-            data_publish(data_pub_1,1); 
+            data_publish(data_pub_1,3); 
             msg_id = esp_mqtt_client_publish(client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
             ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
         #else
@@ -138,9 +143,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
         data_process(event->data);
+#ifdef DEVICE_TYPE_BRUSH
         data_publish(data_pub_1,1); 
         msg_id = esp_mqtt_client_publish(client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
         ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+#endif  
+#ifdef DEVICE_TYPE_BLISTER      
+        data_publish(data_pub_1,3); 
+        msg_id = esp_mqtt_client_publish(client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+#endif 
         buf_disconnect = 0;
         break;
     case MQTT_EVENT_ERROR:
@@ -162,6 +174,7 @@ static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = MQTT_BROKER_URL,//CONFIG_BROKER_URL,
+        //.task_prio = 31,
     };
 #if CONFIG_BROKER_URL_FROM_STDIN
     char line[128];
@@ -229,27 +242,6 @@ void data_process(char *data)
         //bursh_para.emergency_stop = json_emergency_stop->valueint;
         printf("emergency_stop = %d\n", json_emergency_stop->valueint);
         emergency_stop_io_out(json_emergency_stop->valueint);
-        // if(json_emergency_stop->valueint){
-            
-        //     //gpio_set_level(GPIO_OUTPUT_IO_STOP, 1);
-        //     bursh_para.emergency_stop = 1;
-        //     printf("bursh_para.emergency_stop = 1\n");
-        //     gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
-        //     gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-        //     bursh_para.nozzle = 0;
-        //     printf("bursh_para.nozzle = 0\n");
-        //     gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
-        //     gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
-        //     bursh_para.centralizer = 0;
-        //     printf("bursh_para.centralizer = 0\n");
-        //     gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
-        //     gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
-        //     bursh_para.rotation = 0;
-        //     printf("bursh_para.rotation = 0\n");}            
-        // else{
-        //     //gpio_set_level(GPIO_OUTPUT_IO_STOP, 0);
-        //     bursh_para.emergency_stop = 0;
-        //     printf("bursh_para.emergency_stop = 0\n");}
     }
     cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
     if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
@@ -290,22 +282,25 @@ void data_process(char *data)
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
         printf("emergency_stop = %d\n", json_emergency_stop->valueint);
-        if(json_emergency_stop->valueint){
-            //gpio_set_level(GPIO_OUTPUT_IO_STOP, 1);
-            blister_para.emergency_stop = 1;
-            printf("blister_para.emergency_stop = 1\n");
-            gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
-            gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-            blister_para.mode = 0;
-            printf("blister_para.mode = 0\n");
-            gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
-            gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
-            blister_para.centralizer = 0;
-            printf("blister_para.centralizer = 0\n");}       
-        else{
-            //gpio_set_level(GPIO_OUTPUT_IO_STOP, 0);
-            blister_para.emergency_stop = 0;
-            printf("blister_para.emergency_stop = 0\n");}
+        blister_stop_io_out(json_emergency_stop->valueint);
+    }
+    cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
+    if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
+        printf("switch_name = %s\n", json_switch_name->valuestring);
+        cJSON *json_value = cJSON_GetObjectItem(json_str_xy, "value");
+        uint8_t register_emergency_stop = 0;
+        register_emergency_stop = parameter_read_emergency_stop();
+        if(json_value != NULL && json_value->type == cJSON_Number) {
+            printf("value = %d\n", json_value->valueint);
+            if(strcmp(json_switch_name->valuestring,"heater")==0){
+                if(register_emergency_stop==0)
+                    heater_io_out(json_value->valueint);
+            }
+            else if(strcmp(json_switch_name->valuestring,"mode")==0){
+                if(register_emergency_stop==0)
+                    blister_mode_io_out(json_value->valueint);
+            }
+        }
     }
     //#else
     #endif
@@ -317,8 +312,15 @@ void mqtt_publish(void)
 {
     int msg_id;
     char data_pub_1[300] = "init";
+#ifdef DEVICE_TYPE_BRUSH
     data_publish(data_pub_1,1);   //device_register
     msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+    data_publish(data_pub_1,3);   //device_register
+    msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
+#endif
+    
     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 }
 
@@ -328,8 +330,11 @@ void data_publish(char *data,uint8_t case_pub)
     PARAMETER_BRUSH bursh_buf = {0};
     get_parameter(&bursh_buf);
 
+    PARAMETER_BLISTER blister_buf = {0};
+    get_blister_parameter(&blister_buf);
+
     cJSON*root = cJSON_CreateObject();
-    if(case_pub){
+    if(case_pub == 1){
         cJSON_AddNumberToObject(root, "status",bursh_buf.status);
         cJSON_AddNumberToObject(root, "water",bursh_buf.water);
         cJSON_AddNumberToObject(root, "pressure_alarm",bursh_buf.pressure_alarm);
@@ -341,28 +346,28 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "timestamp",bursh_buf.timestamp);
         cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(bursh_buf.msg_id)); //
         }
-    else{
+    else if(case_pub == 0){
         cJSON_AddNumberToObject(root, "device_sn",bursh_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",bursh_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PNEUMATIC_BRUSH"));
         }
-    // if(case_pub){
-    //     cJSON_AddNumberToObject(root, "status",bursh_para.status);
-    //     cJSON_AddNumberToObject(root, "water",bursh_para.water);
-    //     cJSON_AddNumberToObject(root, "pressure_alarm",bursh_para.pressure_alarm);
-    //     cJSON_AddNumberToObject(root, "nozzle",bursh_para.nozzle);
-    //     cJSON_AddNumberToObject(root, "centralizer",bursh_para.centralizer);
-    //     cJSON_AddNumberToObject(root, "rotation",bursh_para.rotation);
-    //     cJSON_AddNumberToObject(root, "emergency_stop",bursh_para.emergency_stop);  
-    //     cJSON_AddNumberToObject(root, "temperature",bursh_para.temperature);           
-    //     cJSON_AddNumberToObject(root, "timestamp",bursh_para.timestamp);
-    //     cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(bursh_para.msg_id)); //
-    //     }
-    // else{
-    //     cJSON_AddNumberToObject(root, "device_sn",bursh_para.uuid);
-    //     cJSON_AddNumberToObject(root, "timestamp",bursh_para.timestamp);
-    //     cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PNEUMATIC_BRUSH"));
-    //     }
+    else if(case_pub == 3){
+        cJSON_AddNumberToObject(root, "status",blister_buf.status);
+        cJSON_AddNumberToObject(root, "water",blister_buf.water);
+        cJSON_AddNumberToObject(root, "pressure_alarm",blister_buf.pressure_alarm);
+        cJSON_AddNumberToObject(root, "liquid_alarm",blister_buf.liquid_alarm);
+        cJSON_AddNumberToObject(root, "mode",blister_buf.mode);
+        cJSON_AddNumberToObject(root, "heater",blister_buf.heater);
+        cJSON_AddNumberToObject(root, "emergency_stop",blister_buf.emergency_stop);  
+        cJSON_AddNumberToObject(root, "temperature",blister_buf.temperature);           
+        cJSON_AddNumberToObject(root, "timestamp",blister_buf.timestamp);
+        cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(blister_buf.msg_id)); //
+        }
+    else if(case_pub == 2){
+        cJSON_AddNumberToObject(root, "device_sn",blister_buf.uuid);
+        cJSON_AddNumberToObject(root, "timestamp",blister_buf.timestamp);
+        cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PARAMETER_BLISTER"));
+        }
 
     char *msg = cJSON_Print(root);
     printf("%s\n",msg); 

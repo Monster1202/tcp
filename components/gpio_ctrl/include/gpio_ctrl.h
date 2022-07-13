@@ -21,12 +21,21 @@ extern "C" {
 void sw_key_read(uint8_t io_num);
 uint8_t KEY_READ(uint8_t io_num);
 void gpio_init(void);
+uint8_t UI_press_output(uint8_t value,uint8_t button);
 
+#ifdef DEVICE_TYPE_BRUSH
 void centralizer_io_out(uint8_t value);
 void rotation_io_out(uint8_t value);
 void nozzle_io_out(uint8_t value);
 void emergency_stop_io_out(uint8_t value);
+#endif
 
+#ifdef DEVICE_TYPE_BLISTER
+void blister_stop_io_out(uint8_t value);
+void blister_press_output(uint8_t io_num);
+void blister_mode_io_out(uint8_t value);
+void heater_io_out(uint8_t value);
+#endif
 
 #ifdef __cplusplus
 }

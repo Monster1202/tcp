@@ -65,6 +65,7 @@ uint8_t KEY_READ(uint8_t io_num)
     return 0; //no press
 }
 
+#ifdef DEVICE_TYPE_BRUSH
 void centralizer_io_out(uint8_t value)
 {
     if(value == 1){
@@ -146,6 +147,7 @@ void nozzle_io_out(uint8_t value)
         parameter_write_nozzle(0);
         printf("bursh_para.nozzle = 0\n");}
 }
+
 void emergency_stop_io_out(uint8_t value)
 {
     if(value == 1){
@@ -172,16 +174,8 @@ void emergency_stop_io_out(uint8_t value)
         gpio_set_level(GPIO_SYS_LED, 0);
         printf("bursh_para.emergency_stop = 0\n");}
 }
-uint8_t UI_press_output(uint8_t value,uint8_t button)
-{
-    if(value==button)
-        value = 0;
-    else
-        value = button;
-    return value;
-}
 
-void led_gpio_output(uint8_t io_num)
+void brush_press_output(uint8_t io_num)
 {
     uint8_t register_value = 0;
     uint8_t register_afterpress = 0;
@@ -203,14 +197,13 @@ void led_gpio_output(uint8_t io_num)
     }
     else
     {
-        switch(io_num)
+        switch(io_num)  //BRUSH
         {
             case GPIO_INPUT_IO_1:
             printf("GPIO_INPUT_IO_1\n");
             register_value = parameter_read_centralizer();
             register_afterpress = UI_press_output(register_value,1);
-            centralizer_io_out(register_afterpress);
-            parameter_write_water(1);
+            centralizer_io_out(register_afterpress);            
             break;
             case GPIO_INPUT_IO_2:
             printf("GPIO_INPUT_IO_2\n");
@@ -242,7 +235,9 @@ void led_gpio_output(uint8_t io_num)
             register_afterpress = UI_press_output(register_value,2);
             nozzle_io_out(register_afterpress);
             break;
-            case GPIO_INPUT_IO_7:printf("GPIO_INPUT_IO_7\n");break;
+            case GPIO_INPUT_IO_7:
+            printf("GPIO_INPUT_IO_7\n");
+            break;
             case GPIO_INPUT_IO_STOP:
             printf("GPIO_INPUT_IO_STOP\n");
             register_value = parameter_read_emergency_stop();
@@ -256,7 +251,146 @@ void led_gpio_output(uint8_t io_num)
     }
     mqtt_publish();
 }
+#endif
 
+
+uint8_t UI_press_output(uint8_t value,uint8_t button)
+{
+    if(value==button)
+        value = 0;
+    else
+        value = button;
+    return value;
+}
+
+#ifdef DEVICE_TYPE_BLISTER
+void blister_stop_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+
+        parameter_write_emergency_stop(1);
+        gpio_set_level(GPIO_SYS_LED, 1);
+        parameter_write_heater(0);
+        parameter_write_mode(0);
+        printf("blister_para.emergency_stop = 1\n");}
+    else{
+        parameter_write_emergency_stop(0);
+        gpio_set_level(GPIO_SYS_LED, 0);
+        printf("blister_para.emergency_stop = 0\n");}
+}
+void heater_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+        parameter_write_heater(1);
+        printf("blister.heater = 1\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        parameter_write_heater(0);
+        printf("blister.heater = 0\n");}
+}
+void blister_mode_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        parameter_write_mode(1);
+        printf("blister_para.mode = 1\n");}
+    else if(value == 2){
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 1);
+        parameter_write_mode(2);
+        printf("blister_para.mode = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        parameter_write_mode(0);
+        printf("blister_para.mode = 0\n");}
+}
+
+void blister_press_output(uint8_t io_num)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    uint8_t register_emergency_stop = 0;
+    register_emergency_stop = parameter_read_emergency_stop();
+    if(register_emergency_stop)
+    {
+        if(io_num == GPIO_INPUT_IO_STOP)
+        {
+            printf("back to normal mode\n");
+            register_value = parameter_read_emergency_stop();
+            register_afterpress = UI_press_output(register_value,1);
+            blister_stop_io_out(register_afterpress);
+        }
+        else{
+            printf("emergency_stop_error_press\n");
+            timer_periodic();
+        }
+    }
+    else
+    {
+        switch(io_num)   //BLISTER
+        {
+            case GPIO_INPUT_IO_1:
+            printf("GPIO_INPUT_IO_1\n");
+            register_value = parameter_read_heater();
+            register_afterpress = UI_press_output(register_value,1);
+            heater_io_out(register_afterpress);            
+            break;
+            case GPIO_INPUT_IO_2:
+            printf("GPIO_INPUT_IO_2\n");
+            register_value = parameter_read_mode();
+            register_afterpress = UI_press_output(register_value,1);
+            blister_mode_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_3:
+            printf("GPIO_INPUT_IO_3\n");
+            register_value = parameter_read_mode();
+            register_afterpress = UI_press_output(register_value,2);
+            blister_mode_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_4:
+            printf("GPIO_INPUT_IO_4\n");
+            break;
+            case GPIO_INPUT_IO_5:
+            printf("GPIO_INPUT_IO_5\n");
+            break;
+            case GPIO_INPUT_IO_6:
+            printf("GPIO_INPUT_IO_6\n");
+            break;
+            case GPIO_INPUT_IO_7:
+            printf("GPIO_INPUT_IO_7\n");
+            break;
+            case GPIO_INPUT_IO_STOP:
+            printf("GPIO_INPUT_IO_STOP\n");
+            register_value = parameter_read_emergency_stop();
+            register_afterpress = UI_press_output(register_value,1);
+            blister_stop_io_out(register_afterpress);
+            break;
+            default:
+            //printf("KEY_default\n");
+            break;
+        }
+    }
+    mqtt_publish();
+}
+#endif
 
 
 void sw_key_read(uint8_t io_num)
@@ -264,7 +398,12 @@ void sw_key_read(uint8_t io_num)
     // uint8_t key_status = 0;
     // key_status=KEY_READ(io_num);
     //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-    led_gpio_output(io_num);
+    #ifdef DEVICE_TYPE_BRUSH
+    brush_press_output(io_num);
+    #endif
+    #ifdef DEVICE_TYPE_BLISTER
+    blister_press_output(io_num);
+    #endif
     // switch(key_status)
     // {
     //     case KEY_ONCE:

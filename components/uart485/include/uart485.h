@@ -9,7 +9,7 @@ extern "C" {
 void uart485_task(void *arg);
 
 
-esp_err_t test_app(void);
+//esp_err_t test_app(void);
 
 #ifdef __cplusplus
 }

@@ -114,10 +114,10 @@ void uart485_task(void *arg)
     vTaskDelete(NULL);
 }
 
-esp_err_t test_app(void)
-{
-    printf("KEY_ONCE\n");
-    return ESP_OK;
-}
+// esp_err_t test_app(void)
+// {
+//     printf("KEY_ONCE\n");
+//     return ESP_OK;
+// }
 
 

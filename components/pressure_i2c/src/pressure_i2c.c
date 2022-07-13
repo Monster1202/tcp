@@ -85,7 +85,7 @@ void pressure_read(void* arg)
         pressure = data[0]+(uint16_t)(data[1]<<8);
         ESP_LOGI(TAG, "pressure = %d kpa", pressure);
         parameter_write_pressure(pressure);
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
     /* Demonstrate writing by reseting the MPU9250 */
     // ESP_ERROR_CHECK(register_write_byte(PWR_MGMT_1_REG_ADDR, 1 << RESET_BIT));

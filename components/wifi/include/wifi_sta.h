@@ -10,6 +10,7 @@ extern "C" {
 void wifi_connect(void);
 int8_t get_rssi(void);
 void wifi_reset(void);
+void wifi_scan(void);
 
 #ifdef __cplusplus
 }

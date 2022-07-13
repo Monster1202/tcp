@@ -38,10 +38,12 @@ void para_init(void)
     #else
         #ifdef DEVICE_TYPE_BLISTER
             blister_para.uuid = id;
-            blister_para.nozzle = 0;
+            blister_para.mode = 0;
+            blister_para.heater = 0;
             blister_para.status = 1;
             blister_para.water = 0;
             blister_para.pressure_alarm = 0;
+            blister_para.liquid_alarm = 0;
             blister_para.emergency_stop = 0;
             blister_para.timestamp = 1654585625000;
             strcpy(blister_para.msg_id,"msg_id");
@@ -80,10 +82,20 @@ uint8_t parameter_read_pressure_alarm(void)
     return bursh_para.pressure_alarm;
 }
 
+uint8_t parameter_read_liquid_alarm(void)
+{
+    return blister_para.liquid_alarm;
+}
+
 
 void get_parameter(PARAMETER_BRUSH *bursh_t)
 {
     memcpy(bursh_t,&bursh_para,sizeof(PARAMETER_BRUSH));
+}
+
+void get_blister_parameter(PARAMETER_BLISTER *blister_t)
+{
+    memcpy(blister_t,&blister_para,sizeof(PARAMETER_BLISTER));
 }
 
 void parameter_write_msg_id(char *str_msgid)
@@ -91,6 +103,7 @@ void parameter_write_msg_id(char *str_msgid)
     //bursh_para.msg_id = msg_id;
     strcpy(bursh_para.msg_id,str_msgid);
 }
+
 
 char *parameter_read_msg_id(void)
 {
@@ -109,12 +122,23 @@ double parameter_read_timestamp(void)
 
 void parameter_write_emergency_stop(uint8_t value)
 {   
-    bursh_para.emergency_stop = value;
+    
+#ifdef DEVICE_TYPE_BRUSH
+bursh_para.emergency_stop = value;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+blister_para.emergency_stop = value;
+#endif
 }
 
 uint8_t parameter_read_emergency_stop(void)
 {
-    return bursh_para.emergency_stop;
+#ifdef DEVICE_TYPE_BRUSH
+return bursh_para.emergency_stop;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+return blister_para.emergency_stop;
+#endif
 }
 
 void parameter_write_centralizer(uint8_t value)
@@ -160,11 +184,36 @@ uint16_t parameter_read_pressure(void)
 void parameter_write_temperature(double temperature)
 {   
     bursh_para.temperature = temperature;
+    blister_para.temperature = temperature;
 }
 
 double parameter_read_temperature(void)
 {
     return bursh_para.temperature;
+}
+double blister_read_temperature(void)
+{
+    return blister_para.temperature;
+}
+
+void parameter_write_heater(uint8_t value)
+{   
+    blister_para.heater = value;
+}
+
+uint8_t parameter_read_heater(void)
+{
+    return blister_para.heater;
+}
+
+void parameter_write_mode(uint8_t value)
+{   
+    blister_para.mode = value;
+}
+
+uint8_t parameter_read_mode(void)
+{
+    return blister_para.mode;
 }
 
 // esp_err_t test_app_1(void)

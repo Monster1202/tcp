@@ -201,3 +201,12 @@ int8_t get_rssi(void)
 
     return ap_info[0].rssi;
 }
+
+void wifi_scan(void)
+{
+    for(;;)
+    {
+        vTaskDelay(60000 / portTICK_RATE_MS);
+        get_rssi();        
+    }
+}
