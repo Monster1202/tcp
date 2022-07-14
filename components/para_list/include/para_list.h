@@ -12,8 +12,8 @@ extern "C" {
 #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"  "yyg"//
 #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."   "123456789"//
 
-//#define DEVICE_TYPE_BRUSH 
-#define DEVICE_TYPE_BLISTER
+#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 //#define DEVICE_TYPE_TEST
 
@@ -79,7 +79,21 @@ extern "C" {
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
     #else
         #ifdef DEVICE_TYPE_REMOTE
-        #else
+        #define GPIO_INPUT_IO_1     35
+        #define GPIO_INPUT_IO_2     36
+        #define GPIO_INPUT_IO_3     37
+        #define GPIO_INPUT_IO_4     38
+        #define GPIO_INPUT_IO_5     39
+        #define GPIO_INPUT_IO_6     40
+        #define GPIO_INPUT_IO_7     41
+        #define GPIO_INPUT_IO_STOP     42//stop
+        #define GPIO_OUTPUT_LED_1         18
+        #define GPIO_OUTPUT_LED_2         17
+        #define GPIO_OUTPUT_LED_3         16
+        #define GPIO_OUTPUT_LED_4         15
+        #define GPIO_OUTPUT_LED_5         7
+        #define GPIO_OUTPUT_LED_6         6
+        #define GPIO_SYS_LED         0    //stop
         #endif
     #endif
 #endif
@@ -174,6 +188,7 @@ typedef struct
     uint8_t nozzle;      //command down
     uint8_t centralizer;
     uint8_t rotation;
+    uint8_t heater;
     uint8_t mode;
     uint8_t angle;
 }PARAMETER_REMOTE;

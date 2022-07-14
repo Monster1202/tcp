@@ -28,7 +28,6 @@
 #include "cJSON.h"
 #include "para_list.h"
 #include "ds18b20.h"
-//#include "uart485.h"
 #include "pressure_i2c.h"
 #include "wifi_sta.h"
 #include "ota_app.h"
@@ -36,6 +35,7 @@
 #include "gpio_ctrl.h"
 #include "led_strip.h"
 #include "timer_app.h"
+//#include "uart485.h"
 
 #define BLINK_GPIO 48
 #define CONFIG_BLINK_LED_RMT_CHANNEL 0
@@ -59,7 +59,7 @@ void app_main(void)
     wifi_connect();     
 //MQTT enable     MQTT task priority, default is 5,
     //mqtt_app_start();  
-    mqtt_init();
+ //   mqtt_init();
 //OTA enable
     //vTaskDelay(10000 / portTICK_RATE_MS);
     native_ota_app();
@@ -67,7 +67,7 @@ void app_main(void)
     //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
     //int cnt = 0;
     //xTaskCreate(beep_out, "beep_out", 2048, NULL, 9, NULL);
-    configure_led();
+//    configure_led();
     timer_periodic();
 //wifi_scan
    xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);

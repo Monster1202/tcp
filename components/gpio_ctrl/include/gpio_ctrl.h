@@ -18,7 +18,7 @@ extern "C" {
 
 
 
-void sw_key_read(uint8_t io_num);
+void sw_key_read(uint8_t io_num,uint8_t state);
 uint8_t KEY_READ(uint8_t io_num);
 void gpio_init(void);
 uint8_t UI_press_output(uint8_t value,uint8_t button);

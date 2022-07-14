@@ -5,6 +5,7 @@
 #include "gpio_ctrl.h"
 #include "timer_app.h"
 #include "mqtt_app.h"
+#include "uart485.h"
 
 //gpio
 static xQueueHandle gpio_evt_queue = NULL;
@@ -21,8 +22,8 @@ static void gpio_task_example(void* arg)
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
             buf_state = gpio_get_level(io_num);
             printf("GPIO[%d] intr, val: %d\n", io_num, buf_state);
-            if(buf_state ==1)
-                sw_key_read(io_num); //judge button press once twice or long
+            //if(buf_state ==1)
+            sw_key_read(io_num,buf_state); //judge button press once twice or long
         }
     }
 }
@@ -251,6 +252,47 @@ void brush_press_output(uint8_t io_num)
     }
     mqtt_publish();
 }
+
+uint8_t brush_input(uint8_t io_num,uint8_t state)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    // uint8_t register_emergency_stop = 0;
+    // register_emergency_stop = parameter_read_emergency_stop();
+    if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
+    {
+        parameter_write_water(0);
+        printf("GPIO_INPUT_IO_7:0\n");
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
+    {
+        parameter_write_water(1);
+        printf("GPIO_INPUT_IO_7:1\n");
+    }
+    else if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
+    {
+        parameter_write_pressure_alarm(0);
+        printf("GPIO_INPUT_IO_7:0\n");
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_6)
+    {
+        parameter_write_pressure_alarm(1);
+        printf("GPIO_INPUT_IO_7:1\n");
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_STOP)
+    {
+        printf("GPIO_INPUT_IO_STOP\n");
+        register_value = parameter_read_emergency_stop();
+        register_afterpress = UI_press_output(register_value,1);
+        emergency_stop_io_out(register_afterpress);
+    }
+    else
+    {
+        return 0;
+    }
+    mqtt_publish();
+    return 1;
+}
 #endif
 
 
@@ -288,11 +330,13 @@ void blister_stop_io_out(uint8_t value)
 void heater_io_out(uint8_t value)
 {
     if(value == 1){
+        heater_water_module_test(6);
         gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);
         gpio_set_level(GPIO_OUTPUT_LED_1, 1);
         parameter_write_heater(1);
         printf("blister.heater = 1\n");}
     else{
+        heater_water_module_test(7);
         gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
         gpio_set_level(GPIO_OUTPUT_LED_1, 0);
         parameter_write_heater(0);
@@ -301,6 +345,7 @@ void heater_io_out(uint8_t value)
 void blister_mode_io_out(uint8_t value)
 {
     if(value == 1){
+        heater_water_module_test(4);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
         gpio_set_level(GPIO_OUTPUT_LED_2, 1);
@@ -315,6 +360,7 @@ void blister_mode_io_out(uint8_t value)
         parameter_write_mode(2);
         printf("blister_para.mode = 2\n");}
     else{
+        heater_water_module_test(5);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
@@ -322,13 +368,44 @@ void blister_mode_io_out(uint8_t value)
         parameter_write_mode(0);
         printf("blister_para.mode = 0\n");}
 }
-
+static uint8_t quantity = 0;
+void blister_quantity_io_out(uint8_t value)
+{
+    if(value == 1){
+        heater_water_module_test(1);
+        // gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
+        // gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        //parameter_write_mode(1);
+        quantity = 1;
+        printf("blister_para.mode = 1\n");}
+    else if(value == 2){
+        heater_water_module_test(2);
+        // gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        // gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+        //parameter_write_mode(2);
+        quantity = 2;
+        printf("blister_para.mode = 2\n");}
+    else{
+        heater_water_module_test(3);
+        // gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        // gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        //parameter_write_mode(0);
+        quantity = 3;
+        printf("blister_para.mode = 0\n");}
+}
 void blister_press_output(uint8_t io_num)
 {
     uint8_t register_value = 0;
     uint8_t register_afterpress = 0;
     uint8_t register_emergency_stop = 0;
     register_emergency_stop = parameter_read_emergency_stop();
+    
     if(register_emergency_stop)
     {
         if(io_num == GPIO_INPUT_IO_STOP)
@@ -367,9 +444,13 @@ void blister_press_output(uint8_t io_num)
             break;
             case GPIO_INPUT_IO_4:
             printf("GPIO_INPUT_IO_4\n");
+            register_afterpress = UI_press_output(quantity,1);
+            blister_quantity_io_out(register_afterpress);
             break;
             case GPIO_INPUT_IO_5:
             printf("GPIO_INPUT_IO_5\n");
+            register_afterpress = UI_press_output(quantity,2);
+            blister_quantity_io_out(register_afterpress);
             break;
             case GPIO_INPUT_IO_6:
             printf("GPIO_INPUT_IO_6\n");
@@ -393,17 +474,25 @@ void blister_press_output(uint8_t io_num)
 #endif
 
 
-void sw_key_read(uint8_t io_num)
+
+void sw_key_read(uint8_t io_num,uint8_t state)
 {
     // uint8_t key_status = 0;
     // key_status=KEY_READ(io_num);
     //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+
+    //brush_input(io_num,state);
+    if(state == 1)
+    {
     #ifdef DEVICE_TYPE_BRUSH
     brush_press_output(io_num);
     #endif
     #ifdef DEVICE_TYPE_BLISTER
     blister_press_output(io_num);
     #endif
+    }
+
+
     // switch(key_status)
     // {
     //     case KEY_ONCE:
@@ -441,7 +530,7 @@ void gpio_init(void)
     //configure GPIO with the given settings
     gpio_config(&io_conf);
         //interrupt of rising edge
-    io_conf.intr_type = GPIO_INTR_POSEDGE;
+    io_conf.intr_type = GPIO_INTR_ANYEDGE;//GPIO_INTR_POSEDGE;
     //bit mask of the pins, use GPIO4/5 here
     io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL;
     //set as input mode
