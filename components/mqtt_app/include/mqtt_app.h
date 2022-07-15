@@ -9,7 +9,7 @@ extern "C" {
 void mqtt_init(void);
 void data_process(char *data);
 void data_publish(char *data,uint8_t case_pub);
-void mqtt_publish(void);
+void device_states_publish(uint8_t button);
 
 static void mqtt_app_start(void);
 #ifdef __cplusplus

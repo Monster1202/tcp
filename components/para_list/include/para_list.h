@@ -19,12 +19,12 @@ SemaphoreHandle_t mutexHandle;
 #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."   "123456789"//
 #define MQTT_PRIO 20
 
-//#define DEVICE_TYPE_BRUSH 
-#define DEVICE_TYPE_BLISTER
+#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 //#define DEVICE_TYPE_TEST
-//#define GPIOTEST
-#define GPIOWORKING
+#define GPIOTEST
+//#define GPIOWORKING
 
 #define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
@@ -32,7 +32,11 @@ SemaphoreHandle_t mutexHandle;
 #define GPIO_SYS_LED         0
 #define GPIO_BEEP            8
 
+
+/////////////////////////////////
 #ifdef DEVICE_TYPE_BRUSH
+        #define ECHO_TEST_TXD   (48)
+        #define ECHO_TEST_RXD   (45)
 
 #define GPIO_OUTPUT_IO_STRETCH    14//39
 #define GPIO_OUTPUT_IO_DRAW       13//40
@@ -62,6 +66,9 @@ SemaphoreHandle_t mutexHandle;
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
 #else
     #ifdef DEVICE_TYPE_BLISTER
+        #define ECHO_TEST_TXD   (9)
+        #define ECHO_TEST_RXD   (10)
+
         #define GPIO_INPUT_IO_1     35
         #define GPIO_INPUT_IO_2     36
         #define GPIO_INPUT_IO_3     37
@@ -201,10 +208,12 @@ typedef struct
     uint8_t heater;
     uint8_t mode;
     uint8_t angle;
+    uint8_t emergency_stop;
 }PARAMETER_REMOTE;
 
 void get_parameter(PARAMETER_BRUSH *bursh_t);
 void get_blister_parameter(PARAMETER_BLISTER *blister_t);
+void get_remote_parameter(PARAMETER_REMOTE *remote_t);
 #ifdef __cplusplus
 }
 #endif

@@ -56,7 +56,6 @@ void app_main(void)
     para_init();
 //gpio task in/out     PRIO 10 
     gpio_init();
-
 //pressure_read
     xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
@@ -66,7 +65,9 @@ void app_main(void)
 //OTA enable
     native_ota_app();
 //uart read/write example without event queue;
+#ifdef DEVICE_TYPE_BLISTER
     xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
+#endif
 //wifi_scan
    xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);
 //DS18B20 task
@@ -75,7 +76,7 @@ void app_main(void)
     //int cnt = 0;
     //configure_led();
     //uint8_t s_led_state = 0;
-    printf("configMAX_PRIORITIES:%d",configMAX_PRIORITIES);
+    //printf("configMAX_PRIORITIES:%d",configMAX_PRIORITIES);
     while(1) {
         // printf("cnt: %d\n", cnt++);
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");

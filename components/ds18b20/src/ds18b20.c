@@ -8,164 +8,401 @@
 #include "freertos/task.h"
 #include "sys/unistd.h"
 #include "para_list.h"
-//#include "event_groups.h"
-// #include <stdarg.h>
-// #include "sdkconfig.h"
-// #include "esp_flash.h"
-// #include "esp_attr.h"
-PRIVILEGED_DATA static portMUX_TYPE xTask_ds18 = portMUX_INITIALIZER_UNLOCKED;
-#ifdef ESP_PLATFORM
-#define taskCRITICAL_MUX &xTask_ds18
-#undef taskENTER_CRITICAL
-#undef taskEXIT_CRITICAL
-#undef taskENTER_CRITICAL_ISR
-#undef taskEXIT_CRITICAL_ISR
-#define taskENTER_CRITICAL( )     portENTER_CRITICAL( taskCRITICAL_MUX )
-#define taskEXIT_CRITICAL( )            portEXIT_CRITICAL( taskCRITICAL_MUX )
-#define taskENTER_CRITICAL_ISR( )     portENTER_CRITICAL_ISR( taskCRITICAL_MUX )
-#define taskEXIT_CRITICAL_ISR( )        portEXIT_CRITICAL_ISR( taskCRITICAL_MUX )
-#endif
 
+
+// void delay_us(int cnt)
+// {
+//   //vTaskDelay(1 / portTICK_RATE_MS);
+//   //usleep(cnt);
+//   cnt = cnt*2;
+//   ets_delay_us(cnt);
+// }
+
+// void DS_DIR_IN(void)  //让PB9为浮空输入模式
+// {
+// 	gpio_pad_select_gpio(GPIO_IO_DS18B20);
+// 	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_INPUT);
+// }
+ 
+//   //  #define GPIO_IO_DS18B20    8
+//   // #define GPIO_OUTPUT_PIN_SEL  (1ULL<<GPIO_IO_DS18B20)
+
+// void DS_DIR_OUT(void) //让PB9为推挽输出模式
+// {
+// 	gpio_pad_select_gpio(GPIO_IO_DS18B20);
+// 	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_OUTPUT);
+// }
+
+// void Init_DS18B20(void) 
+// {
+// 	unsigned char t = 0;
+// 	DS_DIR_OUT();  //让GPIO口为推挽输出模式
+// 	// gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
+// 	// delay_us(1); 
+// 	gpio_set_level(GPIO_IO_DS18B20, 0);  //发送复位脉冲 ds18b20 DQ管脚接到单片机的PB9
+// 	delay_us(300); 		//延时（>480us) 
+// 	gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
+// 	delay_us(15); 				//等待（15~60us)	
+// 	DS_DIR_IN(); //配置GPIO口为浮空输入模式
+// 	while(gpio_get_level(GPIO_IO_DS18B20) == 1) //等待拉低
+// 	{
+// 		delay_us(1);
+// 		t++;
+// 		if(t >= 240)//如果超过240us还是高电平 代表ds18b20没发数据回来 丢失连接了
+// 			return;   
+// 	}
+// 	t = 0;
+// 	while(gpio_get_level(GPIO_IO_DS18B20) == 0) //等待拉高
+// 	{
+// 		delay_us(1);
+// 		t++;
+// 		if(t >= 240)//如果超过240us还是低电平 代表ds18b20没发数据回来 丢失连接了
+// 			return; 
+// 	}
+// 	//printf("温度初始化完成！"); //我的printf函数是跟串口结合了，用于看ds18b20是否初始化完成
+// }
+// //单片机向DS18B20写一位  0  对应上图里面 左上方的图
+// void Write_Bit_0(void)
+// {
+// 	// gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
+// 	// delay_us(1); 
+// 	gpio_set_level(GPIO_IO_DS18B20, 0); //拉低
+// 	delay_us(60);  //在60us --- 120us之间
+// 	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
+// 	delay_us(10);  //拉高大于1us 这里选用10us
+// }
+// //单片机向DS18B20写一位 1
+// void Write_Bit_1(void)
+// {
+// 	// gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
+// 	// delay_us(1); 
+// 	gpio_set_level(GPIO_IO_DS18B20, 0); //拉低 
+// 	delay_us(10);  //拉低大于1us
+// 	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
+// 	delay_us(60); //我的理解是 拉高大于60us就是写1 所以选用90us
+// }
+ 
+// //单片机向DS18B20读一位 
+// unsigned char Read_Bit(void)
+// {
+// 	DS_DIR_OUT(); //PB9为推挽输出模式
+// 	gpio_set_level(GPIO_IO_DS18B20, 1); 
+// 	delay_us(1); 
+// 	gpio_set_level(GPIO_IO_DS18B20, 0);  //拉低
+// 	delay_us(2); //大于1us 选用10us
+// 	DS_DIR_IN(); //PB9为浮空输入模式
+// 	delay_us(10); //等待一会 用于后面判断该管脚返回的是高电平还是低电平 太大不好试过80us返回的数据就奇怪了
+// 	if(gpio_get_level(GPIO_IO_DS18B20) == 1)
+// 	{
+// 		return 1; //高电平返回1 
+// 	}
+// 	else
+// 	{
+// 		return 0; //低电平返回0
+// 	}
+// 	delay_us(47);
+// }
+// //读一个字节
+// unsigned char ReadOneChar(void)  			
+// {
+// 	unsigned char i=0; 		
+// 	unsigned char dat=0; 
+// 	for (i=0;i<8;i++) 		
+// 	{
+// 		dat = dat | (Read_Bit() << i); //DS18B20经手册查的是低位开始传输回来的，要获取一个完整的字节，这样子就可以。
+// 	} 
+// 	return(dat);
+// }
+ 
+// //写一个字节
+// void WriteOneChar(unsigned char dat) //dat要发送的数据
+// { 
+// 	unsigned char i=0; 		
+// 	DS_DIR_OUT(); //推挽输出
+// 	for(i=8;i>0;i--) 		//在15~60us之间对数据线进行采样，如果是高电平就写1，低写0发生。 
+// 	{
+// 		if((dat & 0x01) == 1)
+// 		{
+// 			Write_Bit_1();
+// 		}
+// 		else
+// 		{
+// 			Write_Bit_0();
+// 		}
+// 		dat >>= 1;
+// 	} 
+// }
+
+// //读温度值（低位放tempL;高位放tempH;）
+// double ReadTemperature(void) 
+// { 
+// 	unsigned char tempL=0;         //设全局变量
+// 	unsigned char tempH=0; 
+// 	unsigned int sdata;            //温度的部分
+// 	unsigned char fg=1;                    //温度正负标志
+// 	double temp = 0;
+// 	Init_DS18B20(); 					//初始化
+// 	WriteOneChar(0xcc); 				//跳过读序列号的操作
+// 	WriteOneChar(0x44); 				//启动温度转换
+// 	delay_us(2000);	//delay_us(1000);					    //转换需要一点时间，延时 
+// 	Init_DS18B20(); 					//初始化
+// 	WriteOneChar(0xcc); 				//跳过读序列号的操作 
+// 	WriteOneChar(0xbe); 				//读温度寄存器（头两个值分别为温度的低位和高位）	
+// 	tempL=ReadOneChar(); 				//读出温度的低位LSB
+// 	tempH=ReadOneChar(); 				//读出温度的高位MSB	
+// 	// printf("tempL:%d  \r\n",tempL);
+// 	// printf("tempH:%d  \r\n",tempH);
+// 	if(tempH>0x7f)      				//最高位为1时温度是负
+// 	{
+// 		tempL=~tempL;					//补码转换，取反加一
+// 		tempH=~tempH+1;       
+// 		fg=0;      						//读取温度为负时fg=0
+// 	}
+// 	sdata = (tempH << 8) + tempL;
+// 	temp = (double)sdata * 0.0625;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
+// 	printf("temp=%f\r\n",temp);
+// 	return temp;
+// }
+
+// int Compare_double(const void* a, const void* b)
+// {
+// 	double arg1 = *(const double*)a;
+// 	double arg2 = *(const double*)b;
+// 	double arg3 = arg1 - arg2;
+// 	double eps = 1e-6;
+// 	if (-eps <= arg3 && arg3 <= eps)
+// 	{
+// 		return 0;
+// 	}
+// 	if (eps <= arg3 )
+// 	{
+// 		return 1;
+// 	}
+// 	if ( arg3 <= -eps)
+// 	{
+// 		return -1;
+// 	}
+//     return 0;
+// }
+//  #define length_temp_sort 11  //5  
+// void ds18b20_read(void* arg)
+// {
+//     static double temp[length_temp_sort]={0};
+//     double temp_sorted[length_temp_sort]={0};
+//     //int temp_int[5]={0};
+//     double temp_mid = 0;
+	
+// 	BaseType_t iRet;
+//     for(;;)
+//     {
+//         vTaskDelay(500 / portTICK_RATE_MS);
+//         temp[length_temp_sort-1]=ReadTemperature();
+//         for(uint8_t i=0;i<length_temp_sort;i++)
+//             temp_sorted[i] = temp[i];
+//         qsort(temp_sorted, length_temp_sort, sizeof(temp_sorted[0]), Compare_double); //increase
+//         temp_mid = temp_sorted[length_temp_sort/2];
+//         //bursh_para.temperature = temp_mid;
+// 		parameter_write_temperature(temp_mid);
+// //        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
+//         printf("qsort-temp_mid:%f\n",temp_mid);
+//         for(uint8_t i=1;i<length_temp_sort;i++)
+//             temp[i-1] = temp[i];
+//     }
+// }
+// void ds18b20_read(void* arg)
+// {
+//     static double temp[5]={0};
+//     double temp_sorted[5]={0};
+//     //int temp_int[5]={0};
+//     double temp_mid = 0;
+	
+// 	BaseType_t iRet;
+//     for(;;)
+//     {
+//         vTaskDelay(500 / portTICK_RATE_MS);
+// 		//portDISABLE_INTERRUPTS();
+// 		//taskENTER_CRITICAL();
+// 		//vTaskSuspendAll();
+// 		iRet = xSemaphoreTake(mutexHandle,1000);
+//         temp[4]=ReadTemperature();
+// 		xSemaphoreGive(mutexHandle);
+// 		//xTaskResumeAll();
+// 		//taskEXIT_CRITICAL();
+// 		//portENABLE_INTERRUPTS();
+//         for(uint8_t i=0;i<5;i++)
+//             temp_sorted[i] = temp[i];
+//         qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
+//         temp_mid = temp_sorted[2];
+//         //bursh_para.temperature = temp_mid;
+// 		parameter_write_temperature(temp_mid);
+// //        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
+//         printf("qsort-temp_mid:%f\n",temp_mid);
+//         for(uint8_t i=1;i<5;i++)
+//             temp[i-1] = temp[i];
+
+//          //taskENTER_CRITICAL();
+//         // vPortEnterCritical();      
+//         // 
+//         // taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//  
+         
+//         // taskENTER_CRITICAL_FROM_ISR();//taskEXIT_CRITICAL();//vPortExitCritical();//
+//     }
+// }
+/*******************************************************************************
+  * 函数名：DS18B20_set
+  * 功  能：DS18B20复位
+  * 参  数：无
+  * 返回值：无
+  * 说  明：复位
+*******************************************************************************/
 void delay_us(int cnt)
 {
   //vTaskDelay(1 / portTICK_RATE_MS);
   //usleep(cnt);
-  cnt = cnt*2;
+  //cnt = cnt*2;
   ets_delay_us(cnt);
 }
-
-void DS_DIR_IN(void)  //让PB9为浮空输入模式
+void DS18B20_Reset(void)
 {
-	gpio_pad_select_gpio(GPIO_IO_DS18B20);
-	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_INPUT);
+	DS18B20_DQModeOutput();//设置为输出
+	DS18B20_DQReset();//低电平
+	delay_us(750);//750us
+	DS18B20_DQSet();//高电平
+	delay_us(15);//15us	
 }
- 
-  //  #define GPIO_IO_DS18B20    8
-  // #define GPIO_OUTPUT_PIN_SEL  (1ULL<<GPIO_IO_DS18B20)
-
-void DS_DIR_OUT(void) //让PB9为推挽输出模式
+/*******************************************************************************
+  * 函数名：DS18B20_Check
+  * 功  能：检测DS18B20是否存在
+  * 参  数：无
+  * 返回值：1不存在，0存在
+  * 说  明：无
+*******************************************************************************/
+uint8_t DS18B20_Check(void)
 {
-	gpio_pad_select_gpio(GPIO_IO_DS18B20);
-	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_OUTPUT);
-}
-
-void Init_DS18B20(void) 
-{
-	unsigned char t = 0;
-	DS_DIR_OUT();  //让GPIO口为推挽输出模式
-	// gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
-	// delay_us(1); 
-	gpio_set_level(GPIO_IO_DS18B20, 0);  //发送复位脉冲 ds18b20 DQ管脚接到单片机的PB9
-	delay_us(300); 		//延时（>480us) 
-	gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
-	delay_us(15); 				//等待（15~60us)	
-	DS_DIR_IN(); //配置GPIO口为浮空输入模式
-	while(gpio_get_level(GPIO_IO_DS18B20) == 1) //等待拉低
+	uint8_t u8Retry = 0;
+	DS18B20_DQModeInput();//设置为输入
+	while ((DS18B20_DIORead() == 1)&&(u8Retry < 200))
 	{
+		u8Retry++;
 		delay_us(1);
-		t++;
-		if(t >= 240)//如果超过240us还是高电平 代表ds18b20没发数据回来 丢失连接了
-			return;   
 	}
-	t = 0;
-	while(gpio_get_level(GPIO_IO_DS18B20) == 0) //等待拉高
+	
+	if (u8Retry >= 200)
 	{
+		return 1;
+	}else
+	{
+		u8Retry = 0;
+	}
+	while ((DS18B20_DIORead() == 0) && (u8Retry < 240))
+	{
+		u8Retry++;
 		delay_us(1);
-		t++;
-		if(t >= 240)//如果超过240us还是低电平 代表ds18b20没发数据回来 丢失连接了
-			return; 
 	}
-	//printf("温度初始化完成！"); //我的printf函数是跟串口结合了，用于看ds18b20是否初始化完成
-}
-//单片机向DS18B20写一位  0  对应上图里面 左上方的图
-void Write_Bit_0(void)
-{
-	// gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
-	// delay_us(1); 
-	gpio_set_level(GPIO_IO_DS18B20, 0); //拉低
-	delay_us(60);  //在60us --- 120us之间
-	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
-	delay_us(10);  //拉高大于1us 这里选用10us
-}
-//单片机向DS18B20写一位 1
-void Write_Bit_1(void)
-{
-	// gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
-	// delay_us(1); 
-	gpio_set_level(GPIO_IO_DS18B20, 0); //拉低 
-	delay_us(10);  //拉低大于1us
-	gpio_set_level(GPIO_IO_DS18B20, 1);  //拉高
-	delay_us(60); //我的理解是 拉高大于60us就是写1 所以选用90us
-}
- 
-//单片机向DS18B20读一位 
-unsigned char Read_Bit(void)
-{
-	DS_DIR_OUT(); //PB9为推挽输出模式
-	gpio_set_level(GPIO_IO_DS18B20, 1); 
-	delay_us(1); 
-	gpio_set_level(GPIO_IO_DS18B20, 0);  //拉低
-	delay_us(2); //大于1us 选用10us
-	DS_DIR_IN(); //PB9为浮空输入模式
-	delay_us(10); //等待一会 用于后面判断该管脚返回的是高电平还是低电平 太大不好试过80us返回的数据就奇怪了
-	if(gpio_get_level(GPIO_IO_DS18B20) == 1)
+	if(u8Retry >= 120)
 	{
-		return 1; //高电平返回1 
+		return 1;
 	}
-	else
-	{
-		return 0; //低电平返回0
-	}
-	delay_us(47);
+	return 0;	
 }
-//读一个字节
-unsigned char ReadOneChar(void)  			
+/*******************************************************************************
+  * 函数名：DS18B20_WriteByte
+  * 功  能：向DS18B20写入一个字节
+  * 参  数：u8Data:要写入的数据
+  * 返回值：无
+  * 说  明：
+*******************************************************************************/
+void DS18B20_WriteByte(uint8_t u8Data)
 {
-	unsigned char i=0; 		
-	unsigned char dat=0; 
-	for (i=0;i<8;i++) 		
+	uint8_t tempIndex,tempData;
+	DS18B20_DQModeOutput();//设置为输出
+	for (tempIndex = 1; tempIndex <= 8; tempIndex++)
 	{
-		dat = dat | (Read_Bit() << i); //DS18B20经手册查的是低位开始传输回来的，要获取一个完整的字节，这样子就可以。
-	} 
-	return(dat);
-}
- 
-//写一个字节
-void WriteOneChar(unsigned char dat) //dat要发送的数据
-{ 
-	unsigned char i=0; 		
-	DS_DIR_OUT(); //推挽输出
-	for(i=8;i>0;i--) 		//在15~60us之间对数据线进行采样，如果是高电平就写1，低写0发生。 
-	{
-		if((dat & 0x01) == 1)
+		tempData = (u8Data & 0x01);
+		u8Data >>= 1;
+		if (tempData == 1)
 		{
-			Write_Bit_1();
-		}
-		else
+			DS18B20_DQReset();//低电平
+			delay_us(2);
+			DS18B20_DQSet();//高电平
+			delay_us(60);//延时60us
+		}else
 		{
-			Write_Bit_0();
-		}
-		dat >>= 1;
-	} 
+			DS18B20_DQReset();//低电平
+			delay_us(60);//延时60us
+			DS18B20_DQSet();//高电平
+			delay_us(2);
+		}		
+	}
 }
+/*******************************************************************************
+  * 函数名：DS18B20_ReadBit
+  * 功  能：从DS18B20读取一个位
+  * 参  数：无
+  * 返回值：1或0
+  * 说  明：无
+*******************************************************************************/
+uint8_t DS18B20_ReadBit(void)
+{
+	uint8_t u8Data = 0;
+	DS18B20_DQModeOutput();//设置为输出
+	DS18B20_DQReset();//低电平
+	delay_us(2);
+	DS18B20_DQSet();//高电平
+	DS18B20_DQModeInput();//设置为输入
+	delay_us(12);
+	u8Data = ((DS18B20_DIORead() == 1) ? 1 : 0);
+	delay_us(50);
+	return u8Data;
+}
+/*******************************************************************************
+  * 函数名：DS18B20_ReadByte
+  * 功  能：从DS18B20读取一个字节
+  * 参  数：无
+  * 返回值：u8Data读出的数据
+  * 说  明：无
+*******************************************************************************/
+uint8_t DS18B20_ReadByte(void)
+{
+	uint8_t i,j, u8Ddata = 0;
+	
+	for (i = 1; i <= 8; i++)
+	{		
+		j = DS18B20_ReadBit();
+		u8Ddata = (j << 7) | (u8Ddata >> 1);
+	}	
+	return u8Ddata;
+}
+/*******************************************************************************
+  * 函数名：DS18B20_Start
+  * 功  能：开始温度转换
+  * 参  数：无
+  * 返回值：无
+  * 说  明：无
+*******************************************************************************/
 
-//读温度值（低位放tempL;高位放tempH;）
-double ReadTemperature(void) 
+double DS18B20_Start(void)
 { 
 	unsigned char tempL=0;         //设全局变量
 	unsigned char tempH=0; 
 	unsigned int sdata;            //温度的部分
 	unsigned char fg=1;                    //温度正负标志
+  	uint8_t check;
 	double temp = 0;
-	Init_DS18B20(); 					//初始化
-	WriteOneChar(0xcc); 				//跳过读序列号的操作
-	WriteOneChar(0x44); 				//启动温度转换
-	delay_us(2000);	//delay_us(1000);					    //转换需要一点时间，延时 
-	Init_DS18B20(); 					//初始化
-	WriteOneChar(0xcc); 				//跳过读序列号的操作 
-	WriteOneChar(0xbe); 				//读温度寄存器（头两个值分别为温度的低位和高位）	
-	tempL=ReadOneChar(); 				//读出温度的低位LSB
-	tempH=ReadOneChar(); 				//读出温度的高位MSB	
+	gpio_pad_select_gpio(GPIO_IO_DS18B20);
+	DS18B20_Reset();
+	check = DS18B20_Check();
+  	//printf("DS18B20_Check:%d\n",check);
+	DS18B20_WriteByte(0xCC);//跳过ROM
+	DS18B20_WriteByte(0x44);//温度转换	
+	//delay_us(1000);
+	DS18B20_Reset();
+	check = DS18B20_Check();
+	DS18B20_WriteByte(0xCC);//跳过ROM
+	DS18B20_WriteByte(0xBE);//温度转换	
+	
+	tempL = DS18B20_ReadByte();
+	tempH = DS18B20_ReadByte();
 	// printf("tempL:%d  \r\n",tempL);
 	// printf("tempH:%d  \r\n",tempH);
 	if(tempH>0x7f)      				//最高位为1时温度是负
@@ -174,251 +411,27 @@ double ReadTemperature(void)
 		tempH=~tempH+1;       
 		fg=0;      						//读取温度为负时fg=0
 	}
-	sdata = (tempH << 8) + tempL;
+	// sdata = (tempH << 8) + tempL;
+	// sdata = (sdata * 0.0625) * 100;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
+	// printf("%d  \r\n",sdata);
+ 	sdata = (tempH << 8) + tempL;
 	temp = (double)sdata * 0.0625;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
-	printf("temp=%f\r\n",temp);
+	printf("DS18B20_temp=%f\r\n",temp);
 	return temp;
-}
-
-int Compare_double(const void* a, const void* b)
-{
-	double arg1 = *(const double*)a;
-	double arg2 = *(const double*)b;
-	double arg3 = arg1 - arg2;
-	double eps = 1e-6;
-	if (-eps <= arg3 && arg3 <= eps)
-	{
-		return 0;
-	}
-	if (eps <= arg3 )
-	{
-		return 1;
-	}
-	if ( arg3 <= -eps)
-	{
-		return -1;
-	}
-    return 0;
+	//return sdata/100;
 }
 
 void ds18b20_read(void* arg)
 {
-    static double temp[5]={0};
-    double temp_sorted[5]={0};
-    //int temp_int[5]={0};
     double temp_mid = 0;
 	
-	BaseType_t iRet;
     for(;;)
     {
         vTaskDelay(500 / portTICK_RATE_MS);
-		//portDISABLE_INTERRUPTS();
-		//taskENTER_CRITICAL();
-		//vTaskSuspendAll();
-		iRet = xSemaphoreTake(mutexHandle,1000);
-        temp[4]=ReadTemperature();
-		xSemaphoreGive(mutexHandle);
-		//xTaskResumeAll();
-		//taskEXIT_CRITICAL();
-		//portENABLE_INTERRUPTS();
-        for(uint8_t i=0;i<5;i++)
-            temp_sorted[i] = temp[i];
-        qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
-        temp_mid = temp_sorted[2];
-        //bursh_para.temperature = temp_mid;
+		temp_mid = DS18B20_Start();
 		parameter_write_temperature(temp_mid);
-//        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
-        printf("qsort-temp_mid:%f\n",temp_mid);
-        for(uint8_t i=1;i<5;i++)
-            temp[i-1] = temp[i];
-
-         //taskENTER_CRITICAL();
-        // vPortEnterCritical();      
-        // 
-        // taskENTER_CRITICAL_FROM_ISR();//taskENTER_CRITICAL(); //vPortEnterCritical();//  
-         
-        // taskENTER_CRITICAL_FROM_ISR();//taskEXIT_CRITICAL();//vPortExitCritical();//
-    }
+	}	
 }
-/*******************************************************************************
-  * 函数名：DS18B20_set
-  * 功  能：DS18B20复位
-  * 参  数：无
-  * 返回值：无
-  * 说  明：复位
-*******************************************************************************/
-// void DS18B20_Reset(void)
-// {
-// 	DS18B20_DQModeOutput();//设置为输出
-// 	DS18B20_DQReset();//低电平
-// 	delay_us(750);//750us
-// 	DS18B20_DQSet();//高电平
-// 	delay_us(15);//15us	
-// }
-// /*******************************************************************************
-//   * 函数名：DS18B20_Check
-//   * 功  能：检测DS18B20是否存在
-//   * 参  数：无
-//   * 返回值：1不存在，0存在
-//   * 说  明：无
-// *******************************************************************************/
-// uint8_t DS18B20_Check(void)
-// {
-// 	uint8_t u8Retry = 0;
-// 	DS18B20_DQModeInput();//设置为输入
-// 	while ((DS18B20_DIORead() == 1)&&(u8Retry < 200))
-// 	{
-// 		u8Retry++;
-// 		delay_us(1);
-// 	}
-	
-// 	if (u8Retry >= 200)
-// 	{
-// 		return 1;
-// 	}else
-// 	{
-// 		u8Retry = 0;
-// 	}
-// 	while ((DS18B20_DIORead() == 0) && (u8Retry < 240))
-// 	{
-// 		u8Retry++;
-// 		delay_us(1);
-// 	}
-// 	if(u8Retry >= 120)
-// 	{
-// 		return 1;
-// 	}
-// 	return 0;	
-// }
-// /*******************************************************************************
-//   * 函数名：DS18B20_WriteByte
-//   * 功  能：向DS18B20写入一个字节
-//   * 参  数：u8Data:要写入的数据
-//   * 返回值：无
-//   * 说  明：
-// *******************************************************************************/
-// void DS18B20_WriteByte(uint8_t u8Data)
-// {
-// 	uint8_t tempIndex,tempData;
-// 	DS18B20_DQModeOutput();//设置为输出
-// 	for (tempIndex = 1; tempIndex <= 8; tempIndex++)
-// 	{
-// 		tempData = (u8Data & 0x01);
-// 		u8Data >>= 1;
-// 		if (tempData == 1)
-// 		{
-// 			DS18B20_DQReset();//低电平
-// 			delay_us(2);
-// 			DS18B20_DQSet();//高电平
-// 			delay_us(60);//延时60us
-// 		}else
-// 		{
-// 			DS18B20_DQReset();//低电平
-// 			delay_us(60);//延时60us
-// 			DS18B20_DQSet();//高电平
-// 			delay_us(2);
-// 		}		
-// 	}
-// }
-// /*******************************************************************************
-//   * 函数名：DS18B20_ReadBit
-//   * 功  能：从DS18B20读取一个位
-//   * 参  数：无
-//   * 返回值：1或0
-//   * 说  明：无
-// *******************************************************************************/
-// uint8_t DS18B20_ReadBit(void)
-// {
-// 	uint8_t u8Data = 0;
-// 	DS18B20_DQModeOutput();//设置为输出
-// 	DS18B20_DQReset();//低电平
-// 	delay_us(2);
-// 	DS18B20_DQSet();//高电平
-// 	DS18B20_DQModeInput();//设置为输入
-// 	delay_us(12);
-// 	u8Data = ((DS18B20_DIORead() == 1) ? 1 : 0);
-// 	delay_us(50);
-// 	return u8Data;
-// }
-// /*******************************************************************************
-//   * 函数名：DS18B20_ReadByte
-//   * 功  能：从DS18B20读取一个字节
-//   * 参  数：无
-//   * 返回值：u8Data读出的数据
-//   * 说  明：无
-// *******************************************************************************/
-// uint8_t DS18B20_ReadByte(void)
-// {
-// 	uint8_t i,j, u8Ddata = 0;
-	
-// 	for (i = 1; i <= 8; i++)
-// 	{		
-// 		j = DS18B20_ReadBit();
-// 		u8Ddata = (j << 7) | (u8Ddata >> 1);
-// 	}	
-// 	return u8Ddata;
-// }
-// /*******************************************************************************
-//   * 函数名：DS18B20_Start
-//   * 功  能：开始温度转换
-//   * 参  数：无
-//   * 返回值：无
-//   * 说  明：无
-// *******************************************************************************/
-// int data_temp = 0;
-// void DS18B20_Start(void)
-// { 
-// 	uint8_t data[9];
-// 	unsigned char tempL=0;         //设全局变量
-// 	unsigned char tempH=0; 
-// 	unsigned int sdata;            //温度的部分
-// 	unsigned char fg=1;                    //温度正负标志
-//   	uint8_t check;
-// 	gpio_pad_select_gpio(GPIO_IO_DS18B20);
-// 	DS18B20_Reset();
-// 	check = DS18B20_Check();
-//   	printf("DS18B20_Check:%d\n",check);
-// 	DS18B20_WriteByte(0xCC);//跳过ROM
-// 	DS18B20_WriteByte(0x44);//温度转换	
-// 	//delay_us(1000);
-// 	vTaskDelay(750 / portTICK_RATE_MS);
-// 	DS18B20_Reset();
-// 	DS18B20_WriteByte(0xCC);//跳过ROM
-// 	DS18B20_WriteByte(0xBE);//温度转换	
-	
-// 	for(uint8_t i=0; i<9;i++)
-// 	{
-// 		data[i] = DS18B20_ReadByte();
-// 		printf("data[%d]:%d\r\n",i,data[i]);
-// 	}
-// 	DS18B20_Reset();
-// 	    tempL=data[0];
-//         tempH=data[1];
-
-//         float temp=0;
-//         temp=(float)(tempL+(tempH*256))/16;
-// 		printf("temp: %f\n", temp);
-// 	Init_DS18B20(); 					//初始化
-// 	WriteOneChar(0xcc); 				//跳过读序列号的操作 
-// 	WriteOneChar(0xbe); 				//读温度寄存器（头两个值分别为温度的低位和高位）
-	// tempL = DS18B20_ReadByte();
-	// //data_temp = data_temp<<8;
-	// tempH = DS18B20_ReadByte();
-	// //printf("data_temp: %x\n", data_temp);
-	// //data_temp = 0;
-
-	// printf("tempL:%d  \r\n",tempL);
-	// printf("tempH:%d  \r\n",tempH);
-	// if(tempH>0x7f)      				//最高位为1时温度是负
-	// {
-	// 	tempL=~tempL;					//补码转换，取反加一
-	// 	tempH=~tempH+1;       
-	// 	fg=0;      						//读取温度为负时fg=0
-	// }
-	// sdata = (tempH << 8) + tempL;
-	// sdata = (sdata * 0.0625) * 100;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
-	// printf("%d  \r\n",sdata);
-//}
 // // OneWire commands
 // #define GETTEMP			0x44  // Tells device to take a temperature reading and put it on the scratchpad
 // #define SKIPROM			0xCC  // Command to address all devices on the bus

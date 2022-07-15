@@ -74,7 +74,6 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
         gpio_set_level(GPIO_OUTPUT_LED_1, 1);
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        //bursh_para.centralizer = 1;
         parameter_write_centralizer(1);
         printf("bursh_para.centralizer = 1\n");}
     else if(value == 2){
@@ -82,7 +81,6 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
         gpio_set_level(GPIO_OUTPUT_LED_1, 0);
         gpio_set_level(GPIO_OUTPUT_LED_2, 1);
-        //bursh_para.centralizer = 2;
         parameter_write_centralizer(2);
         printf("bursh_para.centralizer = 2\n");}
     else{
@@ -90,7 +88,6 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
         gpio_set_level(GPIO_OUTPUT_LED_1, 0);
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        //bursh_para.centralizer = 0;
         parameter_write_centralizer(0);
         printf("bursh_para.centralizer = 0\n");}
 }
@@ -101,7 +98,6 @@ void rotation_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
         gpio_set_level(GPIO_OUTPUT_LED_3, 1);
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
-        //bursh_para.rotation = 1;
         parameter_write_rotation(1);
         printf("bursh_para.rotation = 1\n");}
     else if(value==2){
@@ -109,7 +105,6 @@ void rotation_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 1);
         gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         gpio_set_level(GPIO_OUTPUT_LED_4, 1);
-        //bursh_para.rotation = 2;
         parameter_write_rotation(2);
         printf("bursh_para.rotation = 2\n");}
     else{
@@ -117,7 +112,6 @@ void rotation_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
         gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
-        //bursh_para.rotation = 0;
         parameter_write_rotation(0);
         printf("bursh_para.rotation = 0\n");} 
 }
@@ -128,7 +122,6 @@ void nozzle_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
         gpio_set_level(GPIO_OUTPUT_LED_5, 1);
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-        //bursh_para.nozzle = 1;
         parameter_write_nozzle(1);
         printf("bursh_para.nozzle = 1\n");}
     else if(value == 2){
@@ -136,7 +129,6 @@ void nozzle_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
         gpio_set_level(GPIO_OUTPUT_LED_6, 1);
-        //bursh_para.nozzle = 2;
         parameter_write_nozzle(2);
         printf("bursh_para.nozzle = 2\n");}
     else{
@@ -144,7 +136,6 @@ void nozzle_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-        //bursh_para.nozzle = 0;
         parameter_write_nozzle(0);
         printf("bursh_para.nozzle = 0\n");}
 }
@@ -259,7 +250,7 @@ void brush_press_output(uint8_t io_num)
             break;
         }
     }
-    mqtt_publish();
+    device_states_publish(0);
 }
 
 uint8_t brush_input(uint8_t io_num,uint8_t state)
@@ -303,7 +294,7 @@ uint8_t brush_input(uint8_t io_num,uint8_t state)
     {
         return 0;
     }
-    mqtt_publish();
+    device_states_publish(0);
     return 1;
 }
 #endif
@@ -319,6 +310,7 @@ uint8_t UI_press_output(uint8_t value,uint8_t button)
 }
 
 #ifdef DEVICE_TYPE_BLISTER
+
 void blister_stop_io_out(uint8_t value)
 {
     if(value == 1){
@@ -482,27 +474,13 @@ void blister_press_output(uint8_t io_num)
             break;
         }
     }
-    mqtt_publish();
+    device_states_publish(0);
 }
 
 uint8_t blister_input(uint8_t io_num,uint8_t state)
 {
     uint8_t register_value = 0;
     uint8_t register_afterpress = 0;
-    // uint8_t register_emergency_stop = 0;
-    // register_emergency_stop = parameter_read_emergency_stop();
-    // if(state == 0 && io_num == GPIO_INPUT_IO_5)  //pressure 0/1 input
-    // {
-    //     parameter_write_liquid_alarm(0);
-    //     printf("GPIO_INPUT_IO_5:0\n");
-    //     gpio_set_level(GPIO_OUTPUT_LED_4, 0);
-    // }
-    // else if(state == 1 && io_num == GPIO_INPUT_IO_5)
-    // {
-    //     parameter_write_liquid_alarm(1);
-    //     printf("GPIO_INPUT_IO_5:1\n");
-    //     gpio_set_level(GPIO_OUTPUT_LED_4, 1);
-    // }
     if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
     {
         parameter_write_water(0);
@@ -531,13 +509,177 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
     {
         return 0;
     }
-    mqtt_publish();
+    device_states_publish(0);
     return 1;
 }
 
 #endif
 
+#ifdef DEVICE_TYPE_REMOTE
+void centralizer_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        parameter_write_centralizer(1);
+        printf("remote_para.centralizer = 1\n");}
+    else if(value == 2){
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 1);
+        parameter_write_centralizer(2);
+        printf("remote_para.centralizer = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        parameter_write_centralizer(0);
+        printf("remote_para.centralizer = 0\n");}
+}
+void rotation_io_out(uint8_t value)
+{
+    if(value==1){
+        gpio_set_level(GPIO_OUTPUT_LED_3, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        parameter_write_rotation(1);
+        printf("remote_para.rotation = 1\n");}
+    else if(value==2){
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 1);
+        parameter_write_rotation(2);
+        printf("remote_para.rotation = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        parameter_write_rotation(0);
+        printf("remote_para.rotation = 0\n");} 
+}
+void nozzle_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+        parameter_write_nozzle(1);
+        printf("remote_para.nozzle = 1\n");}
+    else if(value == 2){
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
+        parameter_write_nozzle(2);
+        printf("remote_para.nozzle = 2\n");}
+    else{
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+        parameter_write_nozzle(0);
+        printf("remote_para.nozzle = 0\n");}
+}
 
+void remote_stop_io_out(uint8_t value)
+{
+    if(value == 1){
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+        parameter_write_emergency_stop(1);
+        gpio_set_level(GPIO_SYS_LED, 1);
+        parameter_write_heater(0);
+        parameter_write_mode(0);
+        parameter_write_centralizer(0);
+        parameter_write_rotation(0);
+        parameter_write_nozzle(0);
+        printf("remote_para.emergency_stop = 1\n");}
+    else{
+        parameter_write_emergency_stop(0);
+        gpio_set_level(GPIO_SYS_LED, 0);
+        printf("remote_para.emergency_stop = 0\n");}
+}
+
+void remote_press_output(uint8_t io_num)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    uint8_t register_emergency_stop = 0;
+    register_emergency_stop = parameter_read_emergency_stop();
+    
+    if(register_emergency_stop)
+    {
+        if(io_num == GPIO_INPUT_IO_STOP)
+        {
+            printf("back to normal mode\n");
+            register_value = parameter_read_emergency_stop();
+            register_afterpress = UI_press_output(register_value,1);
+            remote_stop_io_out(register_afterpress);
+            device_states_publish(4);
+        }
+        else{
+            printf("emergency_stop_error_press\n");
+            timer_periodic();
+        }
+    }
+    else
+    {
+        switch(io_num)   //BLISTER
+        {
+            case GPIO_INPUT_IO_1:
+            printf("GPIO_INPUT_IO_1\n");
+            register_value = parameter_read_centralizer();
+            register_afterpress = UI_press_output(register_value,1);
+            centralizer_io_out(register_afterpress);
+            device_states_publish(1);            
+            break;
+            case GPIO_INPUT_IO_2:
+            printf("GPIO_INPUT_IO_2\n");
+            register_value = parameter_read_centralizer();
+            register_afterpress = UI_press_output(register_value,2);
+            centralizer_io_out(register_afterpress);
+            device_states_publish(1); 
+            break;
+            case GPIO_INPUT_IO_3:
+            printf("GPIO_INPUT_IO_3\n");
+            register_value = parameter_read_rotation();
+            register_afterpress = UI_press_output(register_value,1);
+            rotation_io_out(register_afterpress);
+            device_states_publish(2); 
+            break;
+            case GPIO_INPUT_IO_4:
+            printf("GPIO_INPUT_IO_4\n");
+            register_value = parameter_read_rotation();
+            register_afterpress = UI_press_output(register_value,2);
+            rotation_io_out(register_afterpress);
+            device_states_publish(2); 
+            break;
+            case GPIO_INPUT_IO_5:
+            printf("GPIO_INPUT_IO_5\n");
+            register_value = parameter_read_nozzle();
+            register_afterpress = UI_press_output(register_value,1);
+            nozzle_io_out(register_afterpress);
+            device_states_publish(3); 
+            break;
+            case GPIO_INPUT_IO_6:
+            printf("GPIO_INPUT_IO_6\n");
+            register_value = parameter_read_nozzle();
+            register_afterpress = UI_press_output(register_value,2);
+            nozzle_io_out(register_afterpress);
+            device_states_publish(3); 
+            break;
+            case GPIO_INPUT_IO_7:
+            printf("GPIO_INPUT_IO_7\n");
+            break;
+            case GPIO_INPUT_IO_STOP:
+            printf("GPIO_INPUT_IO_STOP\n");
+            register_value = parameter_read_emergency_stop();
+            register_afterpress = UI_press_output(register_value,1);
+            remote_stop_io_out(register_afterpress);
+            device_states_publish(4);
+            break;
+            default:
+            //printf("KEY_default\n");
+            break;
+        }
+    }
+    device_states_publish(1);
+}
+#endif
 
 void sw_key_read(uint8_t io_num,uint8_t state)
 {
@@ -552,15 +694,16 @@ void sw_key_read(uint8_t io_num,uint8_t state)
     #endif
     if(state == 1)
     {
-    // #ifdef DEVICE_TYPE_BRUSH
-    // brush_press_output(io_num);
-    // #endif
+    #ifdef GPIOTEST
+    brush_press_output(io_num);
+    #endif
     #ifdef DEVICE_TYPE_BLISTER
     blister_press_output(io_num);
     #endif
+    #ifdef DEVICE_TYPE_REMOTE
+    remote_press_output(io_num);
+    #endif
     }
-
-
 
     // switch(key_status)
     // {

@@ -105,10 +105,16 @@ void get_blister_parameter(PARAMETER_BLISTER *blister_t)
     memcpy(blister_t,&blister_para,sizeof(PARAMETER_BLISTER));
 }
 
+void get_remote_parameter(PARAMETER_REMOTE *remote_t)
+{
+    memcpy(remote_t,&remote_para,sizeof(PARAMETER_REMOTE));
+}
+
+
 void parameter_write_msg_id(char *str_msgid)
 {   
-    //bursh_para.msg_id = msg_id;
     strcpy(bursh_para.msg_id,str_msgid);
+    strcpy(blister_para.msg_id,str_msgid);
 }
 
 
@@ -120,6 +126,7 @@ char *parameter_read_msg_id(void)
 void parameter_write_timestamp(double timestamp)
 {   
     bursh_para.timestamp = timestamp;
+    blister_para.timestamp = timestamp;
 }
 
 double parameter_read_timestamp(void)
@@ -136,6 +143,9 @@ bursh_para.emergency_stop = value;
 #ifdef DEVICE_TYPE_BLISTER
 blister_para.emergency_stop = value;
 #endif
+#ifdef DEVICE_TYPE_REMOTE
+remote_para.emergency_stop = value;
+#endif
 }
 
 uint8_t parameter_read_emergency_stop(void)
@@ -146,36 +156,61 @@ return bursh_para.emergency_stop;
 #ifdef DEVICE_TYPE_BLISTER
 return blister_para.emergency_stop;
 #endif
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.emergency_stop;
+#endif
 }
 
 void parameter_write_centralizer(uint8_t value)
 {   
     bursh_para.centralizer = value;
+    remote_para.centralizer = value;
 }
 
 uint8_t parameter_read_centralizer(void)
 {
-    return bursh_para.centralizer;
+#ifdef DEVICE_TYPE_BRUSH
+return bursh_para.centralizer;
+#endif
+
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.centralizer;
+#endif
 }
 
 void parameter_write_rotation(uint8_t value)
 {   
     bursh_para.rotation = value;
+    remote_para.rotation = value;
 }
 
 uint8_t parameter_read_rotation(void)
 {
-    return bursh_para.rotation;
+#ifdef DEVICE_TYPE_BRUSH
+return bursh_para.rotation;
+#endif
+
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.rotation;
+#endif
 }
 
 void parameter_write_nozzle(uint8_t value)
 {   
     bursh_para.nozzle = value;
+    remote_para.nozzle = value;
 }
 
 uint8_t parameter_read_nozzle(void)
 {
-    return bursh_para.nozzle;
+#ifdef DEVICE_TYPE_BRUSH
+return bursh_para.nozzle;
+#endif
+
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.nozzle;
+#endif
+    
 }
 
 void parameter_write_pressure(uint16_t pressure)
@@ -206,6 +241,7 @@ double blister_read_temperature(void)
 void parameter_write_heater(uint8_t value)
 {   
     blister_para.heater = value;
+    remote_para.heater = value;
 }
 
 uint8_t parameter_read_heater(void)
@@ -216,6 +252,7 @@ uint8_t parameter_read_heater(void)
 void parameter_write_mode(uint8_t value)
 {   
     blister_para.mode = value;
+    remote_para.mode = value;
 }
 
 uint8_t parameter_read_mode(void)
