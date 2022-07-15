@@ -58,7 +58,7 @@ void Init_DS18B20(void)
 	gpio_set_level(GPIO_IO_DS18B20, 0);  //发送复位脉冲 ds18b20 DQ管脚接到单片机的PB9
 	delay_us(300); 		//延时（>480us) 
 	gpio_set_level(GPIO_IO_DS18B20, 1);		//拉高数据线 
-	delay_us(55); 				//等待（15~60us)	
+	delay_us(15); 				//等待（15~60us)	
 	DS_DIR_IN(); //配置GPIO口为浮空输入模式
 	while(gpio_get_level(GPIO_IO_DS18B20) == 1) //等待拉低
 	{
@@ -207,13 +207,17 @@ void ds18b20_read(void* arg)
     double temp_sorted[5]={0};
     //int temp_int[5]={0};
     double temp_mid = 0;
+	
+	BaseType_t iRet;
     for(;;)
     {
-        vTaskDelay(5000 / portTICK_RATE_MS);
+        vTaskDelay(500 / portTICK_RATE_MS);
 		//portDISABLE_INTERRUPTS();
 		//taskENTER_CRITICAL();
 		//vTaskSuspendAll();
+		iRet = xSemaphoreTake(mutexHandle,1000);
         temp[4]=ReadTemperature();
+		xSemaphoreGive(mutexHandle);
 		//xTaskResumeAll();
 		//taskEXIT_CRITICAL();
 		//portENABLE_INTERRUPTS();

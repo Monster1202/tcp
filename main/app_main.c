@@ -35,43 +35,47 @@
 #include "gpio_ctrl.h"
 #include "led_strip.h"
 #include "timer_app.h"
-//#include "uart485.h"
+#include "uart485.h"
 
+//#define configMAX_PRIORITIES 32
 #define BLINK_GPIO 48
 #define CONFIG_BLINK_LED_RMT_CHANNEL 0
 static led_strip_t *pStrip_a;
 static void blink_led(uint8_t s_led_state);
 static void configure_led(void);
-void beep_out(void);
 static const char *TAG = "led_strip";
+
+
+
+
 
 void app_main(void)
 {
+    mutexHandle = xSemaphoreCreateMutex();
 //parameter_init
     para_init();
 //gpio task in/out     PRIO 10 
     gpio_init();
-//DS18B20 task
-   xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 30, NULL);
+
 //pressure_read
     xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
     wifi_connect();     
 //MQTT enable     MQTT task priority, default is 5,
-    //mqtt_app_start();  
- //   mqtt_init();
+    mqtt_init();
 //OTA enable
-    //vTaskDelay(10000 / portTICK_RATE_MS);
     native_ota_app();
 //uart read/write example without event queue;
-    //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
-    //int cnt = 0;
-    //xTaskCreate(beep_out, "beep_out", 2048, NULL, 9, NULL);
-//    configure_led();
-    timer_periodic();
+    xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 //wifi_scan
    xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);
+//DS18B20 task
+   xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 23, NULL);
+    timer_periodic();  //init end beep 
+    //int cnt = 0;
+    //configure_led();
     //uint8_t s_led_state = 0;
+    printf("configMAX_PRIORITIES:%d",configMAX_PRIORITIES);
     while(1) {
         // printf("cnt: %d\n", cnt++);
         // ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
@@ -113,44 +117,4 @@ static void configure_led(void)
 }
 
 
-// void beep_out(void)
-// {
-//     uint8_t beep_state = 0;
-//     int cnt = 0;
-//     uint8_t beep_enable = 1;
-//     uint16_t k = 1;
-//     for(;;)
-//     {
-//         vTaskDelay(9 / portTICK_RATE_MS);
-//         if(beep_enable)
-//         {
-//             beep_state = !beep_state;
-//             gpio_set_level(GPIO_BEEP, beep_state);    
-//             //vTaskDelay(1 / portTICK_RATE_MS);  
-//         }
-//         if(cnt == 300*k)
-//         {
-//             beep_enable = 0;
-//         }
-//         else if(cnt == 600*k)
-//         {
-//             beep_enable = 1;
-//         }    
-//         else if(cnt == 900*k)
-//         {
-//             beep_enable = 0;
-//         }
-//         else if(cnt == 1200*k)
-//         {
-//             beep_enable = 1;
-//         } 
-//         else if(cnt == 1500*k)
-//         {
-//             beep_enable = 0;
-//         } 
-//         if(cnt<2000*k)    
-//             //cnt++;
-//             printf("cnt: %d\n", cnt++);   
-//     }
-// }
 

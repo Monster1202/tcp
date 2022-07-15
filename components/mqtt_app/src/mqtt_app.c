@@ -123,7 +123,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         // mqtt_reset();
         // ESP_LOGI(TAG, "MQTT_EVENT_RESET");
         buf_disconnect++;
-        if(buf_disconnect == 10)
+        if(buf_disconnect == 25)   //10=4minutes 
             esp_restart();
         break;
 
@@ -174,7 +174,7 @@ static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = MQTT_BROKER_URL,//CONFIG_BROKER_URL,
-        //.task_prio = 31,
+        .task_prio = MQTT_PRIO,
     };
 #if CONFIG_BROKER_URL_FROM_STDIN
     char line[128];

@@ -3,21 +3,30 @@
 #define __PARA_LIST_H__
 
 #include "esp_err.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define MQTT_BROKER_URL "mqtt://172.16.171.97" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"   
+SemaphoreHandle_t mutexHandle;
+
+#define MQTT_BROKER_URL "mqtt://172.16.161.171" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"   
 #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"  "yyg"//
 #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."   "123456789"//
+#define MQTT_PRIO 20
 
-#define DEVICE_TYPE_BRUSH 
-//#define DEVICE_TYPE_BLISTER
+//#define DEVICE_TYPE_BRUSH 
+#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 //#define DEVICE_TYPE_TEST
+//#define GPIOTEST
+#define GPIOWORKING
 
-#define GPIO_IO_DS18B20    4//9
+#define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           2      /*!< GPIO number used for I2C master data  */
 #define GPIO_SYS_LED         0
@@ -144,6 +153,7 @@ uint8_t parameter_read_heater(void);
 void parameter_write_mode(uint8_t value);
 uint8_t parameter_read_mode(void);
 double blister_read_temperature(void);
+void parameter_write_liquid_alarm(uint8_t value);
 
 typedef struct
 {

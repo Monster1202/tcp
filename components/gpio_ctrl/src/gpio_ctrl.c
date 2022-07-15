@@ -158,12 +158,16 @@ void emergency_stop_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+    #ifdef GPIOTEST
         gpio_set_level(GPIO_OUTPUT_LED_1, 0);
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    #else
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+    #endif    
         parameter_write_emergency_stop(1);
         gpio_set_level(GPIO_SYS_LED, 1);
         parameter_write_centralizer(0);
@@ -171,6 +175,11 @@ void emergency_stop_io_out(uint8_t value)
         parameter_write_nozzle(0);
         printf("bursh_para.emergency_stop = 1\n");}
     else{
+    #ifdef GPIOTEST
+        //printf("nothing\n");
+    #else
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+    #endif  
         parameter_write_emergency_stop(0);
         gpio_set_level(GPIO_SYS_LED, 0);
         printf("bursh_para.emergency_stop = 0\n");}
@@ -259,32 +268,36 @@ uint8_t brush_input(uint8_t io_num,uint8_t state)
     uint8_t register_afterpress = 0;
     // uint8_t register_emergency_stop = 0;
     // register_emergency_stop = parameter_read_emergency_stop();
-    if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
+    if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
     {
         parameter_write_water(0);
-        printf("GPIO_INPUT_IO_7:0\n");
-    }
-    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
-    {
-        parameter_write_water(1);
-        printf("GPIO_INPUT_IO_7:1\n");
-    }
-    else if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
-    {
-        parameter_write_pressure_alarm(0);
-        printf("GPIO_INPUT_IO_7:0\n");
+        printf("GPIO_INPUT_IO_6:0\n");
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
     }
     else if(state == 1 && io_num == GPIO_INPUT_IO_6)
     {
+        parameter_write_water(1);
+        printf("GPIO_INPUT_IO_6:1\n");
+        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+    }
+    else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
+    {
+        parameter_write_pressure_alarm(0);
+        printf("GPIO_INPUT_IO_7:0\n");
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
+    {
         parameter_write_pressure_alarm(1);
         printf("GPIO_INPUT_IO_7:1\n");
+        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
     }
     else if(state == 1 && io_num == GPIO_INPUT_IO_STOP)
     {
         printf("GPIO_INPUT_IO_STOP\n");
         register_value = parameter_read_emergency_stop();
         register_afterpress = UI_press_output(register_value,1);
-        emergency_stop_io_out(register_afterpress);
+        emergency_stop_io_out(register_afterpress);       
     }
     else
     {
@@ -471,6 +484,57 @@ void blister_press_output(uint8_t io_num)
     }
     mqtt_publish();
 }
+
+uint8_t blister_input(uint8_t io_num,uint8_t state)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    // uint8_t register_emergency_stop = 0;
+    // register_emergency_stop = parameter_read_emergency_stop();
+    // if(state == 0 && io_num == GPIO_INPUT_IO_5)  //pressure 0/1 input
+    // {
+    //     parameter_write_liquid_alarm(0);
+    //     printf("GPIO_INPUT_IO_5:0\n");
+    //     gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+    // }
+    // else if(state == 1 && io_num == GPIO_INPUT_IO_5)
+    // {
+    //     parameter_write_liquid_alarm(1);
+    //     printf("GPIO_INPUT_IO_5:1\n");
+    //     gpio_set_level(GPIO_OUTPUT_LED_4, 1);
+    // }
+    if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
+    {
+        parameter_write_water(0);
+        printf("GPIO_INPUT_IO_6:0\n");
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_6)
+    {
+        parameter_write_water(1);
+        printf("GPIO_INPUT_IO_6:1\n");
+        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+    }
+    else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
+    {
+        parameter_write_pressure_alarm(0);
+        printf("GPIO_INPUT_IO_7:0\n");
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
+    {
+        parameter_write_pressure_alarm(1);
+        printf("GPIO_INPUT_IO_7:1\n");
+        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
+    }
+    else
+    {
+        return 0;
+    }
+    mqtt_publish();
+    return 1;
+}
+
 #endif
 
 
@@ -480,17 +544,22 @@ void sw_key_read(uint8_t io_num,uint8_t state)
     // uint8_t key_status = 0;
     // key_status=KEY_READ(io_num);
     //printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
-
-    //brush_input(io_num,state);
+    #ifdef DEVICE_TYPE_BRUSH
+        brush_input(io_num,state);
+    #endif
+    #ifdef DEVICE_TYPE_BLISTER
+        blister_input(io_num,state);
+    #endif
     if(state == 1)
     {
-    #ifdef DEVICE_TYPE_BRUSH
-    brush_press_output(io_num);
-    #endif
+    // #ifdef DEVICE_TYPE_BRUSH
+    // brush_press_output(io_num);
+    // #endif
     #ifdef DEVICE_TYPE_BLISTER
     blister_press_output(io_num);
     #endif
     }
+
 
 
     // switch(key_status)
