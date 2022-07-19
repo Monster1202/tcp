@@ -37,6 +37,15 @@ void blister_mode_io_out(uint8_t value);
 void heater_io_out(uint8_t value);
 #endif
 
+#ifdef DEVICE_TYPE_REMOTE
+void remote_stop_io_out(uint8_t value);
+void remote_press_output(uint8_t io_num);
+void centralizer_io_out(uint8_t value);
+void rotation_io_out(uint8_t value);
+void nozzle_io_out(uint8_t value);
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif

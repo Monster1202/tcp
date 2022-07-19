@@ -35,6 +35,7 @@
 #include "gpio_ctrl.h"
 #include "led_strip.h"
 #include "timer_app.h"
+
 #include "uart485.h"
 
 //#define configMAX_PRIORITIES 32
@@ -47,31 +48,35 @@ static const char *TAG = "led_strip";
 
 
 
-
+//LOG_LOCAL_LEVEL 
+//esp_log_level_set
 
 void app_main(void)
 {
-    mutexHandle = xSemaphoreCreateMutex();
+ //   mutexHandle = xSemaphoreCreateMutex();
 //parameter_init
     para_init();
 //gpio task in/out     PRIO 10 
     gpio_init();
-//pressure_read
-    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
     wifi_connect();     
 //MQTT enable     MQTT task priority, default is 5,
     mqtt_init();
 //OTA enable
     native_ota_app();
+//wifi_scan
+    xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
     xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 #endif
-//wifi_scan
-   xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);
+
+#ifndef DEVICE_TYPE_REMOTE
+//pressure_read
+    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //DS18B20 task
-   xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 23, NULL);
+    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 23, NULL);
+#endif
     timer_periodic();  //init end beep 
     //int cnt = 0;
     //configure_led();

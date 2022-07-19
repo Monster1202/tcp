@@ -8,8 +8,9 @@
 #include "freertos/task.h"
 #include "sys/unistd.h"
 #include "para_list.h"
+#include "esp_log.h"
 
-
+static const char *TAG = "DS18B20";
 // void delay_us(int cnt)
 // {
 //   //vTaskDelay(1 / portTICK_RATE_MS);
@@ -416,7 +417,8 @@ double DS18B20_Start(void)
 	// printf("%d  \r\n",sdata);
  	sdata = (tempH << 8) + tempL;
 	temp = (double)sdata * 0.0625;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
-	printf("DS18B20_temp=%f\r\n",temp);
+	//printf("DS18B20_temp=%f\r\n",temp);
+	ESP_LOGD(TAG, "DS18B20_temp=%f",temp);
 	return temp;
 	//return sdata/100;
 }
@@ -424,7 +426,7 @@ double DS18B20_Start(void)
 void ds18b20_read(void* arg)
 {
     double temp_mid = 0;
-	
+	esp_log_level_set("*", PRINTF_LEVEL);
     for(;;)
     {
         vTaskDelay(500 / portTICK_RATE_MS);

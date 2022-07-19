@@ -115,6 +115,7 @@ void parameter_write_msg_id(char *str_msgid)
 {   
     strcpy(bursh_para.msg_id,str_msgid);
     strcpy(blister_para.msg_id,str_msgid);
+    strcpy(remote_para.msg_id,str_msgid);
 }
 
 
@@ -127,6 +128,7 @@ void parameter_write_timestamp(double timestamp)
 {   
     bursh_para.timestamp = timestamp;
     blister_para.timestamp = timestamp;
+    remote_para.timestamp = timestamp;
 }
 
 double parameter_read_timestamp(void)

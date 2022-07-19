@@ -12,7 +12,8 @@
 extern "C" {
 #endif
 
-SemaphoreHandle_t mutexHandle;
+//SemaphoreHandle_t mutexHandle;
+#define PRINTF_LEVEL ESP_LOG_DEBUG
 
 #define MQTT_BROKER_URL "mqtt://172.16.161.171" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"   
 #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"  "yyg"//
@@ -22,9 +23,9 @@ SemaphoreHandle_t mutexHandle;
 #define DEVICE_TYPE_BRUSH 
 //#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
-//#define DEVICE_TYPE_TEST
-#define GPIOTEST
-//#define GPIOWORKING
+
+//#define GPIOTEST
+#define GPIOWORKING
 
 #define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
@@ -95,6 +96,9 @@ SemaphoreHandle_t mutexHandle;
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
     #else
         #ifdef DEVICE_TYPE_REMOTE
+        #define ECHO_TEST_TXD   (9)
+        #define ECHO_TEST_RXD   (10)
+
         #define GPIO_INPUT_IO_1     35
         #define GPIO_INPUT_IO_2     36
         #define GPIO_INPUT_IO_3     37
@@ -110,6 +114,9 @@ SemaphoreHandle_t mutexHandle;
         #define GPIO_OUTPUT_LED_5         7
         #define GPIO_OUTPUT_LED_6         6
         #define GPIO_SYS_LED         0    //stop
+        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
+        #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
+    
         #endif
     #endif
 #endif
