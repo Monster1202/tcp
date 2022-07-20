@@ -38,18 +38,13 @@
 
 #include "uart485.h"
 
-//#define configMAX_PRIORITIES 32
-#define BLINK_GPIO 48
-#define CONFIG_BLINK_LED_RMT_CHANNEL 0
-static led_strip_t *pStrip_a;
-static void blink_led(uint8_t s_led_state);
-static void configure_led(void);
-static const char *TAG = "led_strip";
 
-
-
-//LOG_LOCAL_LEVEL 
-//esp_log_level_set
+// #define BLINK_GPIO 48
+// #define CONFIG_BLINK_LED_RMT_CHANNEL 0
+//static led_strip_t *pStrip_a;
+// static void blink_led(uint8_t s_led_state);
+// static void configure_led(void);
+// static const char *TAG = "led_strip";
 
 void app_main(void)
 {
@@ -60,7 +55,7 @@ void app_main(void)
     gpio_init();
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
     wifi_connect();     
-//OTA enable
+//OTA enable   get version
     native_ota_app();
 //MQTT enable     MQTT task priority, default is 5,
     mqtt_init();
@@ -91,36 +86,33 @@ void app_main(void)
         vTaskDelay(60000 / portTICK_RATE_MS);
         //gpio_set_level(GPIO_SYS_LED, s_led_state);
         //gpio_set_level(GPIO_BEEP, s_led_state);
-        //get_conf();
-        //get_rssi();
-        //timer_app();
     }
 }
 
 
  
-static void blink_led(uint8_t s_led_state)
-{
-    /* If the addressable LED is enabled */
-    if (s_led_state) {
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-        pStrip_a->set_pixel(pStrip_a, 0, 16, 16, 16);
-        /* Refresh the strip to send data */
-        pStrip_a->refresh(pStrip_a, 100);
-    } else {
-        /* Set all LED off to clear all pixels */
-        pStrip_a->clear(pStrip_a, 50);
-    }
-}
+// static void blink_led(uint8_t s_led_state)
+// {
+//     /* If the addressable LED is enabled */
+//     if (s_led_state) {
+//         /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
+//         pStrip_a->set_pixel(pStrip_a, 0, 16, 16, 16);
+//         /* Refresh the strip to send data */
+//         pStrip_a->refresh(pStrip_a, 100);
+//     } else {
+//         /* Set all LED off to clear all pixels */
+//         pStrip_a->clear(pStrip_a, 50);
+//     }
+// }
 
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Example configured to blink addressable LED!");
-    /* LED strip initialization with the GPIO and pixels number*/
-    pStrip_a = led_strip_init(CONFIG_BLINK_LED_RMT_CHANNEL, BLINK_GPIO, 1);
-    /* Set all LED off to clear all pixels */
-    pStrip_a->clear(pStrip_a, 50);
-}
+// static void configure_led(void)
+// {
+//     ESP_LOGI(TAG, "Example configured to blink addressable LED!");
+//     /* LED strip initialization with the GPIO and pixels number*/
+//     pStrip_a = led_strip_init(CONFIG_BLINK_LED_RMT_CHANNEL, BLINK_GPIO, 1);
+//     /* Set all LED off to clear all pixels */
+//     pStrip_a->clear(pStrip_a, 50);
+// }
 
 
 

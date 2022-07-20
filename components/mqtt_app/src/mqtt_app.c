@@ -44,7 +44,7 @@
 #define TOPIC_BLISTER_STATES "/blister-device/states"
 #define TOPIC_REMOTE_CONTROL "/remote-control-device/switch-control"
 #define TOPIC_REMOTE_STATES "/remote-control-device/states"
-//PARAMETER_BRUSH bursh_para;
+//PARAMETER_BRUSH brush_para;
 
 
 static const char *TAG = "MQTT_EXAMPLE";
@@ -250,7 +250,7 @@ void data_process(char *data)
 #ifdef DEVICE_TYPE_BRUSH
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
-        //bursh_para.emergency_stop = json_emergency_stop->valueint;
+        //brush_para.emergency_stop = json_emergency_stop->valueint;
         ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
         brush_stop_io_out(json_emergency_stop->valueint,0);
     }
@@ -278,13 +278,13 @@ void data_process(char *data)
     }
     // cJSON *json_timestamp = cJSON_GetObjectItem(json_str_xy, "timestamp");
     // if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
-    //     //bursh_para.timestamp = json_timestamp->valuedouble;
+    //     //brush_para.timestamp = json_timestamp->valuedouble;
     //     parameter_write_timestamp(json_timestamp->valuedouble);
     //     ESP_LOGI(TAG, "timestamp = %f", json_timestamp->valuedouble);
     // }
     // cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
     // if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
-    //     //strcpy(bursh_para.msg_id,json_msg_id->valuestring);
+    //     //strcpy(brush_para.msg_id,json_msg_id->valuestring);
     //     parameter_write_msg_id(json_msg_id->valuestring);
     //     ESP_LOGI(TAG, "msg_id = %s", json_msg_id->valuestring);
     // }
@@ -343,13 +343,13 @@ void data_process(char *data)
 #endif 
     cJSON *json_timestamp = cJSON_GetObjectItem(json_str_xy, "timestamp");
     if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
-        //bursh_para.timestamp = json_timestamp->valuedouble;
+        //brush_para.timestamp = json_timestamp->valuedouble;
         parameter_write_timestamp(json_timestamp->valuedouble);
         ESP_LOGI(TAG, "timestamp = %f", json_timestamp->valuedouble);
     }
     cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
     if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
-        //strcpy(bursh_para.msg_id,json_msg_id->valuestring);
+        //strcpy(brush_para.msg_id,json_msg_id->valuestring);
         parameter_write_msg_id(json_msg_id->valuestring);
         ESP_LOGI(TAG, "msg_id = %s", json_msg_id->valuestring);
     }
@@ -388,8 +388,8 @@ void device_states_publish(uint8_t button)
 
 void data_publish(char *data,uint8_t case_pub)
 {
-    PARAMETER_BRUSH bursh_buf = {0};
-    get_parameter(&bursh_buf);
+    PARAMETER_BRUSH brush_buf = {0};
+    get_parameter(&brush_buf);
 
     PARAMETER_BLISTER blister_buf = {0};
     get_blister_parameter(&blister_buf);
@@ -399,22 +399,23 @@ void data_publish(char *data,uint8_t case_pub)
 
     cJSON*root = cJSON_CreateObject();
     if(case_pub == 0){
-        cJSON_AddNumberToObject(root, "device_sn",bursh_buf.uuid);
-        cJSON_AddNumberToObject(root, "timestamp",bursh_buf.timestamp);
+        cJSON_AddNumberToObject(root, "device_sn",brush_buf.uuid);
+        cJSON_AddNumberToObject(root, "timestamp",brush_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PNEUMATIC_BRUSH"));
-        cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(bursh_buf.version));
+        cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(brush_buf.version));
         }
     else if(case_pub == 1){
-        cJSON_AddNumberToObject(root, "status",bursh_buf.status);
-        cJSON_AddNumberToObject(root, "water",bursh_buf.water);
-        cJSON_AddNumberToObject(root, "pressure_alarm",bursh_buf.pressure_alarm);
-        cJSON_AddNumberToObject(root, "nozzle",bursh_buf.nozzle);
-        cJSON_AddNumberToObject(root, "centralizer",bursh_buf.centralizer);
-        cJSON_AddNumberToObject(root, "rotation",bursh_buf.rotation);
-        cJSON_AddNumberToObject(root, "emergency_stop",bursh_buf.emergency_stop);  
-        cJSON_AddNumberToObject(root, "temperature",bursh_buf.temperature);           
-        cJSON_AddNumberToObject(root, "timestamp",bursh_buf.timestamp);
-        cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(bursh_buf.msg_id)); //
+        cJSON_AddNumberToObject(root, "status",brush_buf.status);
+        cJSON_AddNumberToObject(root, "water",brush_buf.water);
+        cJSON_AddNumberToObject(root, "pressure_alarm",brush_buf.pressure_alarm);
+        cJSON_AddNumberToObject(root, "nozzle",brush_buf.nozzle);
+        cJSON_AddNumberToObject(root, "centralizer",brush_buf.centralizer);
+        cJSON_AddNumberToObject(root, "rotation",brush_buf.rotation);
+        cJSON_AddNumberToObject(root, "emergency_stop",brush_buf.emergency_stop);  
+        cJSON_AddNumberToObject(root, "temperature",brush_buf.temperature); 
+        cJSON_AddNumberToObject(root, "rssi",brush_buf.rssi);           
+        cJSON_AddNumberToObject(root, "timestamp",brush_buf.timestamp);
+        cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(brush_buf.msg_id)); 
         }
     else if(case_pub == 2){
         cJSON_AddNumberToObject(root, "device_sn",blister_buf.uuid);
@@ -430,7 +431,8 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "mode",blister_buf.mode);
         cJSON_AddNumberToObject(root, "heater",blister_buf.heater);
         cJSON_AddNumberToObject(root, "emergency_stop",blister_buf.emergency_stop);  
-        cJSON_AddNumberToObject(root, "temperature",blister_buf.temperature);           
+        cJSON_AddNumberToObject(root, "temperature",blister_buf.temperature);   
+        cJSON_AddNumberToObject(root, "rssi",blister_buf.rssi);        
         cJSON_AddNumberToObject(root, "timestamp",blister_buf.timestamp);
         cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(blister_buf.msg_id)); //
         }
@@ -457,6 +459,7 @@ void data_publish(char *data,uint8_t case_pub)
         }
     else if(case_pub == 9){
         cJSON_AddNumberToObject(root, "status",remote_buf.status);
+        cJSON_AddNumberToObject(root, "rssi",remote_buf.rssi);
         }
 
     char *msg = cJSON_Print(root);

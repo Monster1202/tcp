@@ -202,7 +202,7 @@ static const char *TAG = "DS18B20";
 //             temp_sorted[i] = temp[i];
 //         qsort(temp_sorted, length_temp_sort, sizeof(temp_sorted[0]), Compare_double); //increase
 //         temp_mid = temp_sorted[length_temp_sort/2];
-//         //bursh_para.temperature = temp_mid;
+//         //brush_para.temperature = temp_mid;
 // 		parameter_write_temperature(temp_mid);
 // //        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
 //         printf("qsort-temp_mid:%f\n",temp_mid);
@@ -234,7 +234,7 @@ static const char *TAG = "DS18B20";
 //             temp_sorted[i] = temp[i];
 //         qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
 //         temp_mid = temp_sorted[2];
-//         //bursh_para.temperature = temp_mid;
+//         //brush_para.temperature = temp_mid;
 // 		parameter_write_temperature(temp_mid);
 // //        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
 //         printf("qsort-temp_mid:%f\n",temp_mid);

@@ -79,7 +79,7 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         #endif
         parameter_write_centralizer(1);
-        ESP_LOGI(TAG, "bursh_para.centralizer = 1");}
+        ESP_LOGI(TAG, "brush_para.centralizer = 1");}
     else if(value == 2){
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
@@ -88,7 +88,7 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_2, 1);
         #endif
         parameter_write_centralizer(2);
-        ESP_LOGI(TAG, "bursh_para.centralizer = 2");}
+        ESP_LOGI(TAG, "brush_para.centralizer = 2");}
     else{
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
@@ -97,7 +97,7 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         #endif
         parameter_write_centralizer(0);
-        ESP_LOGI(TAG, "bursh_para.centralizer = 0");}
+        ESP_LOGI(TAG, "brush_para.centralizer = 0");}
 }
 void rotation_io_out(uint8_t value)
 {
@@ -109,7 +109,7 @@ void rotation_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         #endif
         parameter_write_rotation(1);
-        ESP_LOGI(TAG, "bursh_para.rotation = 1");}
+        ESP_LOGI(TAG, "brush_para.rotation = 1");}
     else if(value==2){
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 1);
@@ -118,7 +118,7 @@ void rotation_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_4, 1);
         #endif
         parameter_write_rotation(2);
-        ESP_LOGI(TAG, "bursh_para.rotation = 2");}
+        ESP_LOGI(TAG, "brush_para.rotation = 2");}
     else{
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
@@ -127,7 +127,7 @@ void rotation_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         #endif
         parameter_write_rotation(0);
-        ESP_LOGI(TAG, "bursh_para.rotation = 0");} 
+        ESP_LOGI(TAG, "brush_para.rotation = 0");} 
 }
 void nozzle_io_out(uint8_t value)
 {
@@ -139,7 +139,7 @@ void nozzle_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
         #endif
         parameter_write_nozzle(1);
-        ESP_LOGI(TAG, "bursh_para.nozzle = 1");}
+        ESP_LOGI(TAG, "brush_para.nozzle = 1");}
     else if(value == 2){
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
@@ -148,7 +148,7 @@ void nozzle_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_6, 1);
         #endif
         parameter_write_nozzle(2);
-        ESP_LOGI(TAG, "bursh_para.nozzle = 2");}
+        ESP_LOGI(TAG, "brush_para.nozzle = 2");}
     else{
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
@@ -157,7 +157,7 @@ void nozzle_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
         #endif
         parameter_write_nozzle(0);
-        ESP_LOGI(TAG, "bursh_para.nozzle = 0");}
+        ESP_LOGI(TAG, "brush_para.nozzle = 0");}
 }
 
 void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't change the parameter 
@@ -182,7 +182,7 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
         if(state){
             parameter_write_emergency_stop(1);    
             gpio_set_level(GPIO_SYS_LED, 1);
-            ESP_LOGI(TAG, "bursh_para.emergency_stop = 1");
+            ESP_LOGI(TAG, "brush_para.emergency_stop = 1");
             }
         parameter_write_centralizer(0);
         parameter_write_rotation(0);
@@ -192,7 +192,7 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
         if(state){
             parameter_write_emergency_stop(0); 
             gpio_set_level(GPIO_SYS_LED, 0);
-            ESP_LOGI(TAG, "bursh_para.emergency_stop = 0");
+            ESP_LOGI(TAG, "brush_para.emergency_stop = 0");
             #ifndef GPIOTEST
             gpio_set_level(GPIO_OUTPUT_LED_1, 0);
             #endif 
@@ -509,6 +509,7 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
         parameter_write_water(0);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_6:0");
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_PUMP, 1);       
     }
     else if(state == 1 && io_num == GPIO_INPUT_IO_6)
     {
@@ -521,12 +522,13 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
         parameter_write_pressure_alarm(0);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0");
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_PUMP, 0); 
     }
     else if(state == 1 && io_num == GPIO_INPUT_IO_7)
     {
         parameter_write_pressure_alarm(1);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1");
-        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 1); 
     }
     else
     {

@@ -204,9 +204,11 @@ int8_t get_rssi(void)
 
 void wifi_scan(void)
 {
+    int8_t value = 0;
     for(;;)
     {
         vTaskDelay(60000 / portTICK_RATE_MS);
-        get_rssi();        
+        value = get_rssi();
+        parameter_write_rssi(value);        
     }
 }

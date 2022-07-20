@@ -6,7 +6,7 @@
 #include "esp_system.h"
 #include <string.h>
 //
-PARAMETER_BRUSH bursh_para;
+PARAMETER_BRUSH brush_para;
 PARAMETER_BLISTER blister_para;
 PARAMETER_REMOTE remote_para;
 
@@ -24,17 +24,17 @@ void para_init(void)
     get_chip_id(&id);
     printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
     #ifdef DEVICE_TYPE_BRUSH
-        bursh_para.uuid = id;
-        bursh_para.nozzle = 0;
-        bursh_para.centralizer = 0;
-        bursh_para.rotation = 0;
-        bursh_para.status = 1;
-        bursh_para.water = 0;
-        bursh_para.pressure_alarm = 0;
-        bursh_para.emergency_stop = 0;
-        bursh_para.timestamp = 1654585625000;
-        strcpy(bursh_para.msg_id,"msg_id");
-        bursh_para.temperature = 0;
+        brush_para.uuid = id;
+        brush_para.nozzle = 0;
+        brush_para.centralizer = 0;
+        brush_para.rotation = 0;
+        brush_para.status = 1;
+        brush_para.water = 0;
+        brush_para.pressure_alarm = 0;
+        brush_para.emergency_stop = 0;
+        brush_para.timestamp = 1654585625000;
+        strcpy(brush_para.msg_id,"msg_id");
+        brush_para.temperature = 0;
     #else
         #ifdef DEVICE_TYPE_BLISTER
             blister_para.uuid = id;
@@ -64,24 +64,24 @@ void para_init(void)
 
 void parameter_write_water(uint8_t value)
 {   
-    bursh_para.water = value;
+    brush_para.water = value;
     blister_para.water = value;
 }
 
 uint8_t parameter_read_water(void)
 {
-    return bursh_para.water;
+    return brush_para.water;
 }
 
 void parameter_write_pressure_alarm(uint8_t value)
 {   
-    bursh_para.pressure_alarm = value;
+    brush_para.pressure_alarm = value;
     blister_para.pressure_alarm = value;
 }
 
 uint8_t parameter_read_pressure_alarm(void)
 {
-    return bursh_para.pressure_alarm;
+    return brush_para.pressure_alarm;
 }
 
 void parameter_write_liquid_alarm(uint8_t value)
@@ -95,9 +95,9 @@ uint8_t parameter_read_liquid_alarm(void)
 }
 
 
-void get_parameter(PARAMETER_BRUSH *bursh_t)
+void get_parameter(PARAMETER_BRUSH *brush_t)
 {
-    memcpy(bursh_t,&bursh_para,sizeof(PARAMETER_BRUSH));
+    memcpy(brush_t,&brush_para,sizeof(PARAMETER_BRUSH));
 }
 
 void get_blister_parameter(PARAMETER_BLISTER *blister_t)
@@ -112,7 +112,7 @@ void get_remote_parameter(PARAMETER_REMOTE *remote_t)
 
 void parameter_write_version(char *str_version)
 {   
-    strcpy(bursh_para.version,str_version);
+    strcpy(brush_para.version,str_version);
     strcpy(blister_para.version,str_version);
     strcpy(remote_para.version,str_version);
 }
@@ -120,12 +120,12 @@ void parameter_write_version(char *str_version)
 
 // char *parameter_read_version(void)
 // {
-//     return bursh_para.version;
+//     return brush_para.version;
 // }
 
 void parameter_write_msg_id(char *str_msgid)
 {   
-    strcpy(bursh_para.msg_id,str_msgid);
+    strcpy(brush_para.msg_id,str_msgid);
     strcpy(blister_para.msg_id,str_msgid);
     strcpy(remote_para.msg_id,str_msgid);
 }
@@ -133,26 +133,26 @@ void parameter_write_msg_id(char *str_msgid)
 
 char *parameter_read_msg_id(void)
 {
-    return bursh_para.msg_id;
+    return brush_para.msg_id;
 }
 
 void parameter_write_timestamp(double timestamp)
 {   
-    bursh_para.timestamp = timestamp;
+    brush_para.timestamp = timestamp;
     blister_para.timestamp = timestamp;
     remote_para.timestamp = timestamp;
 }
 
 double parameter_read_timestamp(void)
 {
-    return bursh_para.timestamp;
+    return brush_para.timestamp;
 }
 
 void parameter_write_emergency_stop(uint8_t value)
 {   
     
 #ifdef DEVICE_TYPE_BRUSH
-bursh_para.emergency_stop = value;
+brush_para.emergency_stop = value;
 #endif
 #ifdef DEVICE_TYPE_BLISTER
 blister_para.emergency_stop = value;
@@ -165,7 +165,7 @@ remote_para.emergency_stop = value;
 uint8_t parameter_read_emergency_stop(void)
 {
 #ifdef DEVICE_TYPE_BRUSH
-return bursh_para.emergency_stop;
+return brush_para.emergency_stop;
 #endif
 #ifdef DEVICE_TYPE_BLISTER
 return blister_para.emergency_stop;
@@ -177,14 +177,14 @@ return remote_para.emergency_stop;
 
 void parameter_write_centralizer(uint8_t value)
 {   
-    bursh_para.centralizer = value;
+    brush_para.centralizer = value;
     remote_para.centralizer = value;
 }
 
 uint8_t parameter_read_centralizer(void)
 {
 #ifdef DEVICE_TYPE_BRUSH
-return bursh_para.centralizer;
+return brush_para.centralizer;
 #endif
 #ifdef DEVICE_TYPE_BLISTER
 return 0;
@@ -196,14 +196,14 @@ return remote_para.centralizer;
 
 void parameter_write_rotation(uint8_t value)
 {   
-    bursh_para.rotation = value;
+    brush_para.rotation = value;
     remote_para.rotation = value;
 }
 
 uint8_t parameter_read_rotation(void)
 {
 #ifdef DEVICE_TYPE_BRUSH
-return bursh_para.rotation;
+return brush_para.rotation;
 #endif
 #ifdef DEVICE_TYPE_BLISTER
 return 0;
@@ -215,14 +215,14 @@ return remote_para.rotation;
 
 void parameter_write_nozzle(uint8_t value)
 {   
-    bursh_para.nozzle = value;
+    brush_para.nozzle = value;
     remote_para.nozzle = value;
 }
 
 uint8_t parameter_read_nozzle(void)
 {
 #ifdef DEVICE_TYPE_BRUSH
-return bursh_para.nozzle;
+return brush_para.nozzle;
 #endif
 #ifdef DEVICE_TYPE_BLISTER
 return 0;
@@ -235,23 +235,23 @@ return remote_para.nozzle;
 
 void parameter_write_pressure(uint16_t pressure)
 {   
-    bursh_para.pressure = pressure;
+    brush_para.pressure = pressure;
 }
 
 uint16_t parameter_read_pressure(void)
 {
-    return bursh_para.pressure;
+    return brush_para.pressure;
 }
 
 void parameter_write_temperature(double temperature)
 {   
-    bursh_para.temperature = temperature;
+    brush_para.temperature = temperature;
     blister_para.temperature = temperature;
 }
 
 double parameter_read_temperature(void)
 {
-    return bursh_para.temperature;
+    return brush_para.temperature;
 }
 double blister_read_temperature(void)
 {
@@ -280,6 +280,12 @@ uint8_t parameter_read_mode(void)
     return blister_para.mode;
 }
 
+void parameter_write_rssi(int8_t value)
+{  
+    brush_para.rssi = value; 
+    blister_para.rssi = value;
+    remote_para.rssi = value;
+}
 // esp_err_t test_app_1(void)
 // {
 //     printf("para_init\n");

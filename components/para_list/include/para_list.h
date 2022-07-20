@@ -14,8 +14,8 @@ extern "C" {
 
 #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-//#define DEVICE_TYPE_BRUSH 
-#define DEVICE_TYPE_BLISTER
+#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
@@ -27,7 +27,6 @@ extern "C" {
 #define MQTT_PRIO 20
 
 
-
 #define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           2      /*!< GPIO number used for I2C master data  */
@@ -37,7 +36,7 @@ extern "C" {
 
 /////////////////////////////////
 #ifdef DEVICE_TYPE_BRUSH
-    #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/mqtt_tcp.bin"
+    #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/brush.bin"
     #define ECHO_TEST_TXD   (48)
     #define ECHO_TEST_RXD   (45)
 
@@ -69,7 +68,7 @@ extern "C" {
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
 #else
     #ifdef DEVICE_TYPE_BLISTER
-        #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/blister/mqtt_tcp.bin"
+        #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/blister.bin"
         #define ECHO_TEST_TXD   (9)
         #define ECHO_TEST_RXD   (10)
 
@@ -95,11 +94,12 @@ extern "C" {
         #define GPIO_OUTPUT_IO_HEATER    14    
         #define GPIO_OUTPUT_IO_WATER     13
         #define GPIO_OUTPUT_IO_BUBBLE    12   
-        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
+        #define GPIO_OUTPUT_IO_PUMP      11
+        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_PUMP) |(1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
     #else
         #ifdef DEVICE_TYPE_REMOTE
-        #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/remote/mqtt_tcp.bin"
+        #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/remote.bin"
         #define ECHO_TEST_TXD   (9)
         #define ECHO_TEST_RXD   (10)
 
@@ -188,6 +188,7 @@ typedef struct
     double temperature;
     uint16_t pressure;
     char version[30];
+    int8_t rssi; 
 //    uint8_t counter_1s;
 
 }PARAMETER_BRUSH;
@@ -207,6 +208,7 @@ typedef struct
     double temperature;
     uint16_t pressure;
     char version[30];
+    int8_t rssi;
 }PARAMETER_BLISTER;
 
 typedef struct
@@ -223,12 +225,14 @@ typedef struct
     uint8_t angle;
     uint8_t emergency_stop;
     char version[30];
+    int8_t rssi;
 }PARAMETER_REMOTE;
 
 void parameter_write_version(char *str_version);
-void get_parameter(PARAMETER_BRUSH *bursh_t);
+void get_parameter(PARAMETER_BRUSH *brush_t);
 void get_blister_parameter(PARAMETER_BLISTER *blister_t);
 void get_remote_parameter(PARAMETER_REMOTE *remote_t);
+void parameter_write_rssi(int8_t value);
 #ifdef __cplusplus
 }
 #endif
