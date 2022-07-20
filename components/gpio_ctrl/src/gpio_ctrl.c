@@ -6,7 +6,7 @@
 #include "timer_app.h"
 #include "mqtt_app.h"
 #include "uart485.h"
-#include "esp_log.h"
+
 
 static const char *TAG = "GPIO_CTRL";
 //gpio
@@ -160,7 +160,7 @@ void nozzle_io_out(uint8_t value)
         ESP_LOGI(TAG, "bursh_para.nozzle = 0");}
 }
 
-void emergency_stop_io_out(uint8_t value)
+void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't change the parameter 
 {
     if(value == 1){
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
@@ -178,24 +178,72 @@ void emergency_stop_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
     #else
         gpio_set_level(GPIO_OUTPUT_LED_1, 1);
-    #endif    
-        parameter_write_emergency_stop(1);
-        gpio_set_level(GPIO_SYS_LED, 1);
+    #endif  
+        if(state){
+            parameter_write_emergency_stop(1);    
+            gpio_set_level(GPIO_SYS_LED, 1);
+            ESP_LOGI(TAG, "bursh_para.emergency_stop = 1");
+            }
         parameter_write_centralizer(0);
         parameter_write_rotation(0);
         parameter_write_nozzle(0);
-        ESP_LOGI(TAG, "bursh_para.emergency_stop = 1");}
+        }
     else{
-    #ifdef GPIOTEST
-        //ESP_LOGI(TAG, "nothing");
-    #else
-        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
-    #endif  
-        parameter_write_emergency_stop(0);
-        gpio_set_level(GPIO_SYS_LED, 0);
-        ESP_LOGI(TAG, "bursh_para.emergency_stop = 0");}
+        if(state){
+            parameter_write_emergency_stop(0); 
+            gpio_set_level(GPIO_SYS_LED, 0);
+            ESP_LOGI(TAG, "bursh_para.emergency_stop = 0");
+            #ifndef GPIOTEST
+            gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+            #endif 
+            }
+        }
 }
 
+uint8_t brush_input(uint8_t io_num,uint8_t state)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    // uint8_t register_emergency_stop = 0;
+    // register_emergency_stop = parameter_read_emergency_stop();
+    if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
+    {
+        parameter_write_water(0);
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_6:0");
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_6)
+    {
+        parameter_write_water(1);
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_6:1");
+        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+    }
+    else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
+    {
+        parameter_write_pressure_alarm(0);
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0");
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
+    {
+        parameter_write_pressure_alarm(1);
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1");
+        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
+    }
+    else if(io_num == GPIO_INPUT_IO_STOP)
+    {
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
+        register_value = parameter_read_emergency_stop();
+        register_afterpress = UI_press_output(register_value,1);
+        brush_stop_io_out(register_afterpress,1);       
+    }
+    else
+    {
+        return 0;
+    }
+    device_states_publish(0);
+    return 1;
+}
 void brush_press_output(uint8_t io_num)
 {
     uint8_t register_value = 0;
@@ -209,7 +257,7 @@ void brush_press_output(uint8_t io_num)
             ESP_LOGI(TAG, "back to normal mode");
             register_value = parameter_read_emergency_stop();
             register_afterpress = UI_press_output(register_value,1);
-            emergency_stop_io_out(register_afterpress);
+            brush_stop_io_out(register_afterpress,1);
         }
         else{
             ESP_LOGI(TAG, "emergency_stop_error_press");
@@ -263,7 +311,7 @@ void brush_press_output(uint8_t io_num)
             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
             register_value = parameter_read_emergency_stop();
             register_afterpress = UI_press_output(register_value,1);
-            emergency_stop_io_out(register_afterpress);
+            brush_stop_io_out(register_afterpress,1);
             break;
             default:
             //ESP_LOGI(TAG, "KEY_default");
@@ -271,51 +319,6 @@ void brush_press_output(uint8_t io_num)
         }
     }
     device_states_publish(0);
-}
-
-uint8_t brush_input(uint8_t io_num,uint8_t state)
-{
-    uint8_t register_value = 0;
-    uint8_t register_afterpress = 0;
-    // uint8_t register_emergency_stop = 0;
-    // register_emergency_stop = parameter_read_emergency_stop();
-    if(state == 0 && io_num == GPIO_INPUT_IO_6)  //pressure 0/1 input
-    {
-        parameter_write_water(0);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_6:0");
-        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
-    }
-    else if(state == 1 && io_num == GPIO_INPUT_IO_6)
-    {
-        parameter_write_water(1);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_6:1");
-        gpio_set_level(GPIO_OUTPUT_LED_5, 1);
-    }
-    else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
-    {
-        parameter_write_pressure_alarm(0);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0");
-        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-    }
-    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
-    {
-        parameter_write_pressure_alarm(1);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1");
-        gpio_set_level(GPIO_OUTPUT_LED_6, 1);
-    }
-    else if(io_num == GPIO_INPUT_IO_STOP)
-    {
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
-        register_value = parameter_read_emergency_stop();
-        register_afterpress = UI_press_output(register_value,1);
-        emergency_stop_io_out(register_afterpress);       
-    }
-    else
-    {
-        return 0;
-    }
-    device_states_publish(0);
-    return 1;
 }
 #endif
 
@@ -591,7 +594,7 @@ void nozzle_io_out(uint8_t value)
         ESP_LOGI(TAG, "remote_para.nozzle = 0");}
 }
 
-void remote_stop_io_out(uint8_t value)
+void remote_stop_io_out(uint8_t value , uint8_t state) //state 0 from press dom't change parameter
 {
     if(value == 1){
         gpio_set_level(GPIO_OUTPUT_LED_1, 0);
@@ -600,18 +603,20 @@ void remote_stop_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-        parameter_write_emergency_stop(1);
-        gpio_set_level(GPIO_SYS_LED, 1);
         parameter_write_heater(0);
         parameter_write_mode(0);
         parameter_write_centralizer(0);
         parameter_write_rotation(0);
         parameter_write_nozzle(0);
-        ESP_LOGI(TAG, "remote_para.emergency_stop = 1");}
+        if(state){
+            parameter_write_emergency_stop(1);
+            gpio_set_level(GPIO_SYS_LED, 1);
+            ESP_LOGI(TAG, "remote_para.emergency_stop = 1");}}
     else{
-        parameter_write_emergency_stop(0);
-        gpio_set_level(GPIO_SYS_LED, 0);
-        ESP_LOGI(TAG, "remote_para.emergency_stop = 0");}
+        if(state){
+            parameter_write_emergency_stop(0);
+            gpio_set_level(GPIO_SYS_LED, 0);
+            ESP_LOGI(TAG, "remote_para.emergency_stop = 0");}}
 }
 
 void remote_press_output(uint8_t io_num)
@@ -623,18 +628,18 @@ void remote_press_output(uint8_t io_num)
     
     if(register_emergency_stop)
     {
-        if(io_num == GPIO_INPUT_IO_STOP)
-        {
-            ESP_LOGI(TAG, "back to normal mode");
-            register_value = parameter_read_emergency_stop();
-            register_afterpress = UI_press_output(register_value,1);
-            remote_stop_io_out(register_afterpress);
-            device_states_publish(4);
-        }
-        else{
-            ESP_LOGI(TAG, "emergency_stop_error_press");
-            timer_periodic();
-        }
+        // if(io_num == GPIO_INPUT_IO_STOP)
+        // {
+        //     ESP_LOGI(TAG, "back to normal mode");
+        //     register_value = parameter_read_emergency_stop();
+        //     register_afterpress = UI_press_output(register_value,1);
+        //     remote_stop_io_out(register_afterpress,0);
+        //     device_states_publish(4);
+        // }
+        // else{
+        ESP_LOGI(TAG, "emergency_stop_error_press");
+        timer_periodic();
+        //}
     }
     else
     {
@@ -689,7 +694,7 @@ void remote_press_output(uint8_t io_num)
             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
             register_value = parameter_read_emergency_stop();
             register_afterpress = UI_press_output(register_value,1);
-            remote_stop_io_out(register_afterpress);
+            remote_stop_io_out(register_afterpress,0);
             device_states_publish(4);
             break;
             default:
@@ -697,7 +702,6 @@ void remote_press_output(uint8_t io_num)
             break;
         }
     }
-    //device_states_publish(1);
 }
 #endif
 
@@ -748,7 +752,7 @@ void sw_key_read(uint8_t io_num,uint8_t state)
 void gpio_init(void)
 {
     //GPIO
-    
+    //esp_log_level_set("GPIO_CTRL", ESP_LOG_DEBUG);  //ESP_LOG_DEBUG ESP_LOG_INFO ESP_LOG_WARN
     //zero-initialize the config structure.
     gpio_config_t io_conf = {};
     //disable interrupt

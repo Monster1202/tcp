@@ -96,17 +96,17 @@ void uart485_task(void *arg)
             char prefix[] = "RS485 Received: [";
             //echo_send(uart_num, prefix, (sizeof(prefix) - 1));
             ESP_LOGI(TAG, "Received %u bytes:", len);
-            printf("[ ");
+            ESP_LOGI(TAG, "[ ");
             for (int i = 0; i < len; i++) {
-                printf("0x%.2X ", (uint8_t)data[i]);
+                ESP_LOGI(TAG, "0x%.2X ", (uint8_t)data[i]);
                 //echo_send(uart_num, (const char*)&data[i], 1);
                 // Add a Newline character if you get a return charater from paste (Paste tests multibyte receipt/buffer)
                 // if (data[i] == '\r') {
                 //     echo_send(uart_num, "\n", 1);
                 // }
             }
-            printf("] \n");
-            echo_send(uart_num, "]\r\n", 3);
+            ESP_LOGI(TAG, "] \n");
+            //echo_send(uart_num, "]\r\n", 3);
         } 
         // else {
         //     // Echo a "." to show we are alive while we wait for input
@@ -136,31 +136,31 @@ void heater_water_module_test(uint8_t send_case)
     {
         case 1:
             echo_send(uart_num, buf_send1, sizeof(buf_send1));
-            printf("buf_send1");
+            ESP_LOGI(TAG, "buf_send1");
         break;
         case 2:
             echo_send(uart_num, buf_send2, sizeof(buf_send2));
-            printf("buf_send2");
+            ESP_LOGI(TAG, "buf_send2");
         break;
         case 3:
             echo_send(uart_num, buf_send3, sizeof(buf_send3));
-            printf("buf_send3");
+            ESP_LOGI(TAG, "buf_send3");
         break;
         case 4:
             echo_send(uart_num, buf_send4, sizeof(buf_send4));
-            printf("buf_send4");
+            ESP_LOGI(TAG, "buf_send4");
         break;
         case 5:
             echo_send(uart_num, buf_send5, sizeof(buf_send5));
-            printf("buf_send5");
+            ESP_LOGI(TAG, "buf_send5");
         break;
         case 6:
             echo_send(uart_num, buf_send6, sizeof(buf_send6));
-            printf("buf_send6");
+            ESP_LOGI(TAG, "buf_send6");
         break;
         case 7:
             echo_send(uart_num, buf_send7, sizeof(buf_send7));
-            printf("buf_send7");
+            ESP_LOGI(TAG, "buf_send7");
         break;
         default:
         break;
@@ -172,16 +172,16 @@ void heater_water_module_test(uint8_t send_case)
         //     char prefix[] = "RS485 Received: [";
         //     echo_send(uart_num, prefix, (sizeof(prefix) - 1));
         //     ESP_LOGI(TAG, "Received %u bytes:", len);
-        //     printf("[ ");
+        //     ESP_LOGI(TAG, "[ ");
         //     for (int i = 0; i < len; i++) {
-        //         printf("0x%.2X ", (uint8_t)data[i]);
+        //         ESP_LOGI(TAG, "0x%.2X ", (uint8_t)data[i]);
         //         echo_send(uart_num, (const char*)&data[i], 1);
         //         // Add a Newline character if you get a return charater from paste (Paste tests multibyte receipt/buffer)
         //         if (data[i] == '\r') {
         //             echo_send(uart_num, "\n", 1);
         //         }
         //     }
-        //     printf("] \n");
+        //     ESP_LOGI(TAG, "] \n");
         //     echo_send(uart_num, "]\r\n", 3);
         // } else {
         //     // Echo a "." to show we are alive while we wait for input
@@ -191,7 +191,7 @@ void heater_water_module_test(uint8_t send_case)
 
 // esp_err_t test_app(void)
 // {
-//     printf("KEY_ONCE\n");
+//     ESP_LOGI(TAG, "KEY_ONCE\n");
 //     return ESP_OK;
 // }
 

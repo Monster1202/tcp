@@ -60,10 +60,10 @@ void app_main(void)
     gpio_init();
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
     wifi_connect();     
-//MQTT enable     MQTT task priority, default is 5,
-    mqtt_init();
 //OTA enable
     native_ota_app();
+//MQTT enable     MQTT task priority, default is 5,
+    mqtt_init();
 //wifi_scan
     xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 3, NULL);
 //uart read/write example without event queue;

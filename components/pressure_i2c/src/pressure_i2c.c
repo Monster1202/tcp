@@ -80,7 +80,7 @@ void pressure_read(void* arg)
         data[1]=0;
         err_print = register_read(REG_ADDR, data, 2);
         if(err_print == -1)
-            printf("i2c_register_read_err_print: %d\n", err_print);
+            ESP_LOGI(TAG, "i2c_register_read_err_print: %d", err_print);
         //ESP_ERROR_CHECK(register_read(REG_ADDR, data, 2));
         pressure = data[0]+(uint16_t)(data[1]<<8);
         ESP_LOGI(TAG, "pressure = %d kpa", pressure);

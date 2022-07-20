@@ -146,8 +146,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-        printf("DATA=%.*s\r\n", event->data_len, event->data);
+        ESP_LOGI(TAG, "TOPIC=%.*s\r", event->topic_len, event->topic);
+        ESP_LOGI(TAG, "DATA=%.*s\r", event->data_len, event->data);
         data_process(event->data);
 #ifdef DEVICE_TYPE_BRUSH
         data_publish(data_pub_1,1); 
@@ -192,10 +192,10 @@ static void mqtt_app_start(void)
 
     if (strcmp(mqtt_cfg.uri, "FROM_STDIN") == 0) {
         int count = 0;
-        printf("Please enter url of mqtt broker\n");
+        ESP_LOGI(TAG, "Please enter url of mqtt broker");
         while (count < 128) {
             int c = fgetc(stdin);
-            if (c == '\n') {
+            if (c == '') {
                 line[count] = '\0';
                 break;
             } else if (c > 0 && c < 127) {
@@ -205,7 +205,7 @@ static void mqtt_app_start(void)
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         mqtt_cfg.uri = line;
-        printf("Broker url: %s\n", line);
+        ESP_LOGI(TAG, "Broker url: %s", line);
     } else {
         ESP_LOGE(TAG, "Configuration mismatch: wrong broker url");
         abort();
@@ -229,9 +229,9 @@ void mqtt_init(void)
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
-    esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set("*", ESP_LOG_INFO);//  CONFIG_LOG_COLORS
     esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
-    esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_VERBOSE);
+    esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_INFO);////ESP_LOG_DEBUG ESP_LOG_INFO ESP_LOG_WARN
     esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);
     esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
     esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
@@ -251,17 +251,17 @@ void data_process(char *data)
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
         //bursh_para.emergency_stop = json_emergency_stop->valueint;
-        printf("emergency_stop = %d\n", json_emergency_stop->valueint);
-        emergency_stop_io_out(json_emergency_stop->valueint);
+        ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
+        brush_stop_io_out(json_emergency_stop->valueint,0);
     }
     cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
     if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
-        printf("switch_name = %s\n", json_switch_name->valuestring);
+        ESP_LOGI(TAG, "switch_name = %s", json_switch_name->valuestring);
         cJSON *json_value = cJSON_GetObjectItem(json_str_xy, "value");
         uint8_t register_emergency_stop = 0;
         register_emergency_stop = parameter_read_emergency_stop();
         if(json_value != NULL && json_value->type == cJSON_Number) {
-            printf("value = %d\n", json_value->valueint);
+            ESP_LOGI(TAG, "value = %d", json_value->valueint);
             if(strcmp(json_switch_name->valuestring,"nozzle")==0){
                 if(register_emergency_stop==0)
                     nozzle_io_out(json_value->valueint);
@@ -280,29 +280,29 @@ void data_process(char *data)
     // if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
     //     //bursh_para.timestamp = json_timestamp->valuedouble;
     //     parameter_write_timestamp(json_timestamp->valuedouble);
-    //     printf("timestamp = %f\n", json_timestamp->valuedouble);
+    //     ESP_LOGI(TAG, "timestamp = %f", json_timestamp->valuedouble);
     // }
     // cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
     // if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
     //     //strcpy(bursh_para.msg_id,json_msg_id->valuestring);
     //     parameter_write_msg_id(json_msg_id->valuestring);
-    //     printf("msg_id = %s\n", json_msg_id->valuestring);
+    //     ESP_LOGI(TAG, "msg_id = %s", json_msg_id->valuestring);
     // }
 #else
     #ifdef DEVICE_TYPE_BLISTER   
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
-        printf("emergency_stop = %d\n", json_emergency_stop->valueint);
+        ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
         blister_stop_io_out(json_emergency_stop->valueint);
     }
     cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
     if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
-        printf("switch_name = %s\n", json_switch_name->valuestring);
+        ESP_LOGI(TAG, "switch_name = %s", json_switch_name->valuestring);
         cJSON *json_value = cJSON_GetObjectItem(json_str_xy, "value");
         uint8_t register_emergency_stop = 0;
         register_emergency_stop = parameter_read_emergency_stop();
         if(json_value != NULL && json_value->type == cJSON_Number) {
-            printf("value = %d\n", json_value->valueint);
+            ESP_LOGI(TAG, "value = %d", json_value->valueint);
             if(strcmp(json_switch_name->valuestring,"heater")==0){
                 if(register_emergency_stop==0)
                     heater_io_out(json_value->valueint);
@@ -316,26 +316,26 @@ void data_process(char *data)
     #else
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
-        printf("emergency_stop = %d\n", json_emergency_stop->valueint);
-        remote_stop_io_out(json_emergency_stop->valueint);
+        ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
+        remote_stop_io_out(json_emergency_stop->valueint,1);
     }
     uint8_t register_emergency_stop = 0;
     register_emergency_stop = parameter_read_emergency_stop();
     cJSON *json_centralizer = cJSON_GetObjectItem(json_str_xy, "centralizer");
     if(json_centralizer != NULL && json_centralizer->type == cJSON_Number) {
-        printf("centralizer = %d\n", json_centralizer->valueint);
+        ESP_LOGI(TAG, "centralizer = %d", json_centralizer->valueint);
         if(register_emergency_stop==0)
             centralizer_io_out(json_centralizer->valueint);
     }
     cJSON *json_rotation = cJSON_GetObjectItem(json_str_xy, "rotation");
     if(json_rotation != NULL && json_rotation->type == cJSON_Number) {
-        printf("rotation = %d\n", json_rotation->valueint);
+        ESP_LOGI(TAG, "rotation = %d", json_rotation->valueint);
         if(register_emergency_stop==0)
             rotation_io_out(json_rotation->valueint);
     }
     cJSON *json_nozzle = cJSON_GetObjectItem(json_str_xy, "nozzle");
     if(json_nozzle != NULL && json_nozzle->type == cJSON_Number) {
-        printf("nozzle = %d\n", json_nozzle->valueint);
+        ESP_LOGI(TAG, "nozzle = %d", json_nozzle->valueint);
         if(register_emergency_stop==0)
             nozzle_io_out(json_nozzle->valueint);
     }
@@ -345,13 +345,13 @@ void data_process(char *data)
     if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
         //bursh_para.timestamp = json_timestamp->valuedouble;
         parameter_write_timestamp(json_timestamp->valuedouble);
-        printf("timestamp = %f\n", json_timestamp->valuedouble);
+        ESP_LOGI(TAG, "timestamp = %f", json_timestamp->valuedouble);
     }
     cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
     if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
         //strcpy(bursh_para.msg_id,json_msg_id->valuestring);
         parameter_write_msg_id(json_msg_id->valuestring);
-        printf("msg_id = %s\n", json_msg_id->valuestring);
+        ESP_LOGI(TAG, "msg_id = %s", json_msg_id->valuestring);
     }
     //cJSON_Delete(json_str_xy);
 }
@@ -402,6 +402,7 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "device_sn",bursh_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",bursh_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PNEUMATIC_BRUSH"));
+        cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(bursh_buf.version));
         }
     else if(case_pub == 1){
         cJSON_AddNumberToObject(root, "status",bursh_buf.status);
@@ -419,6 +420,7 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "device_sn",blister_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",blister_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PARAMETER_BLISTER"));
+        cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(blister_buf.version));
         }
     else if(case_pub == 3){
         cJSON_AddNumberToObject(root, "status",blister_buf.status);
@@ -436,6 +438,7 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "device_sn",remote_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",remote_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PARAMETER_REMOTE"));
+        cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(remote_buf.version));
         }
     else if(case_pub == 5){
         cJSON_AddItemToObject(root, "switch_name",cJSON_CreateString("centralizer"));
@@ -450,14 +453,14 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "value",remote_buf.nozzle);
         }
     else if(case_pub == 8){
-        cJSON_AddNumberToObject(root, "emergency_stop",remote_buf.emergency_stop);
+        cJSON_AddNumberToObject(root, "emergency_stop",1);//remote_buf.emergency_stop
         }
     else if(case_pub == 9){
         cJSON_AddNumberToObject(root, "status",remote_buf.status);
         }
 
     char *msg = cJSON_Print(root);
-    printf("%s\n",msg); 
+    ESP_LOGI(TAG, "%s",msg); 
     strcpy(data,msg);
     cJSON_Delete(root);
 }
@@ -471,7 +474,7 @@ void data_publish(char *data,uint8_t case_pub)
 //     cJSON_AddNumberToObject(root, "nozzle",1);
 //     cJSON_AddNumberToObject(root, "status",1);
 //     char *msg = cJSON_Print(root);
-//     printf("%s\n",msg);
+//     ESP_LOGI(TAG, "%s",msg);
 
 //     cJSON_Delete(root);
 

@@ -110,6 +110,18 @@ void get_remote_parameter(PARAMETER_REMOTE *remote_t)
     memcpy(remote_t,&remote_para,sizeof(PARAMETER_REMOTE));
 }
 
+void parameter_write_version(char *str_version)
+{   
+    strcpy(bursh_para.version,str_version);
+    strcpy(blister_para.version,str_version);
+    strcpy(remote_para.version,str_version);
+}
+
+
+// char *parameter_read_version(void)
+// {
+//     return bursh_para.version;
+// }
 
 void parameter_write_msg_id(char *str_msgid)
 {   
@@ -174,7 +186,9 @@ uint8_t parameter_read_centralizer(void)
 #ifdef DEVICE_TYPE_BRUSH
 return bursh_para.centralizer;
 #endif
-
+#ifdef DEVICE_TYPE_BLISTER
+return 0;
+#endif
 #ifdef DEVICE_TYPE_REMOTE
 return remote_para.centralizer;
 #endif
@@ -191,7 +205,9 @@ uint8_t parameter_read_rotation(void)
 #ifdef DEVICE_TYPE_BRUSH
 return bursh_para.rotation;
 #endif
-
+#ifdef DEVICE_TYPE_BLISTER
+return 0;
+#endif
 #ifdef DEVICE_TYPE_REMOTE
 return remote_para.rotation;
 #endif
@@ -208,7 +224,9 @@ uint8_t parameter_read_nozzle(void)
 #ifdef DEVICE_TYPE_BRUSH
 return bursh_para.nozzle;
 #endif
-
+#ifdef DEVICE_TYPE_BLISTER
+return 0;
+#endif
 #ifdef DEVICE_TYPE_REMOTE
 return remote_para.nozzle;
 #endif

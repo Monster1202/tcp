@@ -59,6 +59,7 @@
     "timer_app.h": "c",
     "gpio_ctrl.h": "c",
     "event_groups.h": "c",
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "esp_flash_partitions.h": "c"
   }
 }

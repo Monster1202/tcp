@@ -27,7 +27,8 @@ uint8_t UI_press_output(uint8_t value,uint8_t button);
 void centralizer_io_out(uint8_t value);
 void rotation_io_out(uint8_t value);
 void nozzle_io_out(uint8_t value);
-void emergency_stop_io_out(uint8_t value);
+void brush_stop_io_out(uint8_t value,uint8_t state);
+void brush_press_output(uint8_t io_num);
 #endif
 
 #ifdef DEVICE_TYPE_BLISTER
@@ -38,7 +39,7 @@ void heater_io_out(uint8_t value);
 #endif
 
 #ifdef DEVICE_TYPE_REMOTE
-void remote_stop_io_out(uint8_t value);
+void remote_stop_io_out(uint8_t value , uint8_t state);
 void remote_press_output(uint8_t io_num);
 void centralizer_io_out(uint8_t value);
 void rotation_io_out(uint8_t value);

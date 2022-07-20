@@ -418,7 +418,7 @@ double DS18B20_Start(void)
  	sdata = (tempH << 8) + tempL;
 	temp = (double)sdata * 0.0625;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
 	//printf("DS18B20_temp=%f\r\n",temp);
-	ESP_LOGD(TAG, "DS18B20_temp=%f",temp);
+	ESP_LOGI(TAG, "DS18B20_temp=%f",temp);
 	return temp;
 	//return sdata/100;
 }

@@ -22,8 +22,9 @@
 #include "protocol_examples_common.h"
 #include "errno.h"
 #include "ota_app.h"
+#include "para_list.h"
 
-#define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/mqtt_tcp.bin"
+//#define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/remote/mqtt_tcp.bin"
 #define CONFIG_EXAMPLE_SKIP_COMMON_NAME_CHECK 1
 #define CONFIG_EXAMPLE_CONNECT_WIFI 1
 #define CONFIG_EXAMPLE_OTA_RECV_TIMEOUT 5000
@@ -278,9 +279,19 @@ static bool diagnostic(void)
     return diagnostic_is_ok;
 }
 
+void version_get(void)
+{
+    const esp_partition_t *running = esp_ota_get_running_partition();
+    esp_app_desc_t running_app_info;
+    if (esp_ota_get_partition_description(running, &running_app_info) == ESP_OK) {
+        parameter_write_version(running_app_info.version);
+        ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
+    }
+}
 void native_ota_app(void)
 {
     uint8_t sha_256[HASH_LEN] = { 0 };
+    version_get();
     esp_partition_t partition;
 
     // get sha256 digest for the partition table
@@ -346,3 +357,4 @@ void native_ota_app(void)
 
     xTaskCreate(&ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
 }
+
