@@ -126,11 +126,6 @@ extern "C" {
 #endif
 
 
-
-//#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_LED_1) | (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))
-
-
-
 #define ESP_INTR_FLAG_DEFAULT 0
 #define KEY_SPEED_LONG 200 //long press debug time(ms)
 #define KEY_SPEED_DOUBLE 10 //double press debug time(ms)
@@ -138,9 +133,7 @@ extern "C" {
 #define KEY_TWICE 2
 #define KEY_LONG 3
 
-
-
-
+/////////////////////////////////////////////
 uint16_t parameter_read_pressure(void);
 void parameter_write_pressure(uint16_t pressure);
 void parameter_write_temperature(double temperature);
