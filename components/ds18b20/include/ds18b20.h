@@ -34,6 +34,17 @@
 extern "C" {
 #endif
 
+
+// //test1
+void ds18b20_read(void* arg);
+#define DS18B20_DQSet()		gpio_set_level(GPIO_IO_DS18B20, 1)		//	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
+#define DS18B20_DQReset()	gpio_set_level(GPIO_IO_DS18B20, 0)		//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
+#define DS18B20_DQModeOutput()	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_OUTPUT)	//	Port_SetMode(GPIOB, GPIO_PIN_6, GPIO_MODE_OUTPUT_PP)
+#define DS18B20_DQModeInput()	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_INPUT)
+#define DS18B20_DIORead()		gpio_get_level(GPIO_IO_DS18B20)	//	HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6)
+double DS18B20_Start(void);
+uint8_t DS18B20_ReadByte(void);
+
 // void ds18b20_init(int GPIO);
 
 // #define ds18b20_send ds18b20_write
@@ -71,15 +82,7 @@ extern "C" {
 //#define GPIO_IO_DS18B20    4
 // #define GPIO_INPUT_PIN_SEL  (1ULL<<GPIO_IO_DS18B20)
 
-// //test1
-void ds18b20_read(void* arg);
-#define DS18B20_DQSet()		gpio_set_level(GPIO_IO_DS18B20, 1)		//	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
-#define DS18B20_DQReset()	gpio_set_level(GPIO_IO_DS18B20, 0)		//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
-#define DS18B20_DQModeOutput()	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_OUTPUT)	//	Port_SetMode(GPIOB, GPIO_PIN_6, GPIO_MODE_OUTPUT_PP)
-#define DS18B20_DQModeInput()	gpio_set_direction(GPIO_IO_DS18B20,GPIO_MODE_DEF_INPUT)
-#define DS18B20_DIORead()		gpio_get_level(GPIO_IO_DS18B20)	//	HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6)
-double DS18B20_Start(void);
-uint8_t DS18B20_ReadByte(void);
+
 
 #ifdef __cplusplus
 }

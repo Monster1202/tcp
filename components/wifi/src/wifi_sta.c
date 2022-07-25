@@ -178,6 +178,7 @@ int8_t get_rssi(void)
     scan_config.ssid = wifi_sta_cfg.sta.ssid;//限制扫描的ap的ssid
     scan_config.bssid = wifi_sta_cfg.sta.bssid;//限制扫描的ap的mac地址
     esp_wifi_scan_start(&scan_config, true);//阻塞扫描ap，scan_config为扫描的参数
+    //vTaskDelay(1000 / portTICK_RATE_MS);
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));//获取扫描到的ap信息
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
     //获取扫描到的ap数量，因为限制了ssid和mac，因此最多只会扫描到1个
@@ -207,8 +208,8 @@ void wifi_scan(void)
     int8_t value = 0;
     for(;;)
     {
-        vTaskDelay(60000 / portTICK_RATE_MS);
         value = get_rssi();
-        parameter_write_rssi(value);        
+        parameter_write_rssi(value); 
+        vTaskDelay(600000 / portTICK_RATE_MS);      
     }
 }

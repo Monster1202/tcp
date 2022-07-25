@@ -60,6 +60,8 @@
     "gpio_ctrl.h": "c",
     "event_groups.h": "c",
     "stdbool.h": "c",
-    "esp_flash_partitions.h": "c"
+    "esp_flash_partitions.h": "c",
+    "sockets.h": "c",
+    "stdio.h": "c"
   }
 }

@@ -176,11 +176,10 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
         gpio_set_level(GPIO_OUTPUT_LED_5, 0);
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-    #else
-        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
     #endif  
         if(state){
-            parameter_write_emergency_stop(1);    
+            parameter_write_emergency_stop(1);
+            gpio_set_level(GPIO_OUTPUT_LED_1, 1);    
             gpio_set_level(GPIO_SYS_LED, 1);
             ESP_LOGI(TAG, "brush_para.emergency_stop = 1");
             }

@@ -73,6 +73,7 @@ void pressure_read(void* arg)
     ESP_LOGI(TAG, "I2C initialized successfully");
     uint16_t pressure = 0;
     esp_err_t err_print = 0;
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
     while(1)
     {
         //2 in 8 registers 
