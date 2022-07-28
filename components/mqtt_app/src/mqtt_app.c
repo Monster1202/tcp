@@ -25,6 +25,7 @@
 #include "cJSON.h"
 #include "para_list.h"
 #include "gpio_ctrl.h"
+#include "wifi_sta.h"
 // #define GPIO_OUTPUT_IO_STRETCH    39
 // #define GPIO_OUTPUT_IO_DRAW    40
 // #define GPIO_OUTPUT_IO_ROTATEX    41
@@ -46,7 +47,7 @@
 #define TOPIC_REMOTE_STATES "/remote-control-device/states"
 //PARAMETER_BRUSH brush_para;
 
-
+//char data_pub_1[300] = {0};
 static const char *TAG = "MQTT_EXAMPLE";
 esp_mqtt_client_handle_t mqtt_client;
 static uint16_t buf_disconnect = 0;
@@ -71,7 +72,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
-
+     
     char data_pub_1[300] = "init";
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
@@ -126,12 +127,20 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d",buf_disconnect);
         // mqtt_reset();
         // ESP_LOGI(TAG, "MQTT_EVENT_RESET");
+        uint8_t wifi_sta = 0;
+        wifi_sta=parameter_read_wifi_connection();
+        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED wifi_sta=%d",wifi_sta);
+        if(wifi_sta)//wifi connected 
+            esp_mqtt_client_reconnect(mqtt_client);
         #ifndef DEVICE_TYPE_BLISTER  
             buf_disconnect++;
-            if(buf_disconnect == 25)   //10=4minutes 
+            // if(buf_disconnect == 3)    
+            //     wifi_reset();
+            if(buf_disconnect == 15)   //10=1minute
                 esp_restart();
         #endif    
         break;
+
 
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
@@ -181,7 +190,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
-static void mqtt_app_start(void)
+void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = MQTT_BROKER_URL,//CONFIG_BROKER_URL,
@@ -229,7 +238,7 @@ void mqtt_init(void)
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
-    esp_log_level_set("*", ESP_LOG_INFO);//  CONFIG_LOG_COLORS
+    esp_log_level_set("*", ESP_LOG_INFO);//  CONFIG_LOG_COLORS  
     esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
     esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_INFO);////ESP_LOG_DEBUG ESP_LOG_INFO ESP_LOG_WARN
     esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);

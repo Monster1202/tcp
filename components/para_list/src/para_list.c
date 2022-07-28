@@ -35,6 +35,10 @@ void para_init(void)
         brush_para.timestamp = 1654585625000;
         strcpy(brush_para.msg_id,"msg_id");
         brush_para.temperature = 0;
+        brush_para.pressure = 0;
+        strcpy(brush_para.version,"1.0.0.0");
+        brush_para.rssi = 0;
+        brush_para.wifi_connection = 0;
     #else
         #ifdef DEVICE_TYPE_BLISTER
             blister_para.uuid = id;
@@ -48,6 +52,10 @@ void para_init(void)
             blister_para.timestamp = 1654585625000;
             strcpy(blister_para.msg_id,"msg_id");
             blister_para.temperature = 0;
+            blister_para.pressure = 0;
+            strcpy(blister_para.version,"1.0.0.0");
+            blister_para.rssi = 0;
+            blister_para.wifi_connection = 0;
         #else
             remote_para.uuid = id;
             remote_para.nozzle = 0;
@@ -58,6 +66,9 @@ void para_init(void)
             remote_para.angle = 0;
             remote_para.timestamp = 1654585625000;
             strcpy(remote_para.msg_id,"msg_id");
+            strcpy(remote_para.version,"1.0.0.0");
+            remote_para.rssi = 0;
+            remote_para.wifi_connection = 0;
         #endif
     #endif
 }
@@ -285,6 +296,25 @@ void parameter_write_rssi(int8_t value)
     brush_para.rssi = value; 
     blister_para.rssi = value;
     remote_para.rssi = value;
+}
+void parameter_write_wifi_connection(uint8_t value)
+{  
+    brush_para.wifi_connection = value; 
+    blister_para.wifi_connection = value;
+    remote_para.wifi_connection = value;
+}
+
+uint8_t parameter_read_wifi_connection(void)
+{
+#ifdef DEVICE_TYPE_BRUSH
+return brush_para.wifi_connection;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+return blister_para.wifi_connection;
+#endif
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.wifi_connection;
+#endif
 }
 // esp_err_t test_app_1(void)
 // {

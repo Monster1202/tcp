@@ -8,7 +8,8 @@
 #include "freertos/task.h"
 #include "sys/unistd.h"
 #include "para_list.h"
-#include "esp_log.h"
+//#include "esp_log.h"
+#include "timer_app.h"
 
 static const char *TAG = "DS18B20";
 
@@ -181,23 +182,71 @@ double DS18B20_Start(void)
  	sdata = (tempH << 8) + tempL;
 	temp = (double)sdata * 0.0625;  //这里×100 用于保留两位小数了，因为我是unsigned int类型不是float。
 	//printf("DS18B20_temp=%f\r\n",temp);
-	ESP_LOGI(TAG, "DS18B20_temp=%f",temp);
+	//ESP_LOGI(TAG, "DS18B20_temp=%f",temp);
 	return temp;
 	//return sdata/100;
 }
 
+int Compare_double(const void* a, const void* b)
+{
+	double arg1 = *(const double*)a;
+	double arg2 = *(const double*)b;
+	double arg3 = arg1 - arg2;
+	double eps = 1e-6;
+	if (-eps <= arg3 && arg3 <= eps)
+	{
+		return 0;
+	}
+	if (eps <= arg3 )
+	{
+		return 1;
+	}
+	if ( arg3 <= -eps)
+	{
+		return -1;
+	}
+    return 0;
+}
+#define length_temp_sort 5   //11
 void ds18b20_read(void* arg)
 {
+    static double temp[5]={0};
+    double temp_sorted[5]={0};
+    //int temp_int[5]={0};
     double temp_mid = 0;
-	//esp_log_level_set("*", PRINTF_LEVEL);
-	//vTaskDelay(2000 / portTICK_PERIOD_MS);
+	
+	BaseType_t iRet;
     for(;;)
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
-		temp_mid = DS18B20_Start();
+        vTaskDelay(200 / portTICK_RATE_MS);
+        temp[4]= DS18B20_Start();//ReadTemperature();
+		//TEMP_TEST
+		// if(temp[4] > 30 || temp[4] < 20)
+		// 	timer_periodic();
+        for(uint8_t i=0;i<5;i++)
+            temp_sorted[i] = temp[i];
+        qsort(temp_sorted, 5, sizeof(temp_sorted[0]), Compare_double); //increase
+        temp_mid = temp_sorted[2];
+        //brush_para.temperature = temp_mid;
 		parameter_write_temperature(temp_mid);
-	}	
+//        printf("qsort:%f,%f,%f,%f,%f;temp_mid:%f\n",temp_sorted[0],temp_sorted[1],temp_sorted[2],temp_sorted[3],temp_sorted[4],temp_mid);
+        //ESP_LOGI(TAG, "qsort-temp_mid:%f",temp_mid);
+        for(uint8_t i=1;i<5;i++)
+            temp[i-1] = temp[i];
+    }
 }
+// void ds18b20_read(void* arg)
+// {
+//     double temp_mid = 0;
+// 	//esp_log_level_set("*", PRINTF_LEVEL);
+// 	//vTaskDelay(2000 / portTICK_PERIOD_MS);
+//     for(;;)
+//     {
+//         vTaskDelay(200 / portTICK_RATE_MS);
+// 		temp_mid = DS18B20_Start();
+// 		parameter_write_temperature(temp_mid);
+// 	}	
+// }
 /////////////////////////
 
 // void delay_us(int cnt)

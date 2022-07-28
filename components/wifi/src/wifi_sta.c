@@ -31,9 +31,9 @@ esp_event_handler_instance_t instance_got_ip;
  * - we failed to connect after the maximum amount of retries */
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
-
+// CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE 
+// CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE
 static const char *TAG = "wifi station";
-
 static int s_retry_num = 0;
 
 static void event_handler(void* arg, esp_event_base_t event_base,
@@ -42,14 +42,14 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        
+        parameter_write_wifi_connection(0);
         if (s_retry_num < EXAMPLE_ESP_MAXIMUM_RETRY) {
             esp_wifi_connect();
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP");
         } 
         // else if(s_retry_num >= EXAMPLE_ESP_MAXIMUM_RETRY){
-        //     //wifi_reset();
+        //     wifi_reset();
         //     ESP_LOGI(TAG, "reset STA");
         //     s_retry_num = 1;
         // }
@@ -57,11 +57,19 @@ static void event_handler(void* arg, esp_event_base_t event_base,
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
         }
         ESP_LOGI(TAG,"connect to the AP fail");
+        
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+        parameter_write_wifi_connection(1);
+    }
+    else{
+        if(event_base == IP_EVENT)
+            ESP_LOGI(TAG, "IP_EVENT,event_id:%d",event_id);
+        else if(event_base == WIFI_EVENT)
+            ESP_LOGI(TAG, "WIFI_EVENT,event_id:%d",event_id);
     }
 }
 
@@ -71,14 +79,14 @@ void wifi_init_sta(void)
 
     ESP_ERROR_CHECK(esp_netif_init());
 
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());  //xTaskCreatePinnedToCore
     esp_netif_create_default_wifi_sta();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-    // esp_event_handler_instance_t instance_any_id;
-    // esp_event_handler_instance_t instance_got_ip;
+    esp_event_handler_instance_t instance_any_id;
+    esp_event_handler_instance_t instance_got_ip;
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                                                         ESP_EVENT_ANY_ID,
                                                         &event_handler,
@@ -134,11 +142,19 @@ void wifi_init_sta(void)
 
 void wifi_reset(void)
 {
-    ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
-    ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-    vEventGroupDelete(s_wifi_event_group);
-    //ets_delay_us(1000);
-    wifi_init_sta();
+    // ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
+    // ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
+    // vEventGroupDelete(s_wifi_event_group);
+    // //ets_delay_us(1000);
+    // wifi_init_sta();
+    //esp_wifi_restore();
+
+    esp_wifi_stop();
+    esp_wifi_deinit();
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK( esp_wifi_start() );
 }
 
 void wifi_connect(void)
@@ -156,60 +172,71 @@ void wifi_connect(void)
 }
 
 
+// int8_t get_rssi(void)
+// {
+//     uint16_t number = 1;
+//     uint16_t ap_count = 0;
+
+//     wifi_ap_record_t ap_info[1];
+//     wifi_config_t wifi_sta_cfg;
+
+//     if(s_retry_num>0)
+//         return 0;
+//     ESP_LOGI(TAG,"start scan");
+//     memset(ap_info, 0, sizeof(ap_info));
+//     if (esp_wifi_get_config(WIFI_IF_STA, &wifi_sta_cfg) != ESP_OK)//获取已连接的ap参数
+//     {
+//         ESP_LOGI(TAG, "esp_wifi_get_config err");  
+//         return -90;
+//     }
+
+//     wifi_scan_config_t scan_config = { 0 };
+//     scan_config.ssid = wifi_sta_cfg.sta.ssid;//限制扫描的ap的ssid
+//     scan_config.bssid = wifi_sta_cfg.sta.bssid;//限制扫描的ap的mac地址
+//     esp_wifi_scan_start(&scan_config, true);//阻塞扫描ap，scan_config为扫描的参数
+//     //vTaskDelay(1000 / portTICK_RATE_MS);
+//     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));//获取扫描到的ap信息
+//     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+//     //获取扫描到的ap数量，因为限制了ssid和mac，因此最多只会扫描到1个
+//     for (int i = 0; (i < 1) && (i < ap_count); i++) {
+//         ESP_LOGI(TAG, "SSID \t\t%s", ap_info[i].ssid);
+//         ESP_LOGI(TAG, "RSSI \t\t%d", ap_info[i].rssi);
+//         ESP_LOGI(TAG, "Channel \t\t%d", ap_info[i].primary);
+//         ESP_LOGI(TAG, "BSSID: \t\t%02x:%02x:%02x:%02x:%02x:%02x", 
+//                                                         ap_info[i].bssid[0],
+//                                                         ap_info[i].bssid[1],
+//                                                         ap_info[i].bssid[2],
+//                                                         ap_info[i].bssid[3],
+//                                                         ap_info[i].bssid[4],
+//                                                         ap_info[i].bssid[5]);
+//     }
+//     esp_wifi_scan_stop(); 
+//     //from start to stop need 3210ms
+//     ESP_LOGI(TAG,"stop scan\r\n");
+
+//     //net_rssi=ap_info[0].rssi;
+
+//     return ap_info[0].rssi;
+// }
+
 int8_t get_rssi(void)
 {
-    uint16_t number = 1;
-    uint16_t ap_count = 0;
-
-    wifi_ap_record_t ap_info[1];
-    wifi_config_t wifi_sta_cfg;
-
-    if(s_retry_num>0)
-        return 0;
-    ESP_LOGI(TAG,"start scan");
-    memset(ap_info, 0, sizeof(ap_info));
-    if (esp_wifi_get_config(WIFI_IF_STA, &wifi_sta_cfg) != ESP_OK)//获取已连接的ap参数
-    {
-        ESP_LOGI(TAG, "esp_wifi_get_config err");  
-        return -90;
-    }
-
-    wifi_scan_config_t scan_config = { 0 };
-    scan_config.ssid = wifi_sta_cfg.sta.ssid;//限制扫描的ap的ssid
-    scan_config.bssid = wifi_sta_cfg.sta.bssid;//限制扫描的ap的mac地址
-    esp_wifi_scan_start(&scan_config, true);//阻塞扫描ap，scan_config为扫描的参数
-    //vTaskDelay(1000 / portTICK_RATE_MS);
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));//获取扫描到的ap信息
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
-    //获取扫描到的ap数量，因为限制了ssid和mac，因此最多只会扫描到1个
-    for (int i = 0; (i < 1) && (i < ap_count); i++) {
-        ESP_LOGI(TAG, "SSID \t\t%s", ap_info[i].ssid);
-        ESP_LOGI(TAG, "RSSI \t\t%d", ap_info[i].rssi);
-        ESP_LOGI(TAG, "Channel \t\t%d", ap_info[i].primary);
-        ESP_LOGI(TAG, "BSSID: \t\t%02x:%02x:%02x:%02x:%02x:%02x", 
-                                                        ap_info[i].bssid[0],
-                                                        ap_info[i].bssid[1],
-                                                        ap_info[i].bssid[2],
-                                                        ap_info[i].bssid[3],
-                                                        ap_info[i].bssid[4],
-                                                        ap_info[i].bssid[5]);
-    }
-    esp_wifi_scan_stop(); 
-    //from start to stop need 3210ms
-    ESP_LOGI(TAG,"stop scan\r\n");
-
-    //net_rssi=ap_info[0].rssi;
-
-    return ap_info[0].rssi;
+    wifi_ap_record_t ap;
+    esp_wifi_sta_get_ap_info(&ap);
+    //printf("%d\n", ap.rssi);
+    ESP_LOGI(TAG, "RSSI \t\t%d", ap.rssi);
+    return ap.rssi;
 }
-
 void wifi_scan(void)
 {
     int8_t value = 0;
     for(;;)
     {
-        value = get_rssi();
-        parameter_write_rssi(value); 
-        vTaskDelay(600000 / portTICK_RATE_MS);      
+        if(parameter_read_wifi_connection()){
+            value = get_rssi();
+            parameter_write_rssi(value); 
+        }
+        //vTaskDelay(600000 / portTICK_RATE_MS);      
+        vTaskDelay(60000 / portTICK_RATE_MS);    
     }
 }

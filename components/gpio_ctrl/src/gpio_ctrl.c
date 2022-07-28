@@ -7,7 +7,7 @@
 #include "mqtt_app.h"
 #include "uart485.h"
 
-
+uint8_t flag_mqtt_test = 0;
 static const char *TAG = "GPIO_CTRL";
 //gpio
 static xQueueHandle gpio_evt_queue = NULL;
@@ -20,6 +20,7 @@ static void gpio_task_example(void* arg)
 {
     uint32_t io_num;
     uint8_t buf_state = 0;
+    int cnt = 0;
     for(;;) {
         if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
             buf_state = gpio_get_level(io_num);
@@ -29,7 +30,22 @@ static void gpio_task_example(void* arg)
         }
     }
 }
-
+#ifdef mqtt_test
+void mqtt_gpio_test(void* arg)
+{
+    int cnt = 0;
+    for(;;) {
+        if(flag_mqtt_test)
+        {
+            device_states_publish(cnt%4+1);    
+            ESP_LOGI(TAG,"mqtt_gpio_test_cnt: %d\n", cnt++);
+            printf("mqtt_gpio_test_cnt: %d\n", cnt++);
+        }
+        
+        vTaskDelay(100 / portTICK_RATE_MS);
+    }
+}
+#endif
 
 uint8_t KEY_READ(uint8_t io_num)
 {
@@ -690,6 +706,10 @@ void remote_press_output(uint8_t io_num)
             break;
             case GPIO_INPUT_IO_7:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_7");
+            #ifdef mqtt_test
+                register_afterpress = UI_press_output(flag_mqtt_test,1);
+                flag_mqtt_test = register_afterpress;
+            #endif 
             break;
             case GPIO_INPUT_IO_STOP:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");

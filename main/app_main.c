@@ -36,22 +36,24 @@
 #include "led_strip.h"
 #include "timer_app.h"
 #include "uart485.h"
-
-
+//void wifi_mqtt_start(void);
+static const char *TAG = "main";
 void app_main(void)
 {
 //parameter_init
     para_init();
 //gpio task in/out     PRIO 10 
     gpio_init();
+//    wifi_mqtt_start();
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
     wifi_connect();     
-//wifi_scan
-    xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 19, NULL);
-//OTA enable   get version
-    native_ota_app();
 //MQTT enable     MQTT task priority, default is 5,
     mqtt_init();
+//wifi_scan
+    xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 6, NULL);
+//OTA enable   get version
+    native_ota_app();
+
 
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
@@ -62,14 +64,23 @@ void app_main(void)
 //pressure_read
     xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //DS18B20 task
-    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 23, NULL);///////23 OK  22 2% ERROR
+    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
+#endif
+#ifdef mqtt_test
+    xTaskCreate(mqtt_gpio_test, "mqtt_gpio_test", 4096, NULL, 13, NULL);
 #endif
     timer_periodic();  //init end beep 
-    //printf("configMAX_PRIORITIES:%d",configMAX_PRIORITIES);
+    // printf("configMAX_PRIORITIES:%d",configMAX_PRIORITIES);
+    // printf("CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE);
+    // printf("CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE);
+    // printf("CONFIG_ESP_MAIN_TASK_STACK_SIZE:%d",CONFIG_ESP_MAIN_TASK_STACK_SIZE);
+    //int cnt = 0;
     while(1) {
 
         vTaskDelay(60000 / portTICK_RATE_MS);
-           
+        //vTaskDelay(200 / portTICK_RATE_MS);
+        // device_states_publish(cnt%4+1);    
+        // printf("cnt: %d\n", cnt++);
     }
 }
 
@@ -119,4 +130,44 @@ void app_main(void)
 // }
 
 
+// void wifi_mqtt_start(void)
+// {
+//     ESP_LOGI(TAG, "[APP] Startup..");
+//     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
+//     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
+//     esp_log_level_set("*", ESP_LOG_INFO);//  CONFIG_LOG_COLORS
+//     esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
+//     esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_INFO);////ESP_LOG_DEBUG ESP_LOG_INFO ESP_LOG_WARN
+//     esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);
+//     esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
+//     esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
+//     esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
+
+//     ESP_ERROR_CHECK(nvs_flash_init());
+//     ESP_ERROR_CHECK(esp_netif_init());
+//     ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+//     /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
+//      * Read "Establishing Wi-Fi or Ethernet Connection" section in
+//      * examples/protocols/README.md for more information about this function.
+//      */
+//     ESP_ERROR_CHECK(example_connect());
+//     // esp_err_t ret = nvs_flash_init();
+//     // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+//     //   ESP_ERROR_CHECK(nvs_flash_erase());
+//     //   ret = nvs_flash_init();
+//     // }
+//     // ESP_ERROR_CHECK(ret);
+
+//     // ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+//      //wifi_init_sta();
+
+// //   WiFi.begin(ssid,psw);
+// //   while(WiFi.status()!=WL_CONNECTED){      //未连接上
+// //     delay(500);
+// //     Serial.println("connect to wifi...");
+// //   }
+// //   Serial.println("successfully connected");  
+//     mqtt_app_start();
+// }

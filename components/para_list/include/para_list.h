@@ -20,12 +20,26 @@ extern "C" {
 
 //#define GPIOTEST
 #define GPIOWORKING
+#define mqtt_test
+#define MQTT_PRIO 5
 
-#define MQTT_BROKER_URL "mqtt://172.16.161.171" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"   
-#define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID  SHKJ2020  "CLEANING-SYSTEM"  "yyg"//
-#define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD "shkj1234."   "123456789"//
-#define MQTT_PRIO 20
-
+//#define HOTPOT_MODE
+//#define TEST_MODE
+#ifdef HOTPOT_MODE
+#define MQTT_BROKER_URL     "mqtt://10.42.0.1"
+#define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
+#define EXAMPLE_ESP_WIFI_PASS      "12345678"
+#else
+    #ifdef TEST_MODE
+    #define MQTT_BROKER_URL     "mqtt://broker.emqx.io" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"    "mqtt://172.16.161.171"
+    #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID   "CLEANING-SYSTEM"  "yyg"//
+    #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
+    #else
+    #define MQTT_BROKER_URL     "mqtt://172.16.171.97"   //"mqtt://10.42.0.1"    "mqtt://172.16.161.171"
+    #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID   "CLEANING-SYSTEM"  "yyg"//
+    #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
+    #endif
+#endif
 
 #define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
@@ -33,7 +47,9 @@ extern "C" {
 #define GPIO_SYS_LED         0
 #define GPIO_BEEP            8
 
-
+// #define CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE 32  //32
+// #define CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE 2304  //2304
+// #define CONFIG_ESP_MAIN_TASK_STACK_SIZE 3584//3584
 /////////////////////////////////
 #ifdef DEVICE_TYPE_BRUSH
     #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/brush.bin"
@@ -181,9 +197,8 @@ typedef struct
     double temperature;
     uint16_t pressure;
     char version[30];
-    int8_t rssi; 
-//    uint8_t counter_1s;
-
+    int8_t rssi;
+    uint8_t wifi_connection;     
 }PARAMETER_BRUSH;
 
 typedef struct
@@ -202,6 +217,7 @@ typedef struct
     uint16_t pressure;
     char version[30];
     int8_t rssi;
+    uint8_t wifi_connection; 
 }PARAMETER_BLISTER;
 
 typedef struct
@@ -219,6 +235,7 @@ typedef struct
     uint8_t emergency_stop;
     char version[30];
     int8_t rssi;
+    uint8_t wifi_connection; 
 }PARAMETER_REMOTE;
 
 void parameter_write_version(char *str_version);
@@ -226,6 +243,10 @@ void get_parameter(PARAMETER_BRUSH *brush_t);
 void get_blister_parameter(PARAMETER_BLISTER *blister_t);
 void get_remote_parameter(PARAMETER_REMOTE *remote_t);
 void parameter_write_rssi(int8_t value);
+
+void parameter_write_wifi_connection(uint8_t value);
+uint8_t parameter_read_wifi_connection(void);
+
 #ifdef __cplusplus
 }
 #endif
