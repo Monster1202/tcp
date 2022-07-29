@@ -12,6 +12,8 @@ void data_publish(char *data,uint8_t case_pub);
 void device_states_publish(uint8_t button);
 
 void mqtt_app_start(void);
+void mqtt_reset(void);
+
 #ifdef __cplusplus
 }
 #endif

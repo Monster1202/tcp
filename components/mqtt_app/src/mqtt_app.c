@@ -59,12 +59,7 @@ static void log_error_if_nonzero(const char *message, int error_code)
     }
 }
 
-void mqtt_reset(void)
-{
-    esp_mqtt_client_destroy(mqtt_client);
-    ets_delay_us(1000);
-    mqtt_app_start();
-}
+
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
@@ -194,7 +189,7 @@ void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = MQTT_BROKER_URL,//CONFIG_BROKER_URL,
-        .task_prio = MQTT_PRIO,
+        //.task_prio = MQTT_PRIO,
     };
 #if CONFIG_BROKER_URL_FROM_STDIN
     char line[128];
@@ -246,6 +241,7 @@ void mqtt_init(void)
     esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
     esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 
+    //vTaskDelay(6000 / portTICK_RATE_MS); 
     mqtt_app_start();
 }
 
@@ -362,6 +358,12 @@ void data_process(char *data)
         parameter_write_msg_id(json_msg_id->valuestring);
         ESP_LOGI(TAG, "msg_id = %s", json_msg_id->valuestring);
     }
+
+    // cJSON *json_update_url = cJSON_GetObjectItem(json_str_xy, "update_url");
+    // if(json_update_url != NULL && json_update_url->type == cJSON_String) {
+    //     //parameter_write_update_url(json_update_url->valuestring);
+    //     ESP_LOGI(TAG, "update_url = %s", json_update_url->valuestring);
+    // }
     //cJSON_Delete(json_str_xy);
 }
 
@@ -477,6 +479,21 @@ void data_publish(char *data,uint8_t case_pub)
     cJSON_Delete(root);
 }
 
+void mqtt_reset(void)
+{
+    esp_mqtt_client_stop(mqtt_client);
+    esp_mqtt_client_disconnect(mqtt_client);
+    //esp_mqtt_client_set_uri(mqtt_client,"mqtt://10.42.0.1");
+    // esp_mqtt_client_destroy(mqtt_client);
+    // ets_delay_us(1000);
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .uri = BACKUP_MQTT_BROKER_URL,//CONFIG_BROKER_URL,
+        //.task_prio = MQTT_PRIO,
+    };
+    mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    esp_mqtt_client_start(mqtt_client);
+}
 
 // void cJSON_init(void)
 // {

@@ -54,7 +54,6 @@ void app_main(void)
 //OTA enable   get version
     native_ota_app();
 
-
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
     xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);

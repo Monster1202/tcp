@@ -6,6 +6,14 @@
 #include "timer_app.h"
 #include "mqtt_app.h"
 #include "uart485.h"
+#include "wifi_sta.h"
+
+#define ESP_INTR_FLAG_DEFAULT 0
+#define KEY_SPEED_LONG 200 //long press debug time(ms)
+#define KEY_SPEED_DOUBLE 10 //double press debug time(ms)
+#define KEY_ONCE 1
+#define KEY_TWICE 2
+#define KEY_LONG 3
 
 uint8_t flag_mqtt_test = 0;
 static const char *TAG = "GPIO_CTRL";
@@ -30,59 +38,7 @@ static void gpio_task_example(void* arg)
         }
     }
 }
-#ifdef mqtt_test
-void mqtt_gpio_test(void* arg)
-{
-    int cnt = 0;
-    for(;;) {
-        if(flag_mqtt_test)
-        {
-            device_states_publish(cnt%4+1);    
-            ESP_LOGI(TAG,"mqtt_gpio_test_cnt: %d\n", cnt++);
-            printf("mqtt_gpio_test_cnt: %d\n", cnt++);
-        }
-        
-        vTaskDelay(100 / portTICK_RATE_MS);
-    }
-}
-#endif
 
-uint8_t KEY_READ(uint8_t io_num)
-{
-    uint16_t b,c;
-    if(!gpio_get_level(io_num))  //button press  gpio_get_level(io_num)
-    {
-        c = 0;
-        vTaskDelay(20 / portTICK_RATE_MS);//delay_us(20000);  //delay debounce
-        if(!gpio_get_level(io_num))  //check again
-        {
-            while((!gpio_get_level(io_num)) && c<KEY_SPEED_LONG) //long press time counting
-            {
-                c++;
-                vTaskDelay(10 / portTICK_RATE_MS);//delay_us(10000); //10ms
-            }
-            if(c>=KEY_SPEED_LONG)
-            {
-                while(!gpio_get_level(io_num))
-                    return KEY_LONG;                   
-            }
-            else{   
-                for(b=0;b<KEY_SPEED_DOUBLE;b++)  //double press check
-                {
-                    vTaskDelay(20 / portTICK_RATE_MS);//delay_us(20000);
-                    if(!gpio_get_level(io_num))
-                    {
-                        while(!gpio_get_level(io_num))
-                            return KEY_TWICE;
-                    }
-                }
-            }
-            //ESP_LOGI(TAG, "CCCCCCC:",%d);
-            return KEY_ONCE; //single press
-        }
-    }
-    return 0; //no press
-}
 
 #ifdef DEVICE_TYPE_BRUSH
 void centralizer_io_out(uint8_t value)
@@ -235,13 +191,13 @@ uint8_t brush_input(uint8_t io_num,uint8_t state)
     }
     else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
     {
-        parameter_write_pressure_alarm(0);
+        parameter_write_pressure_alarm(1);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0");
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
     }
     else if(state == 1 && io_num == GPIO_INPUT_IO_7)
     {
-        parameter_write_pressure_alarm(1);
+        parameter_write_pressure_alarm(0);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1");
         gpio_set_level(GPIO_OUTPUT_LED_6, 1);
     }
@@ -726,11 +682,86 @@ void remote_press_output(uint8_t io_num)
 }
 #endif
 
+#ifdef mqtt_test
+void mqtt_gpio_test(void* arg)
+{
+    int cnt = 0;
+    for(;;) {
+        if(flag_mqtt_test)
+        {
+            //device_states_publish(cnt%4+1);  
+            remote_press_output(cnt%6+35);  
+            ESP_LOGI(TAG,"mqtt_gpio_test_cnt: %d\n", cnt++);
+            //printf("mqtt_gpio_test_cnt: %d\n", cnt++);
+        }
+        
+        vTaskDelay(100 / portTICK_RATE_MS);
+    }
+}
+#endif
+
+uint8_t KEY_READ(uint8_t io_num)
+{
+    uint16_t b,c;
+    if(!gpio_get_level(io_num))  //button press  gpio_get_level(io_num)
+    {
+        c = 0;
+        vTaskDelay(20 / portTICK_RATE_MS);//delay_us(20000);  //delay debounce
+        if(!gpio_get_level(io_num))  //check again
+        {
+            while((!gpio_get_level(io_num)) && c<KEY_SPEED_LONG) //long press time counting
+            {
+                c++;
+                vTaskDelay(10 / portTICK_RATE_MS);//delay_us(10000); //10ms
+            }
+            if(c>=KEY_SPEED_LONG)
+            {
+                while(!gpio_get_level(io_num))
+                    return KEY_LONG;                   
+            }
+            else{   
+                for(b=0;b<KEY_SPEED_DOUBLE;b++)  //double press check
+                {
+                    vTaskDelay(20 / portTICK_RATE_MS);//delay_us(20000);
+                    if(!gpio_get_level(io_num))
+                    {
+                        while(!gpio_get_level(io_num))
+                            return KEY_TWICE;
+                    }
+                }
+            }
+            //ESP_LOGI(TAG, "CCCCCCC:",%d);
+            return KEY_ONCE; //single press
+        }
+    }
+    return 0; //no press
+}
 void sw_key_read(uint8_t io_num,uint8_t state)
 {
-    // uint8_t key_status = 0;
-    // key_status=KEY_READ(io_num);
-    //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+    uint8_t key_status = 0;
+    if(io_num == GPIO_INPUT_IO_STOP)
+    {
+        key_status=KEY_READ(io_num);
+        //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+        switch(key_status)
+        {
+            case KEY_ONCE:
+            ESP_LOGI(TAG, "KEY_ONCE");
+            break;
+            case KEY_TWICE:
+            ESP_LOGI(TAG, "KEY_TWICE");
+            wifi_reset();
+            mqtt_reset();
+            break;
+            case KEY_LONG:
+            ESP_LOGI(TAG, "KEY_LONG");
+            break;
+            default:
+            //ESP_LOGI(TAG, "KEY_default");
+            break;
+        }
+    }
+
     #ifdef GPIOWORKING
     #ifdef DEVICE_TYPE_BRUSH
         brush_input(io_num,state);
@@ -752,22 +783,6 @@ void sw_key_read(uint8_t io_num,uint8_t state)
     #endif
     }
 
-    // switch(key_status)
-    // {
-    //     case KEY_ONCE:
-    //     led_gpio_output(io_num);
-    //     ESP_LOGI(TAG, "KEY_ONCE");
-    //     break;
-    //     case KEY_TWICE:
-    //     ESP_LOGI(TAG, "KEY_TWICE");
-    //     break;
-    //     case KEY_LONG:
-    //     ESP_LOGI(TAG, "KEY_LONG");
-    //     break;
-    //     default:
-    //     //ESP_LOGI(TAG, "KEY_default");
-    //     break;
-    // }
     vTaskDelay(10 / portTICK_RATE_MS);
 }
 void gpio_init(void)

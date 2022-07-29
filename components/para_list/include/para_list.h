@@ -11,17 +11,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+// #define MQTT_PRIO 5
+// #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-#define PRINTF_LEVEL ESP_LOG_DEBUG
-
-#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BRUSH 
 //#define DEVICE_TYPE_BLISTER
-//#define DEVICE_TYPE_REMOTE 
+#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
 #define GPIOWORKING
-#define mqtt_test
-#define MQTT_PRIO 5
+
 
 //#define HOTPOT_MODE
 //#define TEST_MODE
@@ -40,6 +39,10 @@ extern "C" {
     #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
     #endif
 #endif
+
+#define BACKUP_MQTT_BROKER_URL     "mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"
+#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
+#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"
 
 #define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
@@ -136,18 +139,13 @@ extern "C" {
         #define GPIO_SYS_LED         0    //stop
         #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
-    
+        #define mqtt_test
         #endif
     #endif
 #endif
 
 
-#define ESP_INTR_FLAG_DEFAULT 0
-#define KEY_SPEED_LONG 200 //long press debug time(ms)
-#define KEY_SPEED_DOUBLE 10 //double press debug time(ms)
-#define KEY_ONCE 1
-#define KEY_TWICE 2
-#define KEY_LONG 3
+
 
 /////////////////////////////////////////////
 uint16_t parameter_read_pressure(void);

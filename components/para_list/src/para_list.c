@@ -30,7 +30,7 @@ void para_init(void)
         brush_para.rotation = 0;
         brush_para.status = 1;
         brush_para.water = 0;
-        brush_para.pressure_alarm = 0;
+        brush_para.pressure_alarm = 1;
         brush_para.emergency_stop = 0;
         brush_para.timestamp = 1654585625000;
         strcpy(brush_para.msg_id,"msg_id");
@@ -46,8 +46,8 @@ void para_init(void)
             blister_para.heater = 0;
             blister_para.status = 1;
             blister_para.water = 0;
-            blister_para.pressure_alarm = 0;
-            blister_para.liquid_alarm = 0;
+            blister_para.pressure_alarm = 1;
+            blister_para.liquid_alarm = 1;
             blister_para.emergency_stop = 0;
             blister_para.timestamp = 1654585625000;
             strcpy(blister_para.msg_id,"msg_id");

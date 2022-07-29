@@ -152,8 +152,20 @@ void wifi_reset(void)
     esp_wifi_stop();
     esp_wifi_deinit();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+
+    wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = BACKUP_EXAMPLE_ESP_WIFI_SSID, //"yyg",
+            .password = BACKUP_EXAMPLE_ESP_WIFI_PASS,//"123456789",
+            /* Setting a password implies station will connect to all security modes including WEP/WPA.
+             * However these modes are deprecated and not advisable to be used. Incase your Access point
+             * doesn't support WPA2, these mode can be enabled by commenting below line */
+	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+        },
+    };
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK( esp_wifi_start() );
 }
 
@@ -237,6 +249,6 @@ void wifi_scan(void)
             parameter_write_rssi(value); 
         }
         //vTaskDelay(600000 / portTICK_RATE_MS);      
-        vTaskDelay(60000 / portTICK_RATE_MS);    
+        vTaskDelay(6000 / portTICK_RATE_MS);    
     }
 }
