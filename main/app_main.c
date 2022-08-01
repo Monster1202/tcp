@@ -36,23 +36,27 @@
 #include "led_strip.h"
 #include "timer_app.h"
 #include "uart485.h"
-//void wifi_mqtt_start(void);
+#include "esp_partition.h"
+
+
+void flashwrite_reset(void);
+int8_t test_custom_partition();
 static const char *TAG = "main";
+
 void app_main(void)
 {
 //parameter_init
     para_init();
 //gpio task in/out     PRIO 10 
     gpio_init();
-//    wifi_mqtt_start();
 //wifi connect STA    configMAX_PRIORITIES -5                  ( 5 )
     wifi_connect();     
-//MQTT enable     MQTT task priority, default is 5,
-    mqtt_init();
 //wifi_scan
     xTaskCreate(wifi_scan, "wifi_scan", 4096, NULL, 6, NULL);
 //OTA enable   get version
     native_ota_app();
+//MQTT enable     MQTT task priority, default is 5,
+    mqtt_init();
 
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
@@ -75,12 +79,61 @@ void app_main(void)
     // printf("CONFIG_ESP_MAIN_TASK_STACK_SIZE:%d",CONFIG_ESP_MAIN_TASK_STACK_SIZE);
     //int cnt = 0;
     while(1) {
-
+        //test_custom_partition();
         vTaskDelay(60000 / portTICK_RATE_MS);
+        // if(flag_write_para){
+        //     flashwrite_reset();
+        //     flag_write_para = 0;
+        // }
+            
         //vTaskDelay(200 / portTICK_RATE_MS);
         // device_states_publish(cnt%4+1);    
         // printf("cnt: %d\n", cnt++);
     }
+}
+
+// void flashwrite_reset(void)
+// {
+//     if(flash_write_parameter() == -1)
+//         ESP_LOGI(TAG, "flash_write_parameter_error!");
+//     wifi_reset();
+//     //if(flag_write_para == 2)
+//     mqtt_reset();
+//     //flag_write_para = 0;
+// }
+
+int8_t test_custom_partition()
+{
+    const char* data = "Test read and write partition";
+    uint8_t dest_data[1024] = {0};
+    const esp_partition_t *find_partition = NULL;
+    find_partition = esp_partition_find_first(0x40, 0x0, NULL);
+    if(find_partition == NULL){
+	    printf("No partition found!\r\n");
+	    return -1;
+    }
+
+    printf("Erase custom partition\r\n");
+    if (esp_partition_erase_range(find_partition, 0, 0x1000) != ESP_OK) {
+	    printf("Erase partition error");
+	    return -1;
+    }
+
+    printf("Write data to custom partition\r\n");
+    if (esp_partition_write(find_partition, 0, data, strlen(data) + 1) != ESP_OK) {   // incude '\0'
+	    printf("Write partition data error");
+	    return -1;
+    }
+
+    printf("Read data from custom partition\r\n");
+    if (esp_partition_read(find_partition, 0, dest_data, 1024) != ESP_OK) {
+	    printf("Read partition data error");
+	    return -1;
+    }
+
+    printf("Receive data: %s\r\n", (char*)dest_data);
+
+    return 0;
 }
 
 // void led_state(void)

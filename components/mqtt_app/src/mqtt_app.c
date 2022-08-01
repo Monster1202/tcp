@@ -52,6 +52,8 @@ static const char *TAG = "MQTT_EXAMPLE";
 esp_mqtt_client_handle_t mqtt_client;
 static uint16_t buf_disconnect = 0;
 
+uint8_t flag_write_para = 0;
+
 static void log_error_if_nonzero(const char *message, int error_code)
 {
     if (error_code != 0) {
@@ -59,6 +61,15 @@ static void log_error_if_nonzero(const char *message, int error_code)
     }
 }
 
+void flashwrite_reset(void)
+{
+    if(flash_write_parameter() == -1)
+        ESP_LOGI(TAG, "flash_write_parameter_error!");
+    // wifi_reset();
+    // if(flag_write_para == 2)
+    //     mqtt_reset();
+    flag_write_para = 0;
+}
 
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
@@ -183,39 +194,21 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "Other event id:%d", event->event_id);
         break;
     }
+    // if(flag_write_para)
+    //     flashwrite_reset();
 }
 
 void mqtt_app_start(void)
 {
+    char *broker_url = {0};
+    broker_url = parameter_read_broker_url();
+    ESP_LOGI(TAG, "parameter_read_broker_url:%s",broker_url); 
+
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = MQTT_BROKER_URL,//CONFIG_BROKER_URL,
         //.task_prio = MQTT_PRIO,
     };
-#if CONFIG_BROKER_URL_FROM_STDIN
-    char line[128];
-
-    if (strcmp(mqtt_cfg.uri, "FROM_STDIN") == 0) {
-        int count = 0;
-        ESP_LOGI(TAG, "Please enter url of mqtt broker");
-        while (count < 128) {
-            int c = fgetc(stdin);
-            if (c == '') {
-                line[count] = '\0';
-                break;
-            } else if (c > 0 && c < 127) {
-                line[count] = c;
-                ++count;
-            }
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        mqtt_cfg.uri = line;
-        ESP_LOGI(TAG, "Broker url: %s", line);
-    } else {
-        ESP_LOGE(TAG, "Configuration mismatch: wrong broker url");
-        abort();
-    }
-#endif /* CONFIG_BROKER_URL_FROM_STDIN */
-
+    strcpy(mqtt_cfg.uri,broker_url);
     //esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
@@ -359,13 +352,35 @@ void data_process(char *data)
         ESP_LOGI(TAG, "msg_id = %s", json_msg_id->valuestring);
     }
 
-    // cJSON *json_update_url = cJSON_GetObjectItem(json_str_xy, "update_url");
-    // if(json_update_url != NULL && json_update_url->type == cJSON_String) {
-    //     //parameter_write_update_url(json_update_url->valuestring);
-    //     ESP_LOGI(TAG, "update_url = %s", json_update_url->valuestring);
-    // }
-    //cJSON_Delete(json_str_xy);
+    cJSON *json_wifi_ssid = cJSON_GetObjectItem(json_str_xy, "wifi_ssid");
+    if(json_wifi_ssid != NULL && json_wifi_ssid->type == cJSON_String) {
+        parameter_write_wifi_ssid(json_wifi_ssid->valuestring);
+        ESP_LOGI(TAG, "wifi_ssid = %s", json_wifi_ssid->valuestring);
+        flag_write_para = 1;
+    }
+    cJSON *json_wifi_pass = cJSON_GetObjectItem(json_str_xy, "wifi_pass");
+    if(json_wifi_pass != NULL && json_wifi_pass->type == cJSON_String) {
+        parameter_write_wifi_pass(json_wifi_pass->valuestring);
+        ESP_LOGI(TAG, "wifi_pass = %s", json_wifi_pass->valuestring);
+        flag_write_para = 1;
+    }
+    cJSON *json_broker_url = cJSON_GetObjectItem(json_str_xy, "broker_url");
+    if(json_broker_url != NULL && json_broker_url->type == cJSON_String) {
+        parameter_write_broker_url(json_broker_url->valuestring);
+        ESP_LOGI(TAG, "broker_url = %s", json_broker_url->valuestring);
+        flag_write_para = 2;
+    }
+    cJSON *json_update_url = cJSON_GetObjectItem(json_str_xy, "update_url");
+    if(json_update_url != NULL && json_update_url->type == cJSON_String) {
+        parameter_write_update_url(json_update_url->valuestring);
+        ESP_LOGI(TAG, "update_url = %s", json_update_url->valuestring);
+    }
+    if(flag_write_para)
+        flashwrite_reset();
+    cJSON_Delete(json_str_xy);
 }
+
+
 
 void device_states_publish(uint8_t button)
 {
@@ -481,6 +496,10 @@ void data_publish(char *data,uint8_t case_pub)
 
 void mqtt_reset(void)
 {
+    char *broker_url = {0};
+    broker_url = parameter_read_broker_url();
+    ESP_LOGI(TAG, "parameter_read_broker_url:%s",broker_url); 
+
     esp_mqtt_client_stop(mqtt_client);
     esp_mqtt_client_disconnect(mqtt_client);
     //esp_mqtt_client_set_uri(mqtt_client,"mqtt://10.42.0.1");
@@ -490,6 +509,7 @@ void mqtt_reset(void)
         .uri = BACKUP_MQTT_BROKER_URL,//CONFIG_BROKER_URL,
         //.task_prio = MQTT_PRIO,
     };
+    strcpy(mqtt_cfg.uri,broker_url);
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(mqtt_client);
@@ -509,3 +529,28 @@ void mqtt_reset(void)
 
 //     return 0;
 // }
+
+// #if CONFIG_BROKER_URL_FROM_STDIN
+//     char line[128];
+
+//     if (strcmp(mqtt_cfg.uri, "FROM_STDIN") == 0) {
+//         int count = 0;
+//         ESP_LOGI(TAG, "Please enter url of mqtt broker");
+//         while (count < 128) {
+//             int c = fgetc(stdin);
+//             if (c == '') {
+//                 line[count] = '\0';
+//                 break;
+//             } else if (c > 0 && c < 127) {
+//                 line[count] = c;
+//                 ++count;
+//             }
+//             vTaskDelay(10 / portTICK_PERIOD_MS);
+//         }
+//         mqtt_cfg.uri = line;
+//         ESP_LOGI(TAG, "Broker url: %s", line);
+//     } else {
+//         ESP_LOGE(TAG, "Configuration mismatch: wrong broker url");
+//         abort();
+//     }
+// #endif /* CONFIG_BROKER_URL_FROM_STDIN */

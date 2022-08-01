@@ -75,6 +75,14 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 
 void wifi_init_sta(void)
 {
+    //uint8_t test_ssid[32] = {0};
+    char *wifi_ssid = {0};
+    char *wifi_pass = {0};
+    wifi_ssid = parameter_read_wifi_ssid();
+    wifi_pass = parameter_read_wifi_pass();
+    ESP_LOGI(TAG, "wifi_ssid:%s",wifi_ssid); 
+    ESP_LOGI(TAG, "wifi_pass:%s",wifi_pass); 
+
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -108,6 +116,18 @@ void wifi_init_sta(void)
 	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
         },
     };
+    ESP_LOGI(TAG, "strlen(wifi_ssid) + 1:%d",strlen(wifi_ssid) + 1);
+    for(uint8_t i=0; i< strlen(wifi_ssid) + 1;i++)
+        wifi_config.sta.ssid[i] = wifi_ssid[i];
+    ESP_LOGI(TAG, "strlen(wifi_pass) + 1:%d",strlen(wifi_pass) + 1);
+    for(uint8_t i=0; i< strlen(wifi_pass) + 1;i++)
+        wifi_config.sta.password[i] = wifi_pass[i];
+    ESP_LOGI(TAG, "wifi_ssid:%s",wifi_config.sta.ssid); 
+    ESP_LOGI(TAG, "wifi_pass:%s",wifi_config.sta.password); 
+    //wifi_config.sta.channel = 0;
+    //wifi_config.sta.ssid[0] = 0;
+    //strcpy(wifi_config.sta.ssid , test_ssid);   //(uint8_t *)wifi_ssid
+    // strcpy(wifi_config.sta.password , "0");//(uint8_t *)wifi_pass
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start() );
@@ -149,6 +169,13 @@ void wifi_reset(void)
     // wifi_init_sta();
     //esp_wifi_restore();
 
+    char *wifi_ssid = {0};
+    char *wifi_pass = {0};
+    wifi_ssid = parameter_read_wifi_ssid();
+    wifi_pass = parameter_read_wifi_pass();
+    ESP_LOGI(TAG, "wifi_ssid:%s",wifi_ssid); 
+    ESP_LOGI(TAG, "wifi_pass:%s",wifi_pass); 
+
     esp_wifi_stop();
     esp_wifi_deinit();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -163,11 +190,47 @@ void wifi_reset(void)
 	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
         },
     };
+    ESP_LOGI(TAG, "strlen(wifi_ssid) + 1:%d",strlen(wifi_ssid) + 1);
+    for(uint8_t i=0; i< strlen(wifi_ssid) + 1;i++)
+        wifi_config.sta.ssid[i] = wifi_ssid[i];
+    ESP_LOGI(TAG, "strlen(wifi_pass) + 1:%d",strlen(wifi_pass) + 1);
+    for(uint8_t i=0; i< strlen(wifi_pass) + 1;i++)
+        wifi_config.sta.password[i] = wifi_pass[i];
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
+    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK( esp_wifi_start() );
 }
+
+// void wifi_inital_set(void)
+// {
+//     strcpy(connection_para.wifi_ssid,BACKUP_EXAMPLE_ESP_WIFI_SSID);
+//     strcpy(connection_para.wifi_pass,BACKUP_EXAMPLE_ESP_WIFI_PASS);
+//     strcpy(connection_para.broker_url,BACKUP_MQTT_BROKER_URL);
+//     strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);
+//     if(flash_write_parameter() == -1)
+//         ESP_LOGI(TAG, "flash_write_parameter_error!");
+
+//     // esp_wifi_stop();
+//     // esp_wifi_deinit();
+//     // wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+
+//     // wifi_config_t wifi_config = {
+//     //     .sta = {
+//     //         .ssid = BACKUP_EXAMPLE_ESP_WIFI_SSID, //"yyg",
+//     //         .password = BACKUP_EXAMPLE_ESP_WIFI_PASS,//"123456789",
+//     //         /* Setting a password implies station will connect to all security modes including WEP/WPA.
+//     //          * However these modes are deprecated and not advisable to be used. Incase your Access point
+//     //          * doesn't support WPA2, these mode can be enabled by commenting below line */
+// 	//      .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+//     //     },
+//     // };
+
+//     // ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+//     // ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+//     // ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
+//     // ESP_ERROR_CHECK( esp_wifi_start() );
+// }
 
 void wifi_connect(void)
 {

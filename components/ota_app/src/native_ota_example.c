@@ -83,6 +83,10 @@ static void infinite_loop(void)
 
 static void ota_example_task(void *pvParameter)
 {
+    char *update_url = {0};
+    update_url = parameter_read_update_url();
+    ESP_LOGI(TAG, "update_url:%s",update_url); 
+
     esp_err_t err;
     /* update handle : set by esp_ota_begin(), must be freed via esp_ota_end() */
     esp_ota_handle_t update_handle = 0 ;
@@ -107,7 +111,8 @@ static void ota_example_task(void *pvParameter)
         .timeout_ms = CONFIG_EXAMPLE_OTA_RECV_TIMEOUT,
         .keep_alive_enable = true,
     };
-
+    strcpy(config.url,update_url);
+    
 #ifdef CONFIG_EXAMPLE_FIRMWARE_UPGRADE_URL_FROM_STDIN
     char url_buf[OTA_URL_SIZE];
     if (strcmp(config.url, "FROM_STDIN") == 0) {

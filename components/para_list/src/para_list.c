@@ -1,14 +1,18 @@
 #include <stdbool.h>
+#include <string.h>
 #include <sys/param.h>
 #include "esp_check.h"
 #include "esp_log.h"
 #include "para_list.h"
 #include "esp_system.h"
-#include <string.h>
+#include "esp_partition.h"
 //
 PARAMETER_BRUSH brush_para;
 PARAMETER_BLISTER blister_para;
 PARAMETER_REMOTE remote_para;
+PARAMETER_CONNECTION connection_para;
+
+static const char *TAG = "para_list";
 
 esp_err_t get_chip_id(uint32_t* chip_id){
     esp_err_t status = ESP_OK;
@@ -17,12 +21,39 @@ esp_err_t get_chip_id(uint32_t* chip_id){
     return status;
 }
 
+void wifi_url_inital_set_para(void)
+{
+    strcpy(connection_para.wifi_ssid,BACKUP_EXAMPLE_ESP_WIFI_SSID);
+    strcpy(connection_para.wifi_pass,BACKUP_EXAMPLE_ESP_WIFI_PASS);
+    strcpy(connection_para.broker_url,BACKUP_MQTT_BROKER_URL);
+    strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);
+    if(flash_write_parameter() == -1)
+        ESP_LOGI(TAG, "flash_write_parameter_error!");
+}
+
+void wifi_url_inital_set_para1(void)
+{
+    strcpy(connection_para.wifi_ssid,EXAMPLE_ESP_WIFI_SSID);
+    strcpy(connection_para.wifi_pass,EXAMPLE_ESP_WIFI_PASS);
+    strcpy(connection_para.broker_url,MQTT_BROKER_URL);
+    strcpy(connection_para.update_url,"http://172.16.171.221:8070/brush.bin");
+    if(flash_write_parameter() == -1)
+        ESP_LOGI(TAG, "flash_write_parameter_error!");
+}
 
 void para_init(void)
 {
     uint32_t id;
     get_chip_id(&id);
     printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
+
+    // strcpy(connection_para.wifi_ssid,"CLEANING-SYSTEM");
+    // strcpy(connection_para.wifi_pass,"12345678");
+    // strcpy(connection_para.broker_url,"mqtt://10.42.0.1");
+    // strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);
+    if(flash_read_parameter() == -1)
+        printf("flash_read_parameter error");
+
     #ifdef DEVICE_TYPE_BRUSH
         brush_para.uuid = id;
         brush_para.nozzle = 0;
@@ -71,6 +102,132 @@ void para_init(void)
             remote_para.wifi_connection = 0;
         #endif
     #endif
+}
+
+int8_t flash_write_parameter(void)
+{
+    const char* data = &connection_para;
+    uint8_t dest_data[1024] = {0};
+    const esp_partition_t *find_partition = NULL;
+    find_partition = esp_partition_find_first(0x40, 0x0, NULL);
+    if(find_partition == NULL){
+	    printf("No partition found!\r\n");
+	    return -1;
+    }
+
+    printf("Erase custom partition\r\n");
+    if (esp_partition_erase_range(find_partition, 0, 0x1000) != ESP_OK) {
+	    printf("Erase partition error");
+	    return -1;
+    }
+
+    printf("Write data to custom partition\r\n");    //strlen(data) + 1  &connection_para.wifi_ssid
+    if (esp_partition_write(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {     
+	    printf("Write partition data error");
+	    return -1;
+    }
+    printf("sizeof(PARAMETER_CONNECTION):%d\r\n",sizeof(PARAMETER_CONNECTION)); 
+
+    printf("Read data from custom partition\r\n");
+    if (esp_partition_read(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {
+	    printf("Read partition data error");
+	    return -1;
+    } 
+    printf("connection_para.wifi_ssid:%s\r\n",connection_para.wifi_ssid);
+    printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
+    printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
+    printf("connection_para.update_url:%s\r\n",connection_para.update_url);
+    // printf("Read data from custom partition\r\n");
+    // if (esp_partition_read(find_partition, 0, dest_data, 1024) != ESP_OK) {
+	//     printf("Read partition data error");
+	//     return -1;
+    // }
+    // printf("Receive data: %s\r\n", (char*)dest_data);
+
+    // strcpy(connection_para.wifi_ssid,"0");
+    // strcpy(connection_para.wifi_pass,"0");
+    // strcpy(connection_para.broker_url,"0");
+    // strcpy(connection_para.update_url,"0");
+
+    // printf("Write data to custom partition\r\n");    //strlen(data) + 1
+    // if (esp_partition_write(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {     
+	//     printf("Write partition data error");
+	//     return -1;
+    // }
+
+    // printf("Read data from custom partition\r\n");
+    // if (esp_partition_read(find_partition, 0, dest_data, 1024) != ESP_OK) {
+	//     printf("Read partition data error");
+	//     return -1;
+    // }
+    
+
+    return 0;
+
+}
+int8_t flash_read_parameter(void)
+{
+    //const char* data = "Test read and write partition";
+    const char* data = &connection_para;
+    uint8_t dest_data[1024] = {0};
+    const esp_partition_t *find_partition = NULL;
+    find_partition = esp_partition_find_first(0x40, 0x0, NULL);
+    if(find_partition == NULL){
+	    printf("No partition found!\r\n");
+	    return -1;
+    }
+    printf("Read data from custom partition\r\n");
+    if (esp_partition_read(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {
+	    printf("Read partition data error");
+	    return -1;
+    }
+    printf("connection_para.wifi_ssid:%s\r\n",connection_para.wifi_ssid);
+    printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
+    printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
+    printf("connection_para.update_url:%s\r\n",connection_para.update_url);
+
+    //printf("Receive data: %s\r\n", (char*)dest_data);
+    return 0;
+}
+
+void parameter_write_wifi_ssid(char *str_para)
+{   
+    strcpy(connection_para.wifi_ssid,str_para);
+}
+
+char *parameter_read_wifi_ssid(void)
+{
+    return connection_para.wifi_ssid;
+}
+
+void parameter_write_wifi_pass(char *str_para)
+{   
+    strcpy(connection_para.wifi_pass,str_para);
+}
+
+char *parameter_read_wifi_pass(void)
+{
+    return connection_para.wifi_pass;
+}
+
+void parameter_write_broker_url(char *str_para)
+{   
+    strcpy(connection_para.broker_url,str_para);
+}
+
+char *parameter_read_broker_url(void)
+{
+    return connection_para.broker_url;
+}
+
+void parameter_write_update_url(char *str_para)
+{   
+    strcpy(connection_para.update_url,str_para);
+}
+
+char *parameter_read_update_url(void)
+{
+    return connection_para.update_url;
 }
 
 void parameter_write_water(uint8_t value)

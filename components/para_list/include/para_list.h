@@ -23,7 +23,7 @@ extern "C" {
 
 
 //#define HOTPOT_MODE
-//#define TEST_MODE
+#define TEST_MODE
 #ifdef HOTPOT_MODE
 #define MQTT_BROKER_URL     "mqtt://10.42.0.1"
 #define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
@@ -40,9 +40,17 @@ extern "C" {
     #endif
 #endif
 
-#define BACKUP_MQTT_BROKER_URL     "mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"
-#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
-#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"
+#define BACKUP_MQTT_BROKER_URL     "mqtt://172.16.171.97"//"mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"
+#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"  //"SHKJ2020"//
+#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"    //"shkj1234."//
+
+typedef struct
+{
+    char wifi_ssid[32];
+    char wifi_pass[64];
+    char broker_url[60];
+    char update_url[60];
+}PARAMETER_CONNECTION;
 
 #define GPIO_IO_DS18B20      4//9
 #define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
@@ -244,6 +252,24 @@ void parameter_write_rssi(int8_t value);
 
 void parameter_write_wifi_connection(uint8_t value);
 uint8_t parameter_read_wifi_connection(void);
+
+void parameter_write_wifi_ssid(char *str_para);
+
+char *parameter_read_wifi_ssid(void);
+
+void parameter_write_wifi_pass(char *str_para);
+
+char *parameter_read_wifi_pass(void);
+
+void parameter_write_broker_url(char *str_para);
+char *parameter_read_broker_url(void);
+
+void parameter_write_update_url(char *str_para);
+char *parameter_read_update_url(void);
+int8_t flash_write_parameter(void);
+int8_t flash_read_parameter(void);
+void wifi_url_inital_set_para(void);
+void wifi_url_inital_set_para1(void);
 
 #ifdef __cplusplus
 }
