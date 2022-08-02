@@ -26,17 +26,19 @@ void wifi_url_inital_set_para(void)
     strcpy(connection_para.wifi_ssid,BACKUP_EXAMPLE_ESP_WIFI_SSID);
     strcpy(connection_para.wifi_pass,BACKUP_EXAMPLE_ESP_WIFI_PASS);
     strcpy(connection_para.broker_url,BACKUP_MQTT_BROKER_URL);
-    strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);
+    strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);   //remote   double press
     if(flash_write_parameter() == -1)
         ESP_LOGI(TAG, "flash_write_parameter_error!");
 }
 
-void wifi_url_inital_set_para1(void)
+void wifi1_url_inital_set_para(void)
 {
+
     strcpy(connection_para.wifi_ssid,EXAMPLE_ESP_WIFI_SSID);
     strcpy(connection_para.wifi_pass,EXAMPLE_ESP_WIFI_PASS);
-    strcpy(connection_para.broker_url,MQTT_BROKER_URL);
+    strcpy(connection_para.broker_url,"mqtt://broker.emqx.io");
     strcpy(connection_para.update_url,"http://172.16.171.221:8070/brush.bin");
+
     if(flash_write_parameter() == -1)
         ESP_LOGI(TAG, "flash_write_parameter_error!");
 }
@@ -120,13 +122,21 @@ int8_t flash_write_parameter(void)
 	    printf("Erase partition error");
 	    return -1;
     }
+    // printf("before write connection_para.wifi_ssid:%s\r\n",connection_para.wifi_ssid);
+    // printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
+    // printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
+    // printf("connection_para.update_url:%s\r\n",connection_para.update_url);
 
     printf("Write data to custom partition\r\n");    //strlen(data) + 1  &connection_para.wifi_ssid
     if (esp_partition_write(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {     
 	    printf("Write partition data error");
 	    return -1;
     }
-    printf("sizeof(PARAMETER_CONNECTION):%d\r\n",sizeof(PARAMETER_CONNECTION)); 
+    //printf("sizeof(PARAMETER_CONNECTION):%d\r\n",sizeof(PARAMETER_CONNECTION)); 
+    // strcpy(connection_para.wifi_ssid,"0");
+    // strcpy(connection_para.wifi_pass,"0");
+    // strcpy(connection_para.broker_url,"0");
+    // strcpy(connection_para.update_url,"0");
 
     printf("Read data from custom partition\r\n");
     if (esp_partition_read(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {
@@ -165,6 +175,34 @@ int8_t flash_write_parameter(void)
     return 0;
 
 }
+int8_t flash_erase_parameter(void)
+{
+    const char* data = &connection_para;
+    uint8_t dest_data[1024] = {0};
+    const esp_partition_t *find_partition = NULL;
+    find_partition = esp_partition_find_first(0x40, 0x0, NULL);
+    if(find_partition == NULL){
+	    printf("No partition found!\r\n");
+	    return -1;
+    }
+    printf("Erase custom partition\r\n");
+    if (esp_partition_erase_range(find_partition, 0, 0x1000) != ESP_OK) {
+	    printf("Erase partition error");
+	    return -1;
+    }
+    printf("Read data from custom partition\r\n");
+    if (esp_partition_read(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {
+	    printf("Read partition data error");
+	    return -1;
+    }
+    printf("connection_para.wifi_ssid:%s\r\n",connection_para.wifi_ssid);
+    printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
+    printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
+    printf("connection_para.update_url:%s\r\n",connection_para.update_url);
+
+    return 0;
+}
+
 int8_t flash_read_parameter(void)
 {
     //const char* data = "Test read and write partition";
@@ -185,7 +223,14 @@ int8_t flash_read_parameter(void)
     printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
     printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
     printf("connection_para.update_url:%s\r\n",connection_para.update_url);
-
+    if(connection_para.wifi_ssid[0] == 0xff && connection_para.wifi_pass[0] == 0xff){
+        printf("connection_para == ff then write inital parameter");
+        wifi_url_inital_set_para();
+    }
+    // if(connection_para.wifi_ssid[0] == 0x00 && connection_para.wifi_pass[0] == 0x00){
+    //     printf("connection_para == 00 then write inital parameter");
+    //     wifi_url_inital_set_para();
+    // }    
     //printf("Receive data: %s\r\n", (char*)dest_data);
     return 0;
 }

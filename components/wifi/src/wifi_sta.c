@@ -162,13 +162,6 @@ void wifi_init_sta(void)
 
 void wifi_reset(void)
 {
-    // ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
-    // ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-    // vEventGroupDelete(s_wifi_event_group);
-    // //ets_delay_us(1000);
-    // wifi_init_sta();
-    //esp_wifi_restore();
-
     char *wifi_ssid = {0};
     char *wifi_pass = {0};
     wifi_ssid = parameter_read_wifi_ssid();
@@ -177,7 +170,8 @@ void wifi_reset(void)
     ESP_LOGI(TAG, "wifi_pass:%s",wifi_pass); 
 
     esp_wifi_stop();
-    esp_wifi_deinit();
+    esp_wifi_disconnect();
+    //esp_wifi_deinit();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
     wifi_config_t wifi_config = {

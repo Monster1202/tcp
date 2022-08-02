@@ -15,15 +15,15 @@ extern "C" {
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
 //#define DEVICE_TYPE_BRUSH 
-//#define DEVICE_TYPE_BLISTER
-#define DEVICE_TYPE_REMOTE 
+#define DEVICE_TYPE_BLISTER
+//#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
 #define GPIOWORKING
 
 
 //#define HOTPOT_MODE
-#define TEST_MODE
+//#define TEST_MODE
 #ifdef HOTPOT_MODE
 #define MQTT_BROKER_URL     "mqtt://10.42.0.1"
 #define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
@@ -40,9 +40,9 @@ extern "C" {
     #endif
 #endif
 
-#define BACKUP_MQTT_BROKER_URL     "mqtt://172.16.171.97"//"mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"
-#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"  //"SHKJ2020"//
-#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"    //"shkj1234."//
+#define BACKUP_MQTT_BROKER_URL     "mqtt://172.16.171.97"//"mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"  
+#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//  "CLEANING-SYSTEM"  //
+#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "shkj1234."//  "12345678"    //
 
 typedef struct
 {
@@ -269,8 +269,8 @@ char *parameter_read_update_url(void);
 int8_t flash_write_parameter(void);
 int8_t flash_read_parameter(void);
 void wifi_url_inital_set_para(void);
-void wifi_url_inital_set_para1(void);
-
+void wifi1_url_inital_set_para(void);
+int8_t flash_erase_parameter(void);
 #ifdef __cplusplus
 }
 #endif

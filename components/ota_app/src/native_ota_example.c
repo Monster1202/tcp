@@ -106,12 +106,12 @@ static void ota_example_task(void *pvParameter)
              running->type, running->subtype, running->address);
 
     esp_http_client_config_t config = {
-        .url = CONFIG_EXAMPLE_FIRMWARE_UPG_URL,
+        .url = update_url,//CONFIG_EXAMPLE_FIRMWARE_UPG_URL,
         //.cert_pem = (char *)server_cert_pem_start,
         .timeout_ms = CONFIG_EXAMPLE_OTA_RECV_TIMEOUT,
         .keep_alive_enable = true,
     };
-    strcpy(config.url,update_url);
+    //strcpy(config.url,update_url);
     
 #ifdef CONFIG_EXAMPLE_FIRMWARE_UPGRADE_URL_FROM_STDIN
     char url_buf[OTA_URL_SIZE];
