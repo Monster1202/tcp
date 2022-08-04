@@ -132,11 +132,6 @@ int8_t flash_write_parameter(void)
 	    printf("Write partition data error");
 	    return -1;
     }
-    //printf("sizeof(PARAMETER_CONNECTION):%d\r\n",sizeof(PARAMETER_CONNECTION)); 
-    // strcpy(connection_para.wifi_ssid,"0");
-    // strcpy(connection_para.wifi_pass,"0");
-    // strcpy(connection_para.broker_url,"0");
-    // strcpy(connection_para.update_url,"0");
 
     printf("Read data from custom partition\r\n");
     if (esp_partition_read(find_partition, 0, data, sizeof(PARAMETER_CONNECTION)) != ESP_OK) {
@@ -170,11 +165,9 @@ int8_t flash_write_parameter(void)
 	//     printf("Read partition data error");
 	//     return -1;
     // }
-    
-
     return 0;
-
 }
+
 int8_t flash_erase_parameter(void)
 {
     const char* data = &connection_para;

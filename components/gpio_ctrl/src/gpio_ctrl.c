@@ -760,7 +760,7 @@ void sw_key_read(uint8_t io_num,uint8_t state)
     remote_press_output(io_num);
     #endif
     }
-    //#ifdef DEVICE_TYPE_REMOTE
+    #ifdef DEVICE_TYPE_REMOTE
     if(io_num == GPIO_INPUT_IO_STOP)
     {
         key_status=KEY_READ(io_num);
@@ -791,7 +791,39 @@ void sw_key_read(uint8_t io_num,uint8_t state)
             break;
         }
     }
-    //#endif
+    #endif
+    #ifdef DEVICE_TYPE_BRUSH
+    if(io_num == GPIO_INPUT_IO_1)
+    {
+        key_status=KEY_READ(io_num);
+        //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+        switch(key_status)
+        {
+            case KEY_ONCE:
+            ESP_LOGI(TAG, "KEY_ONCE");
+            break;
+            case KEY_TWICE:
+            ESP_LOGI(TAG, "KEY_TWICE");
+            wifi_url_inital_set_para();
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            wifi_reset();
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            mqtt_reset();
+            break;
+            case KEY_LONG:
+            ESP_LOGI(TAG, "KEY_LONG");
+            // wifi1_url_inital_set_para();
+            // vTaskDelay(1000 / portTICK_RATE_MS);
+            // wifi_reset();
+            // vTaskDelay(1000 / portTICK_RATE_MS);
+            // mqtt_reset();
+            break;
+            default:
+            //ESP_LOGI(TAG, "KEY_default");
+            break;
+        }
+    }
+    #endif
     vTaskDelay(10 / portTICK_RATE_MS);
 }
 void gpio_init(void)
