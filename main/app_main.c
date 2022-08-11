@@ -61,11 +61,14 @@ void app_main(void)
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
     xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
+
+    //xTaskCreate(FTC533_process, "FTC533_process", 2048, NULL, 7, NULL);
+    timer_FTC533();
 #endif
 
 #ifndef DEVICE_TYPE_REMOTE
 //pressure_read
-    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
+//    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
 //DS18B20 task
     xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
 #endif
@@ -77,10 +80,12 @@ void app_main(void)
     // printf("CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE);
     // printf("CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE);
     // printf("CONFIG_ESP_MAIN_TASK_STACK_SIZE:%d",CONFIG_ESP_MAIN_TASK_STACK_SIZE);
-    //int cnt = 0;
+    int cnt = 0;
     while(1) {
         //test_custom_partition();
         vTaskDelay(60000 / portTICK_RATE_MS);
+        //cnt = parameter_read_FTC533();
+        //FTC533_cycle();
         // if(flag_write_para){
         //     flashwrite_reset();
         //     flag_write_para = 0;
@@ -88,7 +93,7 @@ void app_main(void)
             
         //vTaskDelay(200 / portTICK_RATE_MS);
         // device_states_publish(cnt%4+1);    
-        // printf("cnt: %d\n", cnt++);
+         //printf("parameter_read_FTC533:cnt: %d\n", cnt);
     }
 }
 

@@ -1925,7 +1925,7 @@
 				{
 					"directoryIndex" : 15,
 					"id" : "__idf_app_update::@cc3b426666063acc9674",
-					"jsonFile" : "target-__idf_app_update-af8aa1e9fb17d1b6f515.json",
+					"jsonFile" : "target-__idf_app_update-ef316aef94171fa72c9d.json",
 					"name" : "__idf_app_update",
 					"projectIndex" : 1
 				},
@@ -2086,7 +2086,7 @@
 				{
 					"directoryIndex" : 43,
 					"id" : "__idf_esp_hw_support::@ce4791f5a7554c569ddb",
-					"jsonFile" : "target-__idf_esp_hw_support-8a32830fcbc89277b88b.json",
+					"jsonFile" : "target-__idf_esp_hw_support-853d07db8d2c67bcfef4.json",
 					"name" : "__idf_esp_hw_support",
 					"projectIndex" : 1
 				},

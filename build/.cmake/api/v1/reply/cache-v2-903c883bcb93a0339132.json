@@ -34,6 +34,22 @@
 			"value" : "/home/yuan/.espressif/tools/xtensa-esp32s3-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32s3-elf/bin/xtensa-esp32s3-elf-ar"
 		},
 		{
+			"name" : "CMAKE_ASM_COMPILER",
+			"properties" : 
+			[
+				{
+					"name" : "ADVANCED",
+					"value" : "1"
+				},
+				{
+					"name" : "HELPSTRING",
+					"value" : "(This variable does not exist and should not be used)"
+				}
+			],
+			"type" : "UNINITIALIZED",
+			"value" : ""
+		},
+		{
 			"name" : "CMAKE_ASM_COMPILER_AR",
 			"properties" : 
 			[

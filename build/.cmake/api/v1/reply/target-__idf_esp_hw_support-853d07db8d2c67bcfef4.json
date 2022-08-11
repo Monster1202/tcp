@@ -509,8 +509,7 @@
 				23,
 				24,
 				25,
-				26,
-				27
+				26
 			]
 		}
 	],
@@ -560,8 +559,7 @@
 				23,
 				24,
 				25,
-				26,
-				27
+				26
 			]
 		}
 	],
@@ -727,12 +725,6 @@
 			"backtrace" : 21,
 			"compileGroupIndex" : 0,
 			"path" : "/home/yuan/esp/esp-idf/components/esp_hw_support/port/esp32s3/spiram.c",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 21,
-			"compileGroupIndex" : 0,
-			"path" : "/home/yuan/esp/esp-idf/components/esp_hw_support/port/esp32s3/spiram_psram.c",
 			"sourceGroupIndex" : 0
 		}
 	],

@@ -13,6 +13,7 @@ PARAMETER_REMOTE remote_para;
 PARAMETER_CONNECTION connection_para;
 
 static const char *TAG = "para_list";
+uint8_t FTC533_KEY_press = 0;
 
 esp_err_t get_chip_id(uint32_t* chip_id){
     esp_err_t status = ESP_OK;
@@ -511,10 +512,15 @@ return blister_para.wifi_connection;
 return remote_para.wifi_connection;
 #endif
 }
-// esp_err_t test_app_1(void)
-// {
-//     printf("para_init\n");
-//     return ESP_OK;
-// }
+
+void parameter_write_FTC533(uint8_t value)
+{   
+    FTC533_KEY_press = value;
+}
+
+uint8_t parameter_read_FTC533(void)
+{
+    return FTC533_KEY_press;
+}
 
 

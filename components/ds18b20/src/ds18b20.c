@@ -247,6 +247,10 @@ void ds18b20_read(void* arg)
 // 		parameter_write_temperature(temp_mid);
 // 	}	
 // }
+
+
+
+
 /////////////////////////
 
 // void delay_us(int cnt)

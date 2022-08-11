@@ -135,23 +135,20 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d",buf_disconnect);
-        // mqtt_reset();
-        // ESP_LOGI(TAG, "MQTT_EVENT_RESET");
-        uint8_t wifi_sta = 0;
-        wifi_sta=parameter_read_wifi_connection();
-        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED wifi_sta=%d",wifi_sta);
-        if(wifi_sta)//wifi connected 
-            esp_mqtt_client_reconnect(mqtt_client);
-        #ifndef DEVICE_TYPE_BLISTER  
-            buf_disconnect++;
-            // if(buf_disconnect == 3)    
-            //     wifi_reset();
-            if(buf_disconnect == 15)   //10=1minute
-                esp_restart();
-        #endif    
+
+        // uint8_t wifi_sta = 0;
+        // wifi_sta=parameter_read_wifi_connection();
+        // ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED wifi_sta=%d",wifi_sta);
+        // if(wifi_sta)//wifi connected 
+        //     esp_mqtt_client_reconnect(mqtt_client);
+        // #ifndef DEVICE_TYPE_BLISTER  
+        //     buf_disconnect++;
+        //     // if(buf_disconnect == 3)    
+        //     //     wifi_reset();
+        //     if(buf_disconnect == 15)   //10=1minute
+        //         esp_restart();
+        // #endif    
         break;
-
-
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
         // msg_id = esp_mqtt_client_publish(client, topic_sub_1, "SUBSCRIBED", 0, 0, 0);

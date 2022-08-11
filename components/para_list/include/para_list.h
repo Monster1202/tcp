@@ -14,8 +14,8 @@ extern "C" {
 // #define MQTT_PRIO 5
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-#define DEVICE_TYPE_BRUSH 
-//#define DEVICE_TYPE_BLISTER
+//#define DEVICE_TYPE_BRUSH 
+#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
@@ -271,6 +271,12 @@ int8_t flash_read_parameter(void);
 void wifi_url_inital_set_para(void);
 void wifi1_url_inital_set_para(void);
 int8_t flash_erase_parameter(void);
+
+
+void parameter_write_FTC533(uint8_t value);
+uint8_t parameter_read_FTC533(void);
+uint8_t FTC533_KEY_press;
+
 #ifdef __cplusplus
 }
 #endif

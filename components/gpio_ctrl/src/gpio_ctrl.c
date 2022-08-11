@@ -407,17 +407,17 @@ void blister_press_output(uint8_t io_num)
     
     if(register_emergency_stop)
     {
-        if(io_num == GPIO_INPUT_IO_STOP)
-        {
-            ESP_LOGI(TAG, "back to normal mode");
-            register_value = parameter_read_emergency_stop();
-            register_afterpress = UI_press_output(register_value,1);
-            blister_stop_io_out(register_afterpress);
-        }
-        else{
-            ESP_LOGI(TAG, "emergency_stop_error_press");
-            timer_periodic();
-        }
+        // if(io_num == GPIO_INPUT_IO_STOP)
+        // {
+        //     ESP_LOGI(TAG, "back to normal mode");
+        //     register_value = parameter_read_emergency_stop();
+        //     register_afterpress = UI_press_output(register_value,1);
+        //     blister_stop_io_out(register_afterpress);
+        // }
+        // else{
+        ESP_LOGI(TAG, "emergency_stop_error_press");
+        timer_periodic();
+        //}
     }
     else
     {
@@ -453,9 +453,11 @@ void blister_press_output(uint8_t io_num)
             break;
             case GPIO_INPUT_IO_6:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_6");
+            parameter_write_FTC533(1);
             break;
             case GPIO_INPUT_IO_7:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_7");
+            parameter_write_FTC533(3);
             break;
             case GPIO_INPUT_IO_STOP:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
@@ -467,8 +469,12 @@ void blister_press_output(uint8_t io_num)
             //ESP_LOGI(TAG, "KEY_default");
             break;
         }
+        if(io_num == GPIO_INPUT_IO_1 || io_num == GPIO_INPUT_IO_2 || io_num == GPIO_INPUT_IO_3 )
+        {
+            device_states_publish(0);
+        }
     }
-    device_states_publish(0);
+    //device_states_publish(0);
 }
 
 uint8_t blister_input(uint8_t io_num,uint8_t state)
@@ -662,10 +668,6 @@ void remote_press_output(uint8_t io_num)
             break;
             case GPIO_INPUT_IO_7:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_7");
-            #ifdef mqtt_test
-                register_afterpress = UI_press_output(flag_mqtt_test,1);
-                flag_mqtt_test = register_afterpress;
-            #endif 
             break;
             case GPIO_INPUT_IO_STOP:
             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
@@ -745,9 +747,9 @@ void sw_key_read(uint8_t io_num,uint8_t state)
         brush_input(io_num,state);
     #endif
     #endif
-    #ifdef DEVICE_TYPE_BLISTER
-        blister_input(io_num,state);
-    #endif
+    // #ifdef DEVICE_TYPE_BLISTER
+    //     blister_input(io_num,state);
+    // #endif
     if(state == 1)
     {
     #ifdef GPIOTEST
@@ -780,6 +782,10 @@ void sw_key_read(uint8_t io_num,uint8_t state)
             break;
             case KEY_LONG:
             ESP_LOGI(TAG, "KEY_LONG");
+            #ifdef mqtt_test
+                register_afterpress = UI_press_output(flag_mqtt_test,1);
+                flag_mqtt_test = register_afterpress;
+            #endif 
             // wifi1_url_inital_set_para();
             // vTaskDelay(1000 / portTICK_RATE_MS);
             // wifi_reset();
@@ -880,4 +886,12 @@ void gpio_init(void)
     // gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void*) GPIO_INPUT_IO_0);
 
     ESP_LOGI(TAG, "Minimum free heap size: %d bytes", esp_get_minimum_free_heap_size());
+
+    // gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+    // gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+    // gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+    // gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+    // gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+    // gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+
 }
