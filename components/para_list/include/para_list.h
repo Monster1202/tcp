@@ -14,35 +14,21 @@ extern "C" {
 // #define MQTT_PRIO 5
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-//#define DEVICE_TYPE_BRUSH 
-#define DEVICE_TYPE_BLISTER
+#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
 #define GPIOWORKING
 
 
-//#define HOTPOT_MODE
-//#define TEST_MODE
-#ifdef HOTPOT_MODE
-#define MQTT_BROKER_URL     "mqtt://10.42.0.1"
-#define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
-#define EXAMPLE_ESP_WIFI_PASS      "12345678"
-#else
-    #ifdef TEST_MODE
-    #define MQTT_BROKER_URL     "mqtt://broker.emqx.io" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"    "mqtt://172.16.161.171"
-    #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID   "CLEANING-SYSTEM"  "yyg"//
-    #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
-    #else
-    #define MQTT_BROKER_URL     "mqtt://172.16.171.97"   //"mqtt://10.42.0.1"    "mqtt://172.16.161.171"
-    #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID   "CLEANING-SYSTEM"  "yyg"//
-    #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
-    #endif
-#endif
 
-#define BACKUP_MQTT_BROKER_URL     "mqtt://172.16.171.97"//"mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"  
-#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//  "CLEANING-SYSTEM"  //
-#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "shkj1234."//  "12345678"    //
+// #define BACKUP_MQTT_BROKER_URL     "mqtt://172.16.171.97"//"mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"  
+// #define BACKUP_EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//  "CLEANING-SYSTEM"  //
+// #define BACKUP_EXAMPLE_ESP_WIFI_PASS      "shkj1234."//  "12345678"    //
+#define BACKUP_MQTT_BROKER_URL     "mqtt://10.42.0.1"    
+#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"  
+#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"    
 
 typedef struct
 {
@@ -152,7 +138,26 @@ typedef struct
     #endif
 #endif
 
-
+#define MQTT_BROKER_URL     "mqtt://10.42.0.1"
+#define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
+#define EXAMPLE_ESP_WIFI_PASS      "12345678"
+//#define HOTPOT_MODE
+//#define TEST_MODE
+// #ifdef HOTPOT_MODE
+// #define MQTT_BROKER_URL     "mqtt://10.42.0.1"
+// #define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"
+// #define EXAMPLE_ESP_WIFI_PASS      "12345678"
+// #else
+//     #ifdef TEST_MODE
+//     #define MQTT_BROKER_URL     "mqtt://broker.emqx.io" //"mqtt://172.16.171.97"   //"mqtt://10.42.0.1"    "mqtt://172.16.161.171"
+//     #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID   "CLEANING-SYSTEM"  "yyg"//
+//     #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
+//     #else
+//     #define MQTT_BROKER_URL     "mqtt://172.16.171.97"   //"mqtt://10.42.0.1"    "mqtt://172.16.161.171"
+//     #define EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//CONFIG_ESP_WIFI_SSID   "CLEANING-SYSTEM"  "yyg"//
+//     #define EXAMPLE_ESP_WIFI_PASS      "shkj1234."//CONFIG_ESP_WIFI_PASSWORD   "12345678"//
+//     #endif
+// #endif
 
 
 /////////////////////////////////////////////
@@ -275,7 +280,7 @@ int8_t flash_erase_parameter(void);
 
 void parameter_write_FTC533(uint8_t value);
 uint8_t parameter_read_FTC533(void);
-uint8_t FTC533_KEY_press;
+//uint8_t FTC533_KEY_press;
 
 #ifdef __cplusplus
 }

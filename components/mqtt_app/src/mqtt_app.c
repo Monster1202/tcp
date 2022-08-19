@@ -26,15 +26,7 @@
 #include "para_list.h"
 #include "gpio_ctrl.h"
 #include "wifi_sta.h"
-// #define GPIO_OUTPUT_IO_STRETCH    39
-// #define GPIO_OUTPUT_IO_DRAW    40
-// #define GPIO_OUTPUT_IO_ROTATEX    41
-// #define GPIO_OUTPUT_IO_ROTATEY    42
-// #define GPIO_OUTPUT_IO_WATER    19
-// #define GPIO_OUTPUT_IO_BUBBLE    20
-// #define GPIO_OUTPUT_IO_STOP    21
 
-//#define MQTT_BROKER_URL "mqtt://172.16.171.97"   //"mqtt://172.16.161.171"
 #define TOPIC_TIMESTAMP "/timestamp"
 #define TOPIC_EMERGENCY_CONTROL "/emergency-control"
 #define TOPIC_DEVICE_REGISTER "/device-register"
@@ -135,19 +127,22 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d",buf_disconnect);
-
+        #ifndef DEVICE_TYPE_BLISTER  
+        buf_disconnect++;            
+        if(buf_disconnect == 15)   //10=1minute
+            esp_restart();
+        #endif   
         // uint8_t wifi_sta = 0;
         // wifi_sta=parameter_read_wifi_connection();
         // ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED wifi_sta=%d",wifi_sta);
         // if(wifi_sta)//wifi connected 
         //     esp_mqtt_client_reconnect(mqtt_client);
-        // #ifndef DEVICE_TYPE_BLISTER  
-        //     buf_disconnect++;
-        //     // if(buf_disconnect == 3)    
-        //     //     wifi_reset();
-        //     if(buf_disconnect == 15)   //10=1minute
-        //         esp_restart();
-        // #endif    
+        // if(buf_disconnect == 10)
+        // {
+        //     wifi_reset();
+        //     mqtt_reset();
+        //     buf_disconnect = 0;
+        // }    
         break;
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);

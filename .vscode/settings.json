@@ -65,6 +65,7 @@
     "stdio.h": "c",
     "wifi_sta.h": "c",
     "esp_wifi_default.h": "c",
-    "esp_wifi_types.h": "c"
+    "esp_wifi_types.h": "c",
+    "semphr.h": "c"
   }
 }

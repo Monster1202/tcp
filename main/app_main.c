@@ -81,31 +81,39 @@ void app_main(void)
     // printf("CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE);
     // printf("CONFIG_ESP_MAIN_TASK_STACK_SIZE:%d",CONFIG_ESP_MAIN_TASK_STACK_SIZE);
     int cnt = 0;
+    uint8_t s_led_state = 0;
+    uint8_t wifi_sta = 0;
+    uint8_t nozzle_state = 0;
     while(1) {
+        vTaskDelay(200 / portTICK_RATE_MS);
+        wifi_sta=parameter_read_wifi_connection();
+        if(wifi_sta){
+            s_led_state = !s_led_state;
+            gpio_set_level(GPIO_SYS_LED, s_led_state);
+        }
+
+        #ifdef DEVICE_TYPE_BRUSH
+        nozzle_state = parameter_read_nozzle();
+        if(nozzle_state == 2){
+            cnt++;
+            if(cnt >= 25){
+                gpio_set_level(GPIO_OUTPUT_IO_7, 1);
+                gpio_set_level(GPIO_OUTPUT_LED_5, 1);               
+                cnt = 0;
+            }           
+        }
+        else{
+            gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+            gpio_set_level(GPIO_OUTPUT_IO_7, 0);
+            cnt = 0;
+        }
+        #endif
         //test_custom_partition();
-        vTaskDelay(60000 / portTICK_RATE_MS);
-        //cnt = parameter_read_FTC533();
-        //FTC533_cycle();
-        // if(flag_write_para){
-        //     flashwrite_reset();
-        //     flag_write_para = 0;
-        // }
-            
-        //vTaskDelay(200 / portTICK_RATE_MS);
-        // device_states_publish(cnt%4+1);    
-         //printf("parameter_read_FTC533:cnt: %d\n", cnt);
+        //device_states_publish(cnt%4+1);    
+        //printf("parameter_read_FTC533:cnt: %d\n", cnt);
     }
 }
 
-// void flashwrite_reset(void)
-// {
-//     if(flash_write_parameter() == -1)
-//         ESP_LOGI(TAG, "flash_write_parameter_error!");
-//     wifi_reset();
-//     //if(flag_write_para == 2)
-//     mqtt_reset();
-//     //flag_write_para = 0;
-// }
 
 int8_t test_custom_partition()
 {

@@ -32,17 +32,17 @@ void wifi_url_inital_set_para(void)
         ESP_LOGI(TAG, "flash_write_parameter_error!");
 }
 
-void wifi1_url_inital_set_para(void)
-{
+// void wifi1_url_inital_set_para(void)
+// {
 
-    strcpy(connection_para.wifi_ssid,EXAMPLE_ESP_WIFI_SSID);
-    strcpy(connection_para.wifi_pass,EXAMPLE_ESP_WIFI_PASS);
-    strcpy(connection_para.broker_url,"mqtt://broker.emqx.io");
-    strcpy(connection_para.update_url,"http://172.16.171.221:8070/brush.bin");
+//     strcpy(connection_para.wifi_ssid,EXAMPLE_ESP_WIFI_SSID);
+//     strcpy(connection_para.wifi_pass,EXAMPLE_ESP_WIFI_PASS);
+//     strcpy(connection_para.broker_url,"mqtt://broker.emqx.io");
+//     strcpy(connection_para.update_url,"http://172.16.171.221:8070/brush.bin");
 
-    if(flash_write_parameter() == -1)
-        ESP_LOGI(TAG, "flash_write_parameter_error!");
-}
+//     if(flash_write_parameter() == -1)
+//         ESP_LOGI(TAG, "flash_write_parameter_error!");
+// }
 
 void para_init(void)
 {

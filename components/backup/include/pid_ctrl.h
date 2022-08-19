@@ -7,7 +7,8 @@ extern "C" {
 #endif
 
 esp_err_t test_app(void);
-
+// void FTC533_cycle(void);
+// void FTC533_process(void);
 #ifdef __cplusplus
 }
 #endif

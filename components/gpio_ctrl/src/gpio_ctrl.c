@@ -141,14 +141,14 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-    #ifdef GPIOTEST
-        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-    #endif  
+    // #ifdef GPIOTEST
+    //     gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    // #endif  
         if(state){
             parameter_write_emergency_stop(1);
             gpio_set_level(GPIO_OUTPUT_LED_1, 1);    
@@ -514,7 +514,6 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
     device_states_publish(0);
     return 1;
 }
-
 #endif
 
 #ifdef DEVICE_TYPE_REMOTE
@@ -741,20 +740,20 @@ uint8_t KEY_READ(uint8_t io_num)
 void sw_key_read(uint8_t io_num,uint8_t state)
 {
     uint8_t key_status = 0;
-
+    uint8_t register_afterpress = 0;
     #ifdef GPIOWORKING
     #ifdef DEVICE_TYPE_BRUSH
         brush_input(io_num,state);
     #endif
     #endif
-    // #ifdef DEVICE_TYPE_BLISTER
-    //     blister_input(io_num,state);
-    // #endif
+    #ifdef DEVICE_TYPE_BLISTER
+        blister_input(io_num,state);
+    #endif
     if(state == 1)
     {
-    #ifdef GPIOTEST
-    brush_press_output(io_num);
-    #endif
+    // #ifdef GPIOTEST
+    // brush_press_output(io_num);
+    // #endif
     #ifdef DEVICE_TYPE_BLISTER
     blister_press_output(io_num);
     #endif
@@ -762,7 +761,8 @@ void sw_key_read(uint8_t io_num,uint8_t state)
     remote_press_output(io_num);
     #endif
     }
-    #ifdef DEVICE_TYPE_REMOTE
+    // hardware KEY_TWICE wifi reset 
+    #ifdef DEVICE_TYPE_BLISTER
     if(io_num == GPIO_INPUT_IO_STOP)
     {
         key_status=KEY_READ(io_num);
@@ -781,16 +781,7 @@ void sw_key_read(uint8_t io_num,uint8_t state)
             mqtt_reset();
             break;
             case KEY_LONG:
-            ESP_LOGI(TAG, "KEY_LONG");
-            #ifdef mqtt_test
-                register_afterpress = UI_press_output(flag_mqtt_test,1);
-                flag_mqtt_test = register_afterpress;
-            #endif 
-            // wifi1_url_inital_set_para();
-            // vTaskDelay(1000 / portTICK_RATE_MS);
-            // wifi_reset();
-            // vTaskDelay(1000 / portTICK_RATE_MS);
-            // mqtt_reset();
+            ESP_LOGI(TAG, "KEY_LONG");           
             break;
             default:
             //ESP_LOGI(TAG, "KEY_default");
@@ -818,11 +809,37 @@ void sw_key_read(uint8_t io_num,uint8_t state)
             break;
             case KEY_LONG:
             ESP_LOGI(TAG, "KEY_LONG");
-            // wifi1_url_inital_set_para();
-            // vTaskDelay(1000 / portTICK_RATE_MS);
-            // wifi_reset();
-            // vTaskDelay(1000 / portTICK_RATE_MS);
-            // mqtt_reset();
+            break;
+            default:
+            //ESP_LOGI(TAG, "KEY_default");
+            break;
+        }
+    }
+    #endif
+    #ifdef DEVICE_TYPE_REMOTE
+    if(io_num == GPIO_INPUT_IO_STOP)
+    {
+        key_status=KEY_READ(io_num);
+        //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+        switch(key_status)
+        {
+            case KEY_ONCE:
+            ESP_LOGI(TAG, "KEY_ONCE");
+            break;
+            case KEY_TWICE:
+            ESP_LOGI(TAG, "KEY_TWICE");
+            wifi_url_inital_set_para();
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            wifi_reset();
+            vTaskDelay(1000 / portTICK_RATE_MS);
+            mqtt_reset();
+            break;
+            case KEY_LONG:
+            ESP_LOGI(TAG, "KEY_LONG");           
+            #ifdef mqtt_test
+                register_afterpress = UI_press_output(flag_mqtt_test,1);
+                flag_mqtt_test = register_afterpress;
+            #endif 
             break;
             default:
             //ESP_LOGI(TAG, "KEY_default");

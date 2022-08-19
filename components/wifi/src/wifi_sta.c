@@ -19,7 +19,7 @@
 */
 //#define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"//CONFIG_ESP_WIFI_SSID  SHKJ2020
 //#define EXAMPLE_ESP_WIFI_PASS      "12345678"//CONFIG_ESP_WIFI_PASSWORD
-#define EXAMPLE_ESP_MAXIMUM_RETRY  10000//CONFIG_ESP_MAXIMUM_RETRY
+#define EXAMPLE_ESP_MAXIMUM_RETRY  40//CONFIG_ESP_MAXIMUM_RETRY
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -48,11 +48,11 @@ static void event_handler(void* arg, esp_event_base_t event_base,
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP");
         } 
-        // else if(s_retry_num >= EXAMPLE_ESP_MAXIMUM_RETRY){
-        //     wifi_reset();
-        //     ESP_LOGI(TAG, "reset STA");
-        //     s_retry_num = 1;
-        // }
+        else if(s_retry_num >= EXAMPLE_ESP_MAXIMUM_RETRY){
+            wifi_reset();
+            ESP_LOGI(TAG, "reset STA");
+            s_retry_num = 1;
+        }
         else {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
         }
@@ -124,10 +124,7 @@ void wifi_init_sta(void)
         wifi_config.sta.password[i] = wifi_pass[i];
     ESP_LOGI(TAG, "wifi_ssid:%s",wifi_config.sta.ssid); 
     ESP_LOGI(TAG, "wifi_pass:%s",wifi_config.sta.password); 
-    //wifi_config.sta.channel = 0;
-    //wifi_config.sta.ssid[0] = 0;
-    //strcpy(wifi_config.sta.ssid , test_ssid);   //(uint8_t *)wifi_ssid
-    // strcpy(wifi_config.sta.password , "0");//(uint8_t *)wifi_pass
+
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start() );
