@@ -14,6 +14,7 @@ PARAMETER_CONNECTION connection_para;
 
 static const char *TAG = "para_list";
 uint8_t FTC533_KEY_press = 0;
+uint32_t time_delay = 25;
 
 esp_err_t get_chip_id(uint32_t* chip_id){
     esp_err_t status = ESP_OK;
@@ -523,4 +524,33 @@ uint8_t parameter_read_FTC533(void)
     return FTC533_KEY_press;
 }
 
+void parameter_write_debug(uint32_t value)
+{   
+    time_delay = value;
+}
 
+uint32_t parameter_read_debug(void)
+{
+    return time_delay;
+}
+
+
+void parameter_write_air_pump(uint8_t value)
+{   
+    brush_para.air_pump = value;
+    blister_para.air_pump = value;
+    remote_para.air_pump = value;
+}
+
+uint8_t parameter_read_air_pump(void)
+{
+    #ifdef DEVICE_TYPE_BRUSH
+    return brush_para.air_pump;
+    #endif
+    #ifdef DEVICE_TYPE_BLISTER
+    return blister_para.air_pump;
+    #endif
+    #ifdef DEVICE_TYPE_REMOTE
+    return remote_para.air_pump;
+    #endif
+}

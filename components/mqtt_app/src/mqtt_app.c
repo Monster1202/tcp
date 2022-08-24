@@ -377,6 +377,11 @@ void data_process(char *data)
         if(flash_erase_parameter() == -1)
             printf("flash_erase_parameter error");
     }
+    cJSON *json_debug_parameter = cJSON_GetObjectItem(json_str_xy, "debug_parameter");
+    if(json_debug_parameter != NULL && json_debug_parameter->type == cJSON_Number) {
+        ESP_LOGI(TAG, "debug_parameter = %d", json_debug_parameter->valueint);
+        parameter_write_debug(json_debug_parameter->valueint);
+    }
     // if(flag_write_para)
     //     flashwrite_reset();
     cJSON_Delete(json_str_xy);

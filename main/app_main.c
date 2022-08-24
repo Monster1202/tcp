@@ -60,7 +60,7 @@ void app_main(void)
 
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
-    xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
+    //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 
     //xTaskCreate(FTC533_process, "FTC533_process", 2048, NULL, 7, NULL);
     timer_FTC533();
@@ -84,7 +84,10 @@ void app_main(void)
     uint8_t s_led_state = 0;
     uint8_t wifi_sta = 0;
     uint8_t nozzle_state = 0;
+    uint8_t air_pump_state = 0;
+    uint32_t time_cnt = 0;
     while(1) {
+        time_cnt = parameter_read_debug();
         vTaskDelay(200 / portTICK_RATE_MS);
         wifi_sta=parameter_read_wifi_connection();
         if(wifi_sta){
@@ -94,6 +97,7 @@ void app_main(void)
 
         #ifdef DEVICE_TYPE_BRUSH
         nozzle_state = parameter_read_nozzle();
+        air_pump_state = parameter_read_air_pump();
         if(nozzle_state == 2){
             cnt++;
             if(cnt >= 25){
@@ -103,8 +107,28 @@ void app_main(void)
             }           
         }
         else{
-            gpio_set_level(GPIO_OUTPUT_LED_5, 0);
-            gpio_set_level(GPIO_OUTPUT_IO_7, 0);
+            if(air_pump_state != 1){
+                gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+                gpio_set_level(GPIO_OUTPUT_IO_7, 0);
+            }
+            cnt = 0;
+        }
+        #endif
+
+        #ifdef DEVICE_TYPE_BLISTER
+        nozzle_state = parameter_read_mode();
+        
+        if(nozzle_state == 2){
+            cnt++;
+            if(cnt >= 25){
+                gpio_set_level(GPIO_OUTPUT_IO_PUMP, 1);
+                gpio_set_level(GPIO_OUTPUT_LED_4, 1);               
+                cnt = 0;
+            }           
+        }
+        else{
+            gpio_set_level(GPIO_OUTPUT_IO_PUMP, 0);
+            gpio_set_level(GPIO_OUTPUT_LED_4, 0);
             cnt = 0;
         }
         #endif

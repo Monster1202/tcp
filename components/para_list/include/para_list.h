@@ -104,10 +104,10 @@ typedef struct
         #define GPIO_OUTPUT_LED_6         6
         #define GPIO_SYS_LED         0    //stop
 
-        #define GPIO_OUTPUT_IO_HEATER    14    
-        #define GPIO_OUTPUT_IO_WATER     13
-        #define GPIO_OUTPUT_IO_BUBBLE    12   
-        #define GPIO_OUTPUT_IO_PUMP      11
+        #define GPIO_OUTPUT_IO_HEATER    14    //heater power
+        #define GPIO_OUTPUT_IO_WATER     13    //high pressure pump power
+        #define GPIO_OUTPUT_IO_BUBBLE    12    //diaphragm pump
+        #define GPIO_OUTPUT_IO_PUMP      11    // air pump
         #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_PUMP) |(1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
     #else
@@ -209,7 +209,8 @@ typedef struct
     uint16_t pressure;
     char version[30];
     int8_t rssi;
-    uint8_t wifi_connection;     
+    uint8_t wifi_connection;    
+    uint8_t air_pump;
 }PARAMETER_BRUSH;
 
 typedef struct
@@ -229,6 +230,7 @@ typedef struct
     char version[30];
     int8_t rssi;
     uint8_t wifi_connection; 
+    uint8_t air_pump;
 }PARAMETER_BLISTER;
 
 typedef struct
@@ -247,6 +249,7 @@ typedef struct
     char version[30];
     int8_t rssi;
     uint8_t wifi_connection; 
+    uint8_t air_pump;
 }PARAMETER_REMOTE;
 
 void parameter_write_version(char *str_version);
@@ -281,6 +284,11 @@ int8_t flash_erase_parameter(void);
 void parameter_write_FTC533(uint8_t value);
 uint8_t parameter_read_FTC533(void);
 //uint8_t FTC533_KEY_press;
+void parameter_write_debug(uint32_t value);
+uint32_t parameter_read_debug(void);
+
+void parameter_write_air_pump(uint8_t value);
+uint8_t parameter_read_air_pump(void);
 
 #ifdef __cplusplus
 }

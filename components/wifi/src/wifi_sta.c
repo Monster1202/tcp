@@ -19,7 +19,7 @@
 */
 //#define EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"//CONFIG_ESP_WIFI_SSID  SHKJ2020
 //#define EXAMPLE_ESP_WIFI_PASS      "12345678"//CONFIG_ESP_WIFI_PASSWORD
-#define EXAMPLE_ESP_MAXIMUM_RETRY  40//CONFIG_ESP_MAXIMUM_RETRY
+#define EXAMPLE_ESP_MAXIMUM_RETRY  400000//CONFIG_ESP_MAXIMUM_RETRY
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
