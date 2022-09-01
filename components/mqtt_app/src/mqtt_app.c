@@ -78,6 +78,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     char data_pub_1[300] = "init";
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
+        parameter_write_wifi_connection(3);
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
     #ifndef DEVICE_TYPE_REMOTE   
         msg_id = esp_mqtt_client_subscribe(client, TOPIC_EMERGENCY_CONTROL, 0);
@@ -126,6 +127,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         // ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_DISCONNECTED:
+        parameter_write_wifi_connection(2);
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d",buf_disconnect);
         #ifndef DEVICE_TYPE_BLISTER  
         buf_disconnect++;            
@@ -287,7 +289,7 @@ void data_process(char *data)
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
         ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
-        blister_stop_io_out(json_emergency_stop->valueint);
+        blister_stop_io_out(json_emergency_stop->valueint,0);
     }
     cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
     if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {

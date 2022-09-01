@@ -64,6 +64,8 @@ void app_main(void)
 
     //xTaskCreate(FTC533_process, "FTC533_process", 2048, NULL, 7, NULL);
     timer_FTC533();
+
+    heater_init();
 #endif
 
 #ifndef DEVICE_TYPE_REMOTE
@@ -87,12 +89,15 @@ void app_main(void)
     uint8_t air_pump_state = 0;
     uint32_t time_cnt = 0;
     while(1) {
-        time_cnt = parameter_read_debug();
+        //time_cnt = parameter_read_debug();  
         vTaskDelay(200 / portTICK_RATE_MS);
         wifi_sta=parameter_read_wifi_connection();
+        time_cnt++;
         if(wifi_sta){
-            s_led_state = !s_led_state;
-            gpio_set_level(GPIO_SYS_LED, s_led_state);
+            if(time_cnt % (4-wifi_sta) == 1){
+                s_led_state = !s_led_state;
+                gpio_set_level(GPIO_SYS_LED, s_led_state);
+            }
         }
 
         #ifdef DEVICE_TYPE_BRUSH
@@ -117,7 +122,7 @@ void app_main(void)
 
         #ifdef DEVICE_TYPE_BLISTER
         nozzle_state = parameter_read_mode();
-        
+        air_pump_state = parameter_read_air_pump();
         if(nozzle_state == 2){
             cnt++;
             if(cnt >= 25){
@@ -125,10 +130,12 @@ void app_main(void)
                 gpio_set_level(GPIO_OUTPUT_LED_4, 1);               
                 cnt = 0;
             }           
-        }
+        } 
         else{
+            if(air_pump_state != 1){
             gpio_set_level(GPIO_OUTPUT_IO_PUMP, 0);
             gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+            }
             cnt = 0;
         }
         #endif

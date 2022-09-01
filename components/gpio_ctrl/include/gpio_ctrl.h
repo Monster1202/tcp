@@ -34,7 +34,7 @@ void brush_press_output(uint8_t io_num);
 #endif
 
 #ifdef DEVICE_TYPE_BLISTER
-void blister_stop_io_out(uint8_t value);
+void blister_stop_io_out(uint8_t value,uint8_t state);
 void blister_press_output(uint8_t io_num);
 void blister_mode_io_out(uint8_t value);
 void heater_io_out(uint8_t value);

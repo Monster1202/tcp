@@ -14,8 +14,8 @@ extern "C" {
 // #define MQTT_PRIO 5
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-#define DEVICE_TYPE_BRUSH 
-//#define DEVICE_TYPE_BLISTER
+//#define DEVICE_TYPE_BRUSH 
+#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
@@ -209,7 +209,7 @@ typedef struct
     uint16_t pressure;
     char version[30];
     int8_t rssi;
-    uint8_t wifi_connection;    
+    uint8_t wifi_connection;    //0\1  wifi_con  2\3 mqtt_con
     uint8_t air_pump;
 }PARAMETER_BRUSH;
 
