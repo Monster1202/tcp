@@ -281,14 +281,14 @@ void heater_io_out(uint8_t value)
 {
     if(value == 1){
         //heater_water_module_test(6);    
-        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+        //gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);
+        //gpio_set_level(GPIO_OUTPUT_LED_1, 1);
         parameter_write_heater(1);
         ESP_LOGI(TAG, "blister.heater = 1");}
     else{
         //heater_water_module_test(7);
-        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        //gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
+        //gpio_set_level(GPIO_OUTPUT_LED_1, 0);
         parameter_write_heater(0);
         ESP_LOGI(TAG, "blister.heater = 0");}
 }
@@ -298,23 +298,23 @@ void blister_mode_io_out(uint8_t value)
         //heater_water_module_test(4);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_2, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        // gpio_set_level(GPIO_OUTPUT_LED_2, 1);
+        // gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         parameter_write_mode(1);
         ESP_LOGI(TAG, "blister_para.mode = 1");}
     else if(value == 2){
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_3, 1);
+        // gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        // gpio_set_level(GPIO_OUTPUT_LED_3, 1);
         parameter_write_mode(2);
         ESP_LOGI(TAG, "blister_para.mode = 2");}
     else{
         //heater_water_module_test(5);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        // gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        // gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         parameter_write_mode(0);
         ESP_LOGI(TAG, "blister_para.mode = 0");}
 }
@@ -375,50 +375,50 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
             parameter_write_air_pump(1);
             ESP_LOGI(TAG, "air pump open");
             gpio_set_level(GPIO_OUTPUT_IO_PUMP, 1);
-            gpio_set_level(GPIO_OUTPUT_LED_4, 1);          
+            //gpio_set_level(GPIO_OUTPUT_LED_4, 1);          
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_4)
         {
             parameter_write_air_pump(0);
             ESP_LOGI(TAG, "air pump stop");
             gpio_set_level(GPIO_OUTPUT_IO_PUMP, 0);
-            gpio_set_level(GPIO_OUTPUT_LED_4, 0);  
+            //gpio_set_level(GPIO_OUTPUT_LED_4, 0);  
         }
         else if(state == 0 && io_num == GPIO_INPUT_IO_5)  //liquid_alarm 0/1 input
         {
-            parameter_write_liquid_alarm(0);
-            ESP_LOGI(TAG, "GPIO_INPUT_IO_5:0");
-            //gpio_set_level(GPIO_OUTPUT_LED_5, 0);      // no spare led
+            parameter_write_water(0);
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_5:0,water off");
+            gpio_set_level(GPIO_OUTPUT_LED_1, 0);      
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_5)
         {
-            parameter_write_liquid_alarm(1);
-            ESP_LOGI(TAG, "GPIO_INPUT_IO_5:1");
-            //gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+            parameter_write_water(1);
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_5:1,water on");
+            gpio_set_level(GPIO_OUTPUT_LED_1, 1);
         }
-        else if(state == 0 && io_num == GPIO_INPUT_IO_6)  //water 0/1 input
+        else if(state == 0 && io_num == GPIO_INPUT_IO_6)  
         {
-            parameter_write_water(0);
-            ESP_LOGI(TAG, "GPIO_INPUT_IO_6:0");
-            gpio_set_level(GPIO_OUTPUT_LED_5, 0);   
+            parameter_write_pressure_alarm(1);
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_6:0,pressure low");
+            gpio_set_level(GPIO_OUTPUT_LED_2, 0);   
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_6)
         {
-            parameter_write_water(1);
-            ESP_LOGI(TAG, "GPIO_INPUT_IO_6:1");
-            gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+            parameter_write_pressure_alarm(0);
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_6:1,pressure ok");
+            gpio_set_level(GPIO_OUTPUT_LED_2, 1);
         }
         else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
         {
-            parameter_write_pressure_alarm(0);
-            ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0");
-            //gpio_set_level(GPIO_OUTPUT_LED_6, 0);     //GPIO_OUTPUT_LED_6 ----FTC533 COM
+            parameter_write_liquid_alarm(1);
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0,liquid low");
+            gpio_set_level(GPIO_OUTPUT_LED_3, 0);     //GPIO_OUTPUT_LED_6 ----FTC533 COM
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_7)
         {
-            parameter_write_pressure_alarm(1);
-            ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1");
-            //gpio_set_level(GPIO_OUTPUT_LED_6, 1); 
+            parameter_write_liquid_alarm(0);
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1,liquid ok");
+            gpio_set_level(GPIO_OUTPUT_LED_3, 1); 
         }
         else if(state == 0 &&  io_num == GPIO_INPUT_IO_STOP)
         {
@@ -775,7 +775,8 @@ void sw_key_read(uint8_t io_num,uint8_t state)
 
 void heater_init(void)
 {
-    parameter_write_FTC533(1);
+    // vTaskDelay(2000 / portTICK_RATE_MS);
+    // parameter_write_FTC533(1);
     vTaskDelay(2000 / portTICK_RATE_MS);
     parameter_write_FTC533(1);
     vTaskDelay(2000 / portTICK_RATE_MS);
@@ -843,10 +844,23 @@ void gpio_init(void)
     // gpio_set_level(GPIO_OUTPUT_LED_4, 0);
     // gpio_set_level(GPIO_OUTPUT_LED_5, 0);
     // gpio_set_level(GPIO_OUTPUT_LED_6, 0);
-    //heater_init();
+    
     uint8_t key_status = 0;
     key_status = !gpio_get_level(GPIO_INPUT_IO_STOP);
     parameter_write_emergency_stop(key_status);
+    #ifdef DEVICE_TYPE_BLISTER
+    key_status = gpio_get_level(GPIO_INPUT_IO_5);
+    ESP_LOGI(TAG, "GPIO_INPUT_IO_5,water:%d",key_status);
+    parameter_write_water(key_status);
+    key_status = !gpio_get_level(GPIO_INPUT_IO_6);
+    parameter_write_pressure_alarm(key_status);
+    key_status = !gpio_get_level(GPIO_INPUT_IO_7);
+    parameter_write_liquid_alarm(key_status);
+
+    gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);  //HEATER MODULE POWER ON
+    ESP_LOGI(TAG, "HEATER MODULE POWER ON,ready to change to heater mode");
+    heater_init();
+    #endif
 }
 
 

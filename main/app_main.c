@@ -105,10 +105,10 @@ void app_main(void)
         air_pump_state = parameter_read_air_pump();
         if(nozzle_state == 2){
             cnt++;
-            if(cnt >= 25){
+            if(cnt >= 25 && cnt <= 35){
                 gpio_set_level(GPIO_OUTPUT_IO_7, 1);
                 gpio_set_level(GPIO_OUTPUT_LED_5, 1);               
-                cnt = 0;
+                //cnt = 0;
             }           
         }
         else{
@@ -125,10 +125,10 @@ void app_main(void)
         air_pump_state = parameter_read_air_pump();
         if(nozzle_state == 2){
             cnt++;
-            if(cnt >= 25){
+            if(cnt >= 25 && cnt <= 35){
                 gpio_set_level(GPIO_OUTPUT_IO_PUMP, 1);
                 gpio_set_level(GPIO_OUTPUT_LED_4, 1);               
-                cnt = 0;
+                //cnt = 0;
             }           
         } 
         else{
