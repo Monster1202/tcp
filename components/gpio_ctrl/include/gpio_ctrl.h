@@ -38,7 +38,7 @@ void blister_stop_io_out(uint8_t value,uint8_t state);
 void blister_press_output(uint8_t io_num);
 void blister_mode_io_out(uint8_t value);
 void heater_io_out(uint8_t value);
-
+void heater_init(uint8_t state);
 #endif
 
 #ifdef DEVICE_TYPE_REMOTE
@@ -49,7 +49,7 @@ void rotation_io_out(uint8_t value);
 void nozzle_io_out(uint8_t value);
 #endif
 
-void heater_init(void);
+
 
 #ifdef __cplusplus
 }

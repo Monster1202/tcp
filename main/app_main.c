@@ -61,18 +61,18 @@ void app_main(void)
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
     //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
-
+//pressure_read
+    xTaskCreate(pressure_read, "pressure_read", 4096, NULL, 3, NULL);
     //xTaskCreate(FTC533_process, "FTC533_process", 2048, NULL, 7, NULL);
     timer_FTC533();
 
-    heater_init();
+    heater_init(1);
 #endif
 
 #ifndef DEVICE_TYPE_REMOTE
-//pressure_read
-//    xTaskCreate(pressure_read, "pressure_read", 2048, NULL, 13, NULL);
+
 //DS18B20 task
-    xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
+    //xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
 #endif
 #ifdef mqtt_test
     xTaskCreate(mqtt_gpio_test, "mqtt_gpio_test", 4096, NULL, 13, NULL);
@@ -93,12 +93,13 @@ void app_main(void)
         vTaskDelay(200 / portTICK_RATE_MS);
         wifi_sta=parameter_read_wifi_connection();
         time_cnt++;
-        if(wifi_sta){
-            if(time_cnt % (4-wifi_sta) == 1){
+        if(wifi_sta==1 || wifi_sta==3){
+            if(time_cnt % (5-wifi_sta) == 1){
                 s_led_state = !s_led_state;
                 gpio_set_level(GPIO_SYS_LED, s_led_state);
             }
         }
+        //printf("wifi_sta: %d\n", wifi_sta);
 
         #ifdef DEVICE_TYPE_BRUSH
         nozzle_state = parameter_read_nozzle();
