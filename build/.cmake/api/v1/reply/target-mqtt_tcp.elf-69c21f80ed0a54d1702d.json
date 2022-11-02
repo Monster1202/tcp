@@ -1399,11 +1399,6 @@
 			},
 			{
 				"backtrace" : 3,
-				"fragment" : "esp-idf/spiffs/libspiffs.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
 				"fragment" : "esp-idf/usb/libusb.a",
 				"role" : "libraries"
 			},
@@ -1469,6 +1464,16 @@
 			},
 			{
 				"backtrace" : 3,
+				"fragment" : "esp-idf/spiffs/libspiffs.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "esp-idf/protocol_examples_common/libprotocol_examples_common.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
 				"fragment" : "esp-idf/cJSON/libcJSON.a",
 				"role" : "libraries"
 			},
@@ -1480,11 +1485,6 @@
 			{
 				"backtrace" : 3,
 				"fragment" : "esp-idf/uart485/libuart485.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "esp-idf/protocol_examples_common/libprotocol_examples_common.a",
 				"role" : "libraries"
 			},
 			{

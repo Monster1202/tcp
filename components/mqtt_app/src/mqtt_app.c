@@ -26,6 +26,7 @@
 #include "para_list.h"
 #include "gpio_ctrl.h"
 #include "wifi_sta.h"
+#include "esp_spiffs.h"
 
 #define TOPIC_TIMESTAMP "/timestamp"
 #define TOPIC_EMERGENCY_CONTROL "/emergency-control"
@@ -37,6 +38,9 @@
 #define TOPIC_BLISTER_STATES "/blister-device/states"
 #define TOPIC_REMOTE_CONTROL "/remote-control-device/switch-control"
 #define TOPIC_REMOTE_STATES "/remote-control-device/states"
+#define TOPIC_LOG_ESP32 "/log_esp32"
+
+#define LOG_FILE_PATH "/spiffs/log3.txt"
 //PARAMETER_BRUSH brush_para;
 
 //char data_pub_1[300] = {0};
@@ -45,7 +49,8 @@ esp_mqtt_client_handle_t mqtt_client;
 static uint16_t buf_disconnect = 0;
 
 uint8_t flag_write_para = 0;
-
+uint8_t flag_log = 0;
+size_t total = 0, used = 0;
 static void log_error_if_nonzero(const char *message, int error_code)
 {
     if (error_code != 0) {
@@ -158,24 +163,24 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
         break;
     case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+        //ESP_LOGI(TAG, "MQTT_EVENT_DATA");
         ESP_LOGI(TAG, "TOPIC=%.*s\r", event->topic_len, event->topic);
         ESP_LOGI(TAG, "DATA=%.*s\r", event->data_len, event->data);
         data_process(event->data);
 #ifdef DEVICE_TYPE_BRUSH
         data_publish(data_pub_1,1); 
         msg_id = esp_mqtt_client_publish(client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 #endif  
 #ifdef DEVICE_TYPE_BLISTER      
         data_publish(data_pub_1,3); 
         msg_id = esp_mqtt_client_publish(client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 #endif 
 #ifdef DEVICE_TYPE_REMOTE      
         data_publish(data_pub_1,9); 
         msg_id = esp_mqtt_client_publish(client, TOPIC_REMOTE_STATES, data_pub_1, 0, 1, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 #endif 
         buf_disconnect = 0;
         break;
@@ -289,7 +294,7 @@ void data_process(char *data)
     cJSON *json_emergency_stop = cJSON_GetObjectItem(json_str_xy, "emergency_stop");
     if(json_emergency_stop != NULL && json_emergency_stop->type == cJSON_Number) {
         ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
-        blister_stop_io_out(json_emergency_stop->valueint,0);
+        //blister_stop_io_out(json_emergency_stop->valueint,0);
     }
     cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
     if(json_switch_name != NULL && json_switch_name->type == cJSON_String) {
@@ -341,7 +346,7 @@ void data_process(char *data)
     if(json_timestamp != NULL && json_timestamp->type == cJSON_Number) {
         //brush_para.timestamp = json_timestamp->valuedouble;
         parameter_write_timestamp(json_timestamp->valuedouble);
-        ESP_LOGI(TAG, "timestamp = %f", json_timestamp->valuedouble);
+        //ESP_LOGI(TAG, "timestamp = %f", json_timestamp->valuedouble);
     }
     cJSON *json_msg_id = cJSON_GetObjectItem(json_str_xy, "msg_id");
     if(json_msg_id != NULL && json_msg_id->type == cJSON_String) {
@@ -373,23 +378,43 @@ void data_process(char *data)
         parameter_write_update_url(json_update_url->valuestring);
         ESP_LOGI(TAG, "update_url = %s", json_update_url->valuestring);
     }
+    cJSON *json_debug_parameter = cJSON_GetObjectItem(json_str_xy, "debug_parameter");
+    if(json_debug_parameter != NULL && json_debug_parameter->type == cJSON_Number) {
+        ESP_LOGI(TAG, "debug_parameter = %d", json_debug_parameter->valueint);
+        parameter_write_debug(json_debug_parameter->valueint);
+    }
     cJSON *json_buffer = cJSON_GetObjectItem(json_str_xy, "erase");
     if(json_buffer != NULL && json_buffer->type == cJSON_String) {
         ESP_LOGI(TAG, "erase : %s", json_buffer->valuestring);
         if(flash_erase_parameter() == -1)
             printf("flash_erase_parameter error");
     }
-    cJSON *json_debug_parameter = cJSON_GetObjectItem(json_str_xy, "debug_parameter");
-    if(json_debug_parameter != NULL && json_debug_parameter->type == cJSON_Number) {
-        ESP_LOGI(TAG, "debug_parameter = %d", json_debug_parameter->valueint);
-        parameter_write_debug(json_debug_parameter->valueint);
+    json_buffer = cJSON_GetObjectItem(json_str_xy, "log_clear");
+    if(json_buffer != NULL && json_buffer->type == cJSON_Number) {
+        ESP_LOGI(TAG, "log_clear : %d", json_buffer->valueint);
+        log_file_clear("0");
+    }
+    json_buffer = cJSON_GetObjectItem(json_str_xy, "log_read");
+    if(json_buffer != NULL && json_buffer->type == cJSON_Number) {
+        ESP_LOGI(TAG, "log_read : %d", json_buffer->valueint);
+        //log_read_send("0");
+        flag_log = 1;
     }
     // if(flag_write_para)
     //     flashwrite_reset();
     cJSON_Delete(json_str_xy);
 }
 
+void hex2str(uint8_t *input, uint16_t input_len, char *output)
+{
+    char *hexEncode = "0123456789ABCDEF";
+    int i = 0, j = 0;
 
+    for (i = 0; i < input_len; i++) {
+        output[j++] = hexEncode[(input[i] >> 4) & 0xf];
+        output[j++] = hexEncode[(input[i]) & 0xf];
+    }
+}
 
 void device_states_publish(uint8_t button)
 {
@@ -417,8 +442,13 @@ void device_states_publish(uint8_t button)
         default:break;
     }   
 #endif    
+    // if(button == 20){
+    //     data_publish(data_pub_1,20);   //case 20 log
+    //     msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_LOG_ESP32, data_pub_1, 0, 1, 0);
+    // }
     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 }
+
 
 
 void data_publish(char *data,uint8_t case_pub)
@@ -431,10 +461,13 @@ void data_publish(char *data,uint8_t case_pub)
 
     PARAMETER_REMOTE remote_buf = {0};
     get_remote_parameter(&remote_buf);
-
+    
     cJSON*root = cJSON_CreateObject();
     if(case_pub == 0){
-        cJSON_AddNumberToObject(root, "device_sn",brush_buf.uuid);
+        char string_uuid[20] = "0";//7cdfa1e592e0
+        hex2str((uint8_t *)brush_buf.uuid,6,string_uuid);
+        cJSON_AddItemToObject(root, "device_sn",cJSON_CreateString(string_uuid));
+        //cJSON_AddNumberToObject(root, "device_sn",brush_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",brush_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PNEUMATIC_BRUSH"));
         cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(brush_buf.version));
@@ -453,7 +486,10 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(brush_buf.msg_id)); 
         }
     else if(case_pub == 2){
-        cJSON_AddNumberToObject(root, "device_sn",blister_buf.uuid);
+        char string_uuid[20] = "0";//7cdfa1e592e0
+        hex2str((uint8_t *)blister_buf.uuid,6,string_uuid);
+        cJSON_AddItemToObject(root, "device_sn",cJSON_CreateString(string_uuid));
+        //cJSON_AddNumberToObject(root, "device_sn",blister_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",blister_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PARAMETER_BLISTER"));
         cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(blister_buf.version));
@@ -472,7 +508,10 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddItemToObject(root, "msg_id",cJSON_CreateString(blister_buf.msg_id)); //
         }
     else if(case_pub == 4){
-        cJSON_AddNumberToObject(root, "device_sn",remote_buf.uuid);
+        char string_uuid[20] = "0";//7cdfa1e592e0
+        hex2str((uint8_t *)remote_buf.uuid,6,string_uuid);
+        cJSON_AddItemToObject(root, "device_sn",cJSON_CreateString(string_uuid));
+        //cJSON_AddNumberToObject(root, "device_sn",remote_buf.uuid);
         cJSON_AddNumberToObject(root, "timestamp",remote_buf.timestamp);
         cJSON_AddItemToObject(root, "device_type",cJSON_CreateString("PARAMETER_REMOTE"));
         cJSON_AddItemToObject(root, "device_version",cJSON_CreateString(remote_buf.version));
@@ -496,9 +535,12 @@ void data_publish(char *data,uint8_t case_pub)
         cJSON_AddNumberToObject(root, "status",remote_buf.status);
         cJSON_AddNumberToObject(root, "rssi",remote_buf.rssi);
         }
-
+    // else if(case_pub == 20){
+    //     cJSON_AddItemToObject(root, "log_esp32",cJSON_CreateString(log_string));  //log_string get
+    //     }
     char *msg = cJSON_Print(root);
-    ESP_LOGI(TAG, "%s",msg); 
+    //ESP_LOGI(TAG, "%s",msg); 
+    log_write_send("log:%s time:%s ",msg,parameter_read_time_string()); 
     strcpy(data,msg);
     cJSON_Delete(root);
 }
@@ -526,6 +568,199 @@ void mqtt_reset(void)
     esp_mqtt_client_start(mqtt_client);
 }
 
+void ESP32_LOG_publish(char *log_buffer)
+{
+    int msg_id = 0;
+    //char log_buf[2000] = "init";
+    cJSON*root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "log_esp32",cJSON_CreateString(log_buffer));  //log_string get
+    //data_publish(log_buffer,20);   //case 20 log
+    msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_LOG_ESP32, log_buffer, 0, 1, 0);
+    cJSON_Delete(root);
+}
+
+void log_file_clear(char *filename)  
+{
+    ESP_LOGI(TAG, "clear_Opening file");
+    FILE* f = fopen(LOG_FILE_PATH, "w");  //w a 
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing");
+        return;
+    }
+    fprintf(f, "ESP32-LOG: ");
+    fclose(f);
+    ESP_LOGI(TAG, "File clear");
+
+        // All done, unmount partition and disable SPIFFS
+    esp_vfs_spiffs_unregister(NULL);
+    ESP_LOGI(TAG, "SPIFFS unmounted");
+
+    spiff_init();
+}
+void log_write_send(const char *format,...)  
+{
+    va_list arg;
+    va_start(arg, format);
+    vprintf(format, arg);
+    
+    //ESP_LOGI(TAG, "Opening file");
+    FILE* f = fopen(LOG_FILE_PATH, "a");  //w a 
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing");
+        return;
+    }
+    vfprintf(f, format, arg);
+    //device_states_publish(20); //topic log
+    // fprintf(f, "Hello World!,format:%s;time:%d\n",format,esp_log_timestamp());
+    //log_write(f, "log:time:%d\n",esp_log_timestamp());
+    //ESP_LOGI(TAG, "File written");
+    fclose(f);
+    //ESP_LOGI(TAG, "File written");
+
+    va_end(arg);
+}
+long long  getFileSize(char * files)
+{
+    long long size;
+    FILE *fp =  fopen(files,"rb+");
+    if( fp == NULL){
+        printf("Open File Error");
+        exit(0);
+    }
+    //定义pos
+    fpos_t pos;
+    //获取文件指针，写入pos
+    fgetpos(fp,&pos);
+    //文件指针指向末尾
+    fseek(fp,0,SEEK_END);
+    //获取文件指针到文件头部的字节大小
+    size = ftell(fp);
+    //文件指针还原
+    fsetpos(fp,&pos);
+    //释放文件
+    fclose(fp);
+    return size;
+}
+void log_process(void)
+{
+    char line[1000];
+    int cnt = 0;
+    ESP_LOGI(TAG, "log_process_enable");
+    while(1)
+    {
+        if(cnt%60==30){
+            char *cpSourceFile = LOG_FILE_PATH;
+            long long res = getFileSize(cpSourceFile);
+            printf("sizeof(/spiffs/log3.txt):%lld\n",res);
+            if(res >= total-1000){
+                log_file_clear("0");
+            }
+        }
+        if(flag_log){
+            int part_num = 0;
+            ESP_LOGI(TAG, "Reading file");
+            FILE* f = fopen(LOG_FILE_PATH, "r");//f = fopen("/spiffs/foo.txt", "r");
+            if (f == NULL) {
+                ESP_LOGE(TAG, "Failed to open file for reading");
+                return;
+            }
+            ESP_LOGI(TAG, "f_start_addr:%p",&f);
+            while(feof(f)==0){
+                fread(line,1, sizeof(line), f);
+                //ESP_LOGI(TAG, "part%d:%s ", part_num++,line);  //part_num++,
+                ESP32_LOG_publish(line);
+                memset(line,0,sizeof(line));
+                vTaskDelay(30 / portTICK_RATE_MS); 
+            }
+            fclose(f);
+            flag_log = 0;
+        }
+        vTaskDelay(1000 / portTICK_RATE_MS); 
+        cnt++;
+    }
+}
+
+
+void log_read_send(const char *format,...)  //  FILE* f,
+{
+    // va_list arg;
+    // va_start(arg, format);
+    // vprintf(format, arg);
+    //fprintf(f, format);
+    int part_num = 0;
+    // Open renamed file for reading
+    ESP_LOGI(TAG, "Reading file");
+    FILE* f = fopen(LOG_FILE_PATH, "r");//f = fopen("/spiffs/foo.txt", "r");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for reading");
+        return;
+    }
+    ESP_LOGI(TAG, "f_start_addr:%p",&f);
+    char line[1000];
+    //char *line = (char *)malloc(2000);
+    //fgets(line, sizeof(line), f);
+    ESP_LOGI(TAG, "Read from file:");
+    while(feof(f)==0){
+        fread(line,1, sizeof(line), f);
+        //ESP_LOGI(TAG, "part%d:%s ", part_num++,line);  //part_num++,
+        //device_states_publish(20); 
+        ESP32_LOG_publish(line);
+        memset(line,0,sizeof(line));
+    }
+    fclose(f);
+    // for(int i = 0; i <100;i++)
+    //     printf("%c",line[i]);
+    // strip newline
+    // char* pos = strchr(line, '\n');
+    // if (pos) {
+    //     *pos = '\0';
+    // }
+    //ESP_LOGI(TAG, "Read from file: '%s'", line);
+ //   va_end(arg);
+    //free(line);
+}
+
+void spiff_init(void)
+{
+    ESP_LOGI(TAG, "Initializing SPIFFS");
+
+    esp_vfs_spiffs_conf_t conf = {
+      .base_path = "/spiffs",
+      .partition_label = NULL,
+      .max_files = 5,
+      .format_if_mount_failed = true
+    };
+
+    // Use settings defined above to initialize and mount SPIFFS filesystem.
+    // Note: esp_vfs_spiffs_register is an all-in-one convenience function.
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount or format filesystem");
+        } else if (ret == ESP_ERR_NOT_FOUND) {
+            ESP_LOGE(TAG, "Failed to find SPIFFS partition");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        }
+        return;
+    }
+
+    // size_t total = 0, used = 0;
+    ret = esp_spiffs_info(conf.partition_label, &total, &used);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+        //ESP_LOGI(TAG, "Partition table: %s", conf.partition_label);
+    }
+
+    // log_write_send("testttt");
+    // log_read_send('0');  
+        // All done, unmount partition and disable SPIFFS
+    // esp_vfs_spiffs_unregister(conf.partition_label);
+    // ESP_LOGI(TAG, "SPIFFS unmounted");
+}
 // void cJSON_init(void)
 // {
 //     cJSON*root = cJSON_CreateObject();

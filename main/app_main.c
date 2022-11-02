@@ -37,14 +37,26 @@
 #include "timer_app.h"
 #include "uart485.h"
 #include "esp_partition.h"
+#include "esp_err.h"
 
 
 void flashwrite_reset(void);
 int8_t test_custom_partition();
-static const char *TAG = "main";
+// void log_write_send(const char *format,...);
+// void log_read_send(const char *format,...);
 
+static const char *TAG = "main";
+void airpump_process(void);
+
+void print_heapsize(void) 
+{
+    printf("esp_get_free_heap_size = %d\n", esp_get_free_heap_size());
+    printf("esp_get_free_internal_heap_size = %d\n", esp_get_free_internal_heap_size());
+    printf("esp_get_minimum_free_heap_size = %d\n", esp_get_minimum_free_heap_size());
+}
 void app_main(void)
 {
+    print_heapsize();
 //parameter_init
     para_init();
 //gpio task in/out     PRIO 10 
@@ -57,23 +69,25 @@ void app_main(void)
     native_ota_app();
 //MQTT enable     MQTT task priority, default is 5,
     mqtt_init();
-
+    xTaskCreate(airpump_process, "airpump_process", 1024, NULL, 8, NULL);
+    spiff_init();
+    xTaskCreate(log_process, "log_process", 4096, NULL, 3, NULL);
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
     //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 //pressure_read
-    xTaskCreate(pressure_read, "pressure_read", 4096, NULL, 3, NULL);
+    //xTaskCreate(pressure_read, "pressure_read", 4096, NULL, 3, NULL);
     //xTaskCreate(FTC533_process, "FTC533_process", 2048, NULL, 7, NULL);
+    
     timer_FTC533();
-
     heater_init(1);
 #endif
 
-#ifndef DEVICE_TYPE_REMOTE
+// #ifndef DEVICE_TYPE_REMOTE
 
-//DS18B20 task
-    //xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
-#endif
+// //DS18B20 task
+//     //xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
+// #endif
 #ifdef mqtt_test
     xTaskCreate(mqtt_gpio_test, "mqtt_gpio_test", 4096, NULL, 13, NULL);
 #endif
@@ -82,12 +96,15 @@ void app_main(void)
     // printf("CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE);
     // printf("CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE:%d",CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE);
     // printf("CONFIG_ESP_MAIN_TASK_STACK_SIZE:%d",CONFIG_ESP_MAIN_TASK_STACK_SIZE);
-    int cnt = 0;
+    
     uint8_t s_led_state = 0;
     uint8_t wifi_sta = 0;
-    uint8_t nozzle_state = 0;
-    uint8_t air_pump_state = 0;
     uint32_t time_cnt = 0;
+    // int time_int = 0;
+    // char time_string[30] = {0};
+    uint8_t nozzle_mode = 0;
+    uint8_t air_pressure = 0;
+    uint8_t blister_led_state = 0;
     while(1) {
         //time_cnt = parameter_read_debug();  
         vTaskDelay(200 / portTICK_RATE_MS);
@@ -99,8 +116,40 @@ void app_main(void)
                 gpio_set_level(GPIO_SYS_LED, s_led_state);
             }
         }
+        if(time_cnt%100==10){  
+            print_heapsize();
+            //time_int = (int)(parameter_read_timestamp()/1000) + 8*60*60; //BEIJING timestamp += 8*60*60;
+            //printf("time_int: %d\n", time_int);
+            //TimeStamp2DateTime(time_int);
+            //stamp_to_standard(time_int,time_string);
+            //printf("time_string: %s\n", time_string);
+            log_write_send("wifi_sta:%dtime:%s ",wifi_sta,parameter_read_time_string());   //write print
+            // log_write_send("testttt:%.0f",parameter_read_timestamp());
+            // log_read_send('0');  
+        }
+        nozzle_mode = parameter_read_mode();
+        air_pressure = parameter_read_pressure_alarm();
+        if( nozzle_mode == 1 && air_pressure == 1)
+            gpio_set_level(GPIO_OUTPUT_LED_2, time_cnt%2);
+        if( nozzle_mode == 2 && air_pressure == 1)
+            gpio_set_level(GPIO_OUTPUT_LED_3, time_cnt%2);    
         //printf("wifi_sta: %d\n", wifi_sta);
 
+        //test_custom_partition();
+        //device_states_publish(cnt%4+1);    
+        //printf("parameter_read_FTC533:cnt: %d\n", cnt);
+    }
+}
+
+
+
+void airpump_process(void)
+{
+    int cnt = 0;
+    uint8_t nozzle_state = 0;
+    uint8_t air_pump_state = 0;
+    while(1){
+        vTaskDelay(200 / portTICK_RATE_MS);
         #ifdef DEVICE_TYPE_BRUSH
         nozzle_state = parameter_read_nozzle();
         air_pump_state = parameter_read_air_pump();
@@ -128,24 +177,20 @@ void app_main(void)
             cnt++;
             if(cnt >= 25 && cnt <= 35){
                 gpio_set_level(GPIO_OUTPUT_IO_PUMP, 1);
-                gpio_set_level(GPIO_OUTPUT_LED_4, 1);               
+                //gpio_set_level(GPIO_OUTPUT_LED_4, 1);               
                 //cnt = 0;
             }           
         } 
         else{
             if(air_pump_state != 1){
             gpio_set_level(GPIO_OUTPUT_IO_PUMP, 0);
-            gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+            //gpio_set_level(GPIO_OUTPUT_LED_4, 0);
             }
             cnt = 0;
         }
         #endif
-        //test_custom_partition();
-        //device_states_publish(cnt%4+1);    
-        //printf("parameter_read_FTC533:cnt: %d\n", cnt);
     }
 }
-
 
 int8_t test_custom_partition()
 {

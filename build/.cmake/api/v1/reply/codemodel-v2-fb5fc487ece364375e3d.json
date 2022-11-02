@@ -1925,7 +1925,7 @@
 				{
 					"directoryIndex" : 15,
 					"id" : "__idf_app_update::@cc3b426666063acc9674",
-					"jsonFile" : "target-__idf_app_update-332e5805ac54b3cb1366.json",
+					"jsonFile" : "target-__idf_app_update-ef316aef94171fa72c9d.json",
 					"name" : "__idf_app_update",
 					"projectIndex" : 1
 				},
@@ -2002,7 +2002,7 @@
 				{
 					"directoryIndex" : 104,
 					"id" : "__idf_ds18b20::@d7a7bc6700792cb3f139",
-					"jsonFile" : "target-__idf_ds18b20-f099e78450f06674c69f.json",
+					"jsonFile" : "target-__idf_ds18b20-a4c33173d2bef9e00680.json",
 					"name" : "__idf_ds18b20",
 					"projectIndex" : 1
 				},
@@ -2310,7 +2310,7 @@
 				{
 					"directoryIndex" : 100,
 					"id" : "__idf_mqtt_app::@0b98547767a8b55bcb96",
-					"jsonFile" : "target-__idf_mqtt_app-ab3dd1203ba8816eee25.json",
+					"jsonFile" : "target-__idf_mqtt_app-1b54d2c4055772b31ce3.json",
 					"name" : "__idf_mqtt_app",
 					"projectIndex" : 1
 				},
@@ -2366,7 +2366,7 @@
 				{
 					"directoryIndex" : 106,
 					"id" : "__idf_pressure_i2c::@ed198ea374e3790775c4",
-					"jsonFile" : "target-__idf_pressure_i2c-2ae1dc5fee98d16f07dd.json",
+					"jsonFile" : "target-__idf_pressure_i2c-ac85ccb599c55ed071a6.json",
 					"name" : "__idf_pressure_i2c",
 					"projectIndex" : 1
 				},
@@ -2443,7 +2443,7 @@
 				{
 					"directoryIndex" : 103,
 					"id" : "__idf_timer_app::@56a6eb85f47ea2282f89",
-					"jsonFile" : "target-__idf_timer_app-55e8a618a48081eabe58.json",
+					"jsonFile" : "target-__idf_timer_app-76a7e03c4b07356006a4.json",
 					"name" : "__idf_timer_app",
 					"projectIndex" : 1
 				},
@@ -2772,7 +2772,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "mqtt_tcp.elf::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-mqtt_tcp.elf-ddb30a1a55894c3cc2fc.json",
+					"jsonFile" : "target-mqtt_tcp.elf-69c21f80ed0a54d1702d.json",
 					"name" : "mqtt_tcp.elf",
 					"projectIndex" : 0
 				},

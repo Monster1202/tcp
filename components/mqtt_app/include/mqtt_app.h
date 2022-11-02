@@ -13,7 +13,12 @@ void device_states_publish(uint8_t button);
 
 void mqtt_app_start(void);
 void mqtt_reset(void);
-
+void ESP32_LOG_publish(char *log_buffer);
+void log_file_clear(char *filename);
+void log_write_send(const char *format,...);
+void log_read_send(const char *format,...);
+void log_process(void);
+void spiff_init(void);
 #ifdef __cplusplus
 }
 #endif

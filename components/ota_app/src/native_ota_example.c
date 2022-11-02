@@ -83,6 +83,7 @@ static void infinite_loop(void)
 
 static void ota_example_task(void *pvParameter)
 {
+    vTaskDelay(4000 / portTICK_RATE_MS);
     char *update_url = {0};
     update_url = parameter_read_update_url();
     ESP_LOGI(TAG, "update_url:%s",update_url); 

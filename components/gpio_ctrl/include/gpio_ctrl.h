@@ -17,7 +17,6 @@ extern "C" {
 
 
 
-
 void sw_key_read(uint8_t io_num,uint8_t state);
 uint8_t KEY_READ(uint8_t io_num);
 void gpio_init(void);
@@ -39,6 +38,7 @@ void blister_press_output(uint8_t io_num);
 void blister_mode_io_out(uint8_t value);
 void heater_io_out(uint8_t value);
 void heater_init(uint8_t state);
+uint8_t blister_input(uint8_t io_num,uint8_t state);
 #endif
 
 #ifdef DEVICE_TYPE_REMOTE

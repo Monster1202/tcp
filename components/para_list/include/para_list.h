@@ -26,9 +26,9 @@ extern "C" {
 // #define BACKUP_MQTT_BROKER_URL     "mqtt://172.16.171.97"//"mqtt://10.42.0.1"  //"mqtt://broker.emqx.io"  
 // #define BACKUP_EXAMPLE_ESP_WIFI_SSID      "SHKJ2020"//  "CLEANING-SYSTEM"  //
 // #define BACKUP_EXAMPLE_ESP_WIFI_PASS      "shkj1234."//  "12345678"    //
-#define BACKUP_MQTT_BROKER_URL     "mqtt://10.42.0.1"    
-#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"  
-#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"    
+#define BACKUP_MQTT_BROKER_URL     "mqtt://10.42.0.1"    //"mqtt://172.16.170.48"//
+#define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"   //"SHKJ2020"//
+#define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"    //"shkj1234."//
 
 typedef struct
 {
@@ -103,12 +103,13 @@ typedef struct
         #define GPIO_OUTPUT_LED_5         7
         #define GPIO_OUTPUT_LED_6         6
         #define GPIO_SYS_LED         0    //stop
+        #define GPIO_IO_FTC533       21//6   PWR_CTRL_1
 
         #define GPIO_OUTPUT_IO_HEATER    14    //heater power
         #define GPIO_OUTPUT_IO_WATER     13    //high pressure pump power
         #define GPIO_OUTPUT_IO_BUBBLE    12    //diaphragm pump
         #define GPIO_OUTPUT_IO_PUMP      11    // air pump
-        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_PUMP) |(1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
+        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_IO_FTC533) |(1ULL<<GPIO_OUTPUT_IO_PUMP) |(1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
     #else
         #ifdef DEVICE_TYPE_REMOTE
@@ -195,7 +196,7 @@ void parameter_write_liquid_alarm(uint8_t value);
 
 typedef struct
 {
-    uint32_t uuid;
+    char uuid[6];//uint32_t uuid;
     uint8_t nozzle;      //command down
     uint8_t centralizer;
     uint8_t rotation;
@@ -211,11 +212,13 @@ typedef struct
     int8_t rssi;
     uint8_t wifi_connection;    //0\1  wifi_con  2\3 mqtt_con
     uint8_t air_pump;
+    int time_int;
+    char time_string[20];
 }PARAMETER_BRUSH;
 
 typedef struct
 {
-    uint32_t uuid;
+    char uuid[6];//uint32_t uuid;
     uint8_t mode;      //command down
     uint8_t heater;    
     uint8_t status;     //status upload
@@ -231,11 +234,13 @@ typedef struct
     int8_t rssi;
     uint8_t wifi_connection; 
     uint8_t air_pump;
+    int time_int;
+    char time_string[20];
 }PARAMETER_BLISTER;
 
 typedef struct
 {
-    uint32_t uuid;
+    char uuid[6];//uint32_t uuid;
     uint8_t status;     //status upload
     double timestamp;
     char msg_id[30];
@@ -250,6 +255,8 @@ typedef struct
     int8_t rssi;
     uint8_t wifi_connection; 
     uint8_t air_pump;
+    int time_int;
+    char time_string[20];
 }PARAMETER_REMOTE;
 
 void parameter_write_version(char *str_version);
@@ -289,6 +296,34 @@ uint32_t parameter_read_debug(void);
 
 void parameter_write_air_pump(uint8_t value);
 uint8_t parameter_read_air_pump(void);
+
+
+typedef struct times
+{
+	int Year;
+	int Mon;
+	int Day;
+	int Hour;
+	int Min;
+	int Second;
+}Times;
+//Times stamp_to_standard(int stampTime);
+Times stamp_to_standard(int stampTime,char *time_s);
+typedef struct
+{
+    uint16_t Year;
+    uint16_t Mon;
+    uint16_t Day;
+    uint16_t Hour;
+    uint16_t Min;
+    uint16_t Sec;
+}ST_DATE_TIME,*PST_DATE_TIME;
+
+uint32_t DateTime2Stamp(PST_DATE_TIME pstDateTime);
+ST_DATE_TIME TimeStamp2DateTime(uint32_t Stamp);
+
+
+char *parameter_read_time_string(void);
 
 #ifdef __cplusplus
 }

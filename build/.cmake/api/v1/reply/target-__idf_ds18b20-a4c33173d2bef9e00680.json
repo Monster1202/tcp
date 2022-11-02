@@ -452,6 +452,10 @@
 		},
 		{
 			"backtrace" : 5,
+			"id" : "__idf_spiffs::@df881b71474064c86689"
+		},
+		{
+			"backtrace" : 5,
 			"id" : "__idf_protocol_examples_common::@f775e6a13b1007a4569f"
 		},
 		{

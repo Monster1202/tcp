@@ -1,11 +1,13 @@
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include <sys/param.h>
 #include "esp_check.h"
 #include "esp_log.h"
 #include "para_list.h"
 #include "esp_system.h"
 #include "esp_partition.h"
+#include <time.h>
 //
 PARAMETER_BRUSH brush_para;
 PARAMETER_BLISTER blister_para;
@@ -47,10 +49,19 @@ void wifi_url_inital_set_para(void)
 
 void para_init(void)
 {
-    uint32_t id;
-    get_chip_id(&id);
-    printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
-
+    // uint32_t id;
+    // get_chip_id(&id);
+    // printf("SDK version:%s,chip id:%u\n", esp_get_idf_version(),id);
+    static char mac_addr[6] = {0};
+    esp_err_t ret =  esp_efuse_mac_get_default((uint8_t *)mac_addr);  //esp_read_mac  esp_efuse_mac_get_default
+    if (ret != ESP_OK) 
+        printf("esp_efuse_mac_get_default failed\n");
+    else{
+        printf("mac_addr:");
+        for(uint8_t i = 0; i<6; i++)
+            printf("%x",mac_addr[i]);
+        printf("\r\n");
+    }
     // strcpy(connection_para.wifi_ssid,"CLEANING-SYSTEM");
     // strcpy(connection_para.wifi_pass,"12345678");
     // strcpy(connection_para.broker_url,"mqtt://10.42.0.1");
@@ -59,7 +70,8 @@ void para_init(void)
         printf("flash_read_parameter error");
 
     #ifdef DEVICE_TYPE_BRUSH
-        brush_para.uuid = id;
+        //brush_para.uuid = id;
+        strcpy(brush_para.uuid,mac_addr);
         brush_para.nozzle = 0;
         brush_para.centralizer = 0;
         brush_para.rotation = 0;
@@ -76,7 +88,8 @@ void para_init(void)
         brush_para.wifi_connection = 0;
     #else
         #ifdef DEVICE_TYPE_BLISTER
-            blister_para.uuid = id;
+            //blister_para.uuid = id;
+            strcpy(blister_para.uuid,mac_addr);
             blister_para.mode = 0;
             blister_para.heater = 0;
             blister_para.status = 1;
@@ -92,7 +105,8 @@ void para_init(void)
             blister_para.rssi = 0;
             blister_para.wifi_connection = 0;
         #else
-            remote_para.uuid = id;
+            //remote_para.uuid = id;
+            strcpy(remote_para.uuid,mac_addr);
             remote_para.nozzle = 0;
             remote_para.centralizer = 0;
             remote_para.rotation = 0;
@@ -106,6 +120,7 @@ void para_init(void)
             remote_para.wifi_connection = 0;
         #endif
     #endif
+    
 }
 
 int8_t flash_write_parameter(void)
@@ -346,14 +361,39 @@ char *parameter_read_msg_id(void)
 
 void parameter_write_timestamp(double timestamp)
 {   
+    int time_int = 0;
+    char time_string[20] = {0};
+    time_int = (int)(parameter_read_timestamp()/1000) + 8*60*60; //BEIJING timestamp += 8*60*60;
+    stamp_to_standard(time_int,time_string);
+    
+    #ifdef DEVICE_TYPE_BRUSH
     brush_para.timestamp = timestamp;
+    brush_para.time_int = time_int;
+    strcpy(brush_para.time_string , time_string);
+    #endif
+    #ifdef DEVICE_TYPE_BLISTER
     blister_para.timestamp = timestamp;
+    blister_para.time_int = time_int;
+    strcpy(blister_para.time_string , time_string);
+    #endif
+    #ifdef DEVICE_TYPE_REMOTE
     remote_para.timestamp = timestamp;
+    remote_para.time_int = time_int;
+    strcpy(remote_para.time_string , time_string);
+    #endif
 }
 
 double parameter_read_timestamp(void)
 {
-    return brush_para.timestamp;
+#ifdef DEVICE_TYPE_BRUSH
+return brush_para.timestamp;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+return blister_para.timestamp;
+#endif
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.timestamp;
+#endif
 }
 
 void parameter_write_emergency_stop(uint8_t value)
@@ -554,3 +594,101 @@ uint8_t parameter_read_air_pump(void)
     return remote_para.air_pump;
     #endif
 }
+
+
+uint32_t DateTime2Stamp(PST_DATE_TIME pstDateTime)
+{
+    struct tm stTime;
+    time_t TimeStamp;
+
+    stTime.tm_year = pstDateTime->Year - 1900;
+    stTime.tm_mon = pstDateTime->Mon - 1;
+    stTime.tm_mday = pstDateTime->Day;
+    stTime.tm_hour = pstDateTime->Hour;
+    stTime.tm_min = pstDateTime->Min;
+    stTime.tm_sec = pstDateTime->Sec;
+    TimeStamp = mktime(&stTime);
+    return (uint32_t)TimeStamp;
+}
+
+/********************************************************************
+* name          : TimeStamp2DateTime
+* description   : 根据时间戳获取时间
+* Input         : Stamp
+* Output        : none
+* Return        : DateTime
+********************************************************************/
+ST_DATE_TIME TimeStamp2DateTime(uint32_t Stamp)
+{
+    ST_DATE_TIME stDateTime;
+
+    time_t TimeStamp = Stamp;
+    struct tm* pstTime = localtime(&TimeStamp);
+    stDateTime.Year = pstTime->tm_year + 1900;
+    stDateTime.Mon = pstTime->tm_mon + 1;
+    stDateTime.Day = pstTime->tm_mday;
+    stDateTime.Hour = pstTime->tm_hour;
+    stDateTime.Min = pstTime->tm_min;
+    stDateTime.Sec = pstTime->tm_sec;
+    printf("%d,%d,%d,%d,%d,%d",stDateTime.Year,stDateTime.Mon,stDateTime.Day,stDateTime.Hour,stDateTime.Min,stDateTime.Sec);
+    return stDateTime;
+}
+
+int standard_to_stamp(char *str_time)
+{
+	struct tm stm;
+	int iY,iM,iD,iH,iMin,iS;
+	memset(&stm,0,sizeof(stm));
+	iY = atoi(str_time);
+	iM = atoi(str_time+5);     //和实际输入的格式 有关系
+	iD = atoi(str_time+7);
+	iH = atoi(str_time+10);
+	iMin = atoi(str_time+13);
+	iS = atoi(str_time+16);
+	stm.tm_year=iY-1900;
+	stm.tm_mon=iM-1;
+	stm.tm_mday=iD;
+	stm.tm_hour=iH;
+	stm.tm_min=iMin;
+	stm.tm_sec=iS;
+	printf("standard time:%d-%d-%d %d:%d:%d\n", iY, iM, iD, iH, iMin, iS);
+
+	return (int)mktime(&stm);
+
+}
+
+Times stamp_to_standard(int stampTime,char *time_s)
+{
+	time_t tick = (time_t)stampTime;
+	struct tm tm;
+	char s[20];
+	Times standard;
+	tm = *localtime(&tick);
+	strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &tm);
+	printf("stampTime:%d standard time:%s\n", (int)tick, s);
+
+	standard.Year = atoi(s);
+	standard.Mon = atoi(s+5);
+	standard.Day = atoi(s+8);
+	standard.Hour = atoi(s+11);
+	standard.Min = atoi(s+14);
+	standard.Second = atoi(s+17);
+	//printf("%d,%d,%d,%d,%d,%d",standard.Year,standard.Mon,standard.Day,standard.Hour,standard.Min,standard.Second);
+    strcpy(time_s , s);
+	return standard;
+}
+
+char *parameter_read_time_string(void)
+{
+#ifdef DEVICE_TYPE_BRUSH
+return brush_para.time_string;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+return blister_para.time_string;
+#endif
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.time_string;
+#endif
+}
+
+

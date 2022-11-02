@@ -248,6 +248,19 @@ uint8_t UI_press_output(uint8_t value,uint8_t button)
 
 #ifdef DEVICE_TYPE_BLISTER
 
+void heater_init(uint8_t state)
+{
+    gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);  //HEATER MODULE POWER ON
+    ESP_LOGI(TAG, "HEATER MODULE POWER ON,ready to change to heater mode");
+    if(state == 1){
+        vTaskDelay(2000 / portTICK_RATE_MS);
+        parameter_write_FTC533(1);
+    }
+    vTaskDelay(2000 / portTICK_RATE_MS);
+    parameter_write_FTC533(1);
+    vTaskDelay(2000 / portTICK_RATE_MS);
+    parameter_write_FTC533(1);
+}
 void blister_stop_io_out(uint8_t value,uint8_t state)
 {
     if(value == 1){
@@ -260,6 +273,8 @@ void blister_stop_io_out(uint8_t value,uint8_t state)
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_6, 0);
 
         if(state){
         parameter_write_emergency_stop(1);
@@ -283,13 +298,13 @@ void heater_io_out(uint8_t value)
     if(value == 1){
         //heater_water_module_test(6);    
         //gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);
-        //gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
         parameter_write_heater(1);
         ESP_LOGI(TAG, "blister.heater = 1");}
     else{
         //heater_water_module_test(7);
         //gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
-        //gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
         parameter_write_heater(0);
         ESP_LOGI(TAG, "blister.heater = 0");}
 }
@@ -299,28 +314,107 @@ void blister_mode_io_out(uint8_t value)
         //heater_water_module_test(4);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-        // gpio_set_level(GPIO_OUTPUT_LED_2, 1);
-        // gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         parameter_write_mode(1);
         ESP_LOGI(TAG, "blister_para.mode = 1");}
     else if(value == 2){
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
-        // gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        // gpio_set_level(GPIO_OUTPUT_LED_3, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 1);
         parameter_write_mode(2);
         ESP_LOGI(TAG, "blister_para.mode = 2");}
     else{
         //heater_water_module_test(5);
         gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
-        // gpio_set_level(GPIO_OUTPUT_LED_2, 0);
-        // gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
         parameter_write_mode(0);
         ESP_LOGI(TAG, "blister_para.mode = 0");}
 }
 
-
+void blister_press_output(uint8_t io_num)
+{
+    uint8_t register_value = 0;
+    uint8_t register_afterpress = 0;
+    uint8_t register_emergency_stop = 0;
+    register_emergency_stop = parameter_read_emergency_stop();
+    uint8_t mqtt_connected = 0;
+    mqtt_connected = parameter_read_wifi_connection();
+    if(register_emergency_stop)
+    {
+        // if(io_num == GPIO_INPUT_IO_STOP)
+        // {
+        //     ESP_LOGI(TAG, "back to normal mode");
+        //     register_value = parameter_read_emergency_stop();
+        //     register_afterpress = UI_press_output(register_value,1);
+        //     blister_stop_io_out(register_afterpress);
+        // }
+        // else{
+        ESP_LOGI(TAG, "emergency_stop_error_press");
+        timer_periodic();
+        //}
+    }
+    else
+    {
+        switch(io_num)   //BLISTER
+        {
+            case GPIO_INPUT_IO_1:
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_1");
+            register_value = parameter_read_heater();
+            register_afterpress = UI_press_output(register_value,1);
+            heater_io_out(register_afterpress);            
+            break;
+            case GPIO_INPUT_IO_2:
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_2");
+            register_value = parameter_read_mode();
+            register_afterpress = UI_press_output(register_value,1);
+            blister_mode_io_out(register_afterpress);
+            break;
+            case GPIO_INPUT_IO_3:
+            ESP_LOGI(TAG, "GPIO_INPUT_IO_3");
+            register_value = parameter_read_mode();
+            register_afterpress = UI_press_output(register_value,2);
+            blister_mode_io_out(register_afterpress);
+            break;
+            // case GPIO_INPUT_IO_4:
+            // ESP_LOGI(TAG, "GPIO_INPUT_IO_4");
+            // // register_afterpress = UI_press_output(quantity,1);
+            // // blister_quantity_io_out(register_afterpress);
+            // break;
+            // case GPIO_INPUT_IO_5:
+            // ESP_LOGI(TAG, "GPIO_INPUT_IO_5");
+            // // register_afterpress = UI_press_output(quantity,2);
+            // // blister_quantity_io_out(register_afterpress);
+            // break;
+            // case GPIO_INPUT_IO_6:
+            // ESP_LOGI(TAG, "GPIO_INPUT_IO_6");
+            // //parameter_write_FTC533(1);
+            // break;
+            // case GPIO_INPUT_IO_7:
+            // ESP_LOGI(TAG, "GPIO_INPUT_IO_7");
+            // //parameter_write_FTC533(3);
+            // break;
+            // case GPIO_INPUT_IO_STOP:
+            // ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
+            // register_value = parameter_read_emergency_stop();
+            // register_afterpress = UI_press_output(register_value,1);
+            // blister_stop_io_out(register_afterpress,1);
+            // break;
+            default:
+            //ESP_LOGI(TAG, "KEY_default");
+            break;
+        }
+        if(io_num == GPIO_INPUT_IO_1 || io_num == GPIO_INPUT_IO_2 || io_num == GPIO_INPUT_IO_3)
+        {
+            if(mqtt_connected == 3)
+                device_states_publish(0);
+        }
+    }
+    //device_states_publish(0);
+}
 
 uint8_t blister_input(uint8_t io_num,uint8_t state)
 {
@@ -345,33 +439,33 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
         }
     }
     else{
-        if(state == 0 && io_num == GPIO_INPUT_IO_1)     //heater
-        {
-            heater_io_out(1); 
-            parameter_write_FTC533(3);//start     
-        }
-        else if(state == 1 && io_num == GPIO_INPUT_IO_1)  
-        {
-            heater_io_out(0); 
-            parameter_write_FTC533(3);//stop
-        }
-        else if(state == 0 && io_num == GPIO_INPUT_IO_2)  //high pressure water
-        {
-            blister_mode_io_out(1);      
-        }
-        else if(state == 1 && io_num == GPIO_INPUT_IO_2)
-        {
-            blister_mode_io_out(0); 
-        }
-        else if(state == 0 && io_num == GPIO_INPUT_IO_3)   //bubble 
-        {
-            blister_mode_io_out(2);      
-        }
-        else if(state == 1 && io_num == GPIO_INPUT_IO_3)
-        {
-            blister_mode_io_out(0); 
-        }
-        else if(state == 0 && io_num == GPIO_INPUT_IO_4)   //air pump   manual control
+        // if(state == 0 && io_num == GPIO_INPUT_IO_1)     //heater
+        // {
+        //     heater_io_out(1); 
+        //     parameter_write_FTC533(3);//start     
+        // }
+        // else if(state == 1 && io_num == GPIO_INPUT_IO_1)  
+        // {
+        //     heater_io_out(0); 
+        //     parameter_write_FTC533(3);//stop
+        // }
+        // else if(state == 0 && io_num == GPIO_INPUT_IO_2)  //high pressure water
+        // {
+        //     blister_mode_io_out(1);      
+        // }
+        // else if(state == 1 && io_num == GPIO_INPUT_IO_2)
+        // {
+        //     blister_mode_io_out(0); 
+        // }
+        // else if(state == 0 && io_num == GPIO_INPUT_IO_3)   //bubble 
+        // {
+        //     blister_mode_io_out(2);      
+        // }
+        // else if(state == 1 && io_num == GPIO_INPUT_IO_3)
+        // {
+        //     blister_mode_io_out(0); 
+        // }
+        if(state == 0 && io_num == GPIO_INPUT_IO_4)   //air pump   manual control
         {
             parameter_write_air_pump(1);
             ESP_LOGI(TAG, "air pump open");
@@ -389,39 +483,39 @@ uint8_t blister_input(uint8_t io_num,uint8_t state)
         {
             parameter_write_water(0);
             ESP_LOGI(TAG, "GPIO_INPUT_IO_5:0,water off");
-            gpio_set_level(GPIO_OUTPUT_LED_1, 0);      
+            gpio_set_level(GPIO_OUTPUT_LED_4, 0);      
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_5)
         {
             parameter_write_water(1);
             ESP_LOGI(TAG, "GPIO_INPUT_IO_5:1,water on");
-            gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+            gpio_set_level(GPIO_OUTPUT_LED_4, 1);
         }
         else if(state == 0 && io_num == GPIO_INPUT_IO_6)  
         {
             parameter_write_pressure_alarm(1);
             ESP_LOGI(TAG, "GPIO_INPUT_IO_6:0,pressure low");
-            gpio_set_level(GPIO_OUTPUT_LED_2, 0);   
+            gpio_set_level(GPIO_OUTPUT_LED_5, 0);   
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_6)
         {
             parameter_write_pressure_alarm(0);
             ESP_LOGI(TAG, "GPIO_INPUT_IO_6:1,pressure ok");
-            gpio_set_level(GPIO_OUTPUT_LED_2, 1);
+            gpio_set_level(GPIO_OUTPUT_LED_5, 1);
         }
         else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
         {
             parameter_write_liquid_alarm(1);
             ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0,liquid low");
-            gpio_set_level(GPIO_OUTPUT_LED_3, 0);     //GPIO_OUTPUT_LED_6 ----FTC533 COM
+            gpio_set_level(GPIO_OUTPUT_LED_6, 0);     //GPIO_OUTPUT_LED_6 ----FTC533 COM
         }
         else if(state == 1 && io_num == GPIO_INPUT_IO_7)
         {
             parameter_write_liquid_alarm(0);
             ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1,liquid ok");
-            gpio_set_level(GPIO_OUTPUT_LED_3, 1); 
+            gpio_set_level(GPIO_OUTPUT_LED_6, 1); 
         }
-        else if(state == 0 &&  io_num == GPIO_INPUT_IO_STOP)
+        else if(state == 0 && io_num == GPIO_INPUT_IO_STOP)
         {
             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
             register_value = parameter_read_emergency_stop();
@@ -608,16 +702,91 @@ void remote_press_output(uint8_t io_num)
 #endif
 
 #ifdef mqtt_test
+void remote_test_procedure(int mode)  //1s
+{
+    static int cnt = 0;
+    static int last_m = 0;
+    if(last_m != mode)
+        cnt = 0;
+    if(mode == 1){
+        ESP_LOGI(TAG,"remote_test_procedure_1: %d\n", cnt);
+        switch(cnt)
+        {
+            case 4:remote_press_output(GPIO_INPUT_IO_STOP); 
+            break;
+            case 5:remote_press_output(GPIO_INPUT_IO_1); 
+            break;
+            case 20:remote_press_output(GPIO_INPUT_IO_2); 
+            break;
+            default:break;
+        }
+        if(cnt >= 35)
+            cnt = 5;
+        else
+            cnt++;
+    }
+    else if(mode == 2){
+        ESP_LOGI(TAG,"remote_test_procedure_2: %d\n", cnt);
+        switch(cnt)
+        {
+            case 4:remote_press_output(GPIO_INPUT_IO_STOP); break;
+            case 5:remote_press_output(GPIO_INPUT_IO_3); break;
+            case 30:remote_press_output(GPIO_INPUT_IO_3); break;
+            case 35:remote_press_output(GPIO_INPUT_IO_4); break;
+            case 60:remote_press_output(GPIO_INPUT_IO_4); break;
+            default:break;
+        }
+        if(cnt >= 65)
+            cnt = 5;
+        else
+            cnt++;
+    }
+    else if(mode == 3){
+        ESP_LOGI(TAG,"remote_test_procedure_3: %d\n", cnt);
+        switch(cnt)
+        {
+            case 4:remote_press_output(GPIO_INPUT_IO_STOP); break;
+            case 5:remote_press_output(GPIO_INPUT_IO_1); break;
+            case 20:remote_press_output(GPIO_INPUT_IO_3); break;
+            case 45:remote_press_output(GPIO_INPUT_IO_3); break;
+            case 50:remote_press_output(GPIO_INPUT_IO_4); break;
+            case 75:remote_press_output(GPIO_INPUT_IO_4); break;
+            case 80:remote_press_output(GPIO_INPUT_IO_2); break;
+            default:break;
+        }
+        if(cnt >= 95)
+            cnt = 5;
+        else
+            cnt++;
+    }
+    last_m = mode;
+}
 void mqtt_gpio_test(void* arg)
 {
     int cnt = 0;
     for(;;) {
-        if(flag_mqtt_test)
+        if(flag_mqtt_test == 1)
         {
-            //device_states_publish(cnt%4+1);  
             remote_press_output(cnt%6+35);  
-            ESP_LOGI(TAG,"mqtt_gpio_test_cnt: %d\n", cnt++);
-            //printf("mqtt_gpio_test_cnt: %d\n", cnt++);
+            ESP_LOGI(TAG,"remote_test_procedure_0: %d\n", cnt++);
+        }
+        else if(flag_mqtt_test == 2)
+        {
+            remote_test_procedure(1); 
+            //ESP_LOGI(TAG,"remote_test_procedure_1: %d\n", cnt++);
+            vTaskDelay(900 / portTICK_RATE_MS);
+        }
+        else if(flag_mqtt_test == 3)
+        {
+            remote_test_procedure(2); 
+            //ESP_LOGI(TAG,"remote_test_procedure_2: %d\n", cnt++);
+            vTaskDelay(900 / portTICK_RATE_MS);
+        }
+        else if(flag_mqtt_test == 4)
+        {
+            remote_test_procedure(3); 
+            //ESP_LOGI(TAG,"remote_test_procedure_3: %d\n", cnt++);
+            vTaskDelay(900 / portTICK_RATE_MS);
         }
         
         vTaskDelay(100 / portTICK_RATE_MS);
@@ -671,16 +840,16 @@ void sw_key_read(uint8_t io_num,uint8_t state)
     #endif
     #endif
     #ifdef DEVICE_TYPE_BLISTER
-        blister_input(io_num,state);
+        blister_input(io_num,state);   //sensor gpio 567  self-lock-button 8
     #endif
     if(state == 1)
     {
     // #ifdef GPIOTEST
     // brush_press_output(io_num);
     // #endif
-    // #ifdef DEVICE_TYPE_BLISTER
-    // blister_press_output(io_num);
-    // #endif
+    #ifdef DEVICE_TYPE_BLISTER
+    blister_press_output(io_num);    //no self-lock-button 1234
+    #endif
     #ifdef DEVICE_TYPE_REMOTE
     remote_press_output(io_num);
     #endif
@@ -770,35 +939,86 @@ void sw_key_read(uint8_t io_num,uint8_t state)
             break;
         }
     }
+    #ifdef mqtt_test
+    if(io_num == GPIO_INPUT_IO_1)
+    {
+        key_status=KEY_READ(io_num);        //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+        switch(key_status)
+        {
+            case KEY_ONCE:
+            ESP_LOGI(TAG, "KEY_ONCE,GPIO[%d]",io_num);
+            break;
+            case KEY_TWICE:
+            ESP_LOGI(TAG, "KEY_TWICE,GPIO[%d]",io_num);
+            break;
+            case KEY_LONG:
+            ESP_LOGI(TAG, "KEY_LONG,GPIO[%d]",io_num);           
+            register_afterpress = UI_press_output(flag_mqtt_test,2);
+            flag_mqtt_test = register_afterpress;
+            break;
+            default:break;
+        }
+    }
+    else if(io_num == GPIO_INPUT_IO_3)
+    {
+        key_status=KEY_READ(io_num);        //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+        switch(key_status)
+        {
+            case KEY_ONCE:
+            ESP_LOGI(TAG, "KEY_ONCE,GPIO[%d]",io_num);
+            break;
+            case KEY_TWICE:
+            ESP_LOGI(TAG, "KEY_TWICE,GPIO[%d]",io_num);
+            break;
+            case KEY_LONG:
+            ESP_LOGI(TAG, "KEY_LONG,GPIO[%d]",io_num);           
+            register_afterpress = UI_press_output(flag_mqtt_test,3);
+            flag_mqtt_test = register_afterpress;
+            break;
+            default:break;
+        }
+    }
+    else if(io_num == GPIO_INPUT_IO_7)
+    {
+        key_status=KEY_READ(io_num);        //ESP_LOGI(TAG, "GPIO[%d] intr, val: %d", io_num, gpio_get_level(io_num));
+        switch(key_status)
+        {
+            case KEY_ONCE:
+            ESP_LOGI(TAG, "KEY_ONCE,GPIO[%d]",io_num);
+            break;
+            case KEY_TWICE:
+            ESP_LOGI(TAG, "KEY_TWICE,GPIO[%d]",io_num);
+            break;
+            case KEY_LONG:
+            ESP_LOGI(TAG, "KEY_LONG,GPIO[%d]",io_num);           
+            register_afterpress = UI_press_output(flag_mqtt_test,4);
+            flag_mqtt_test = register_afterpress;
+            break;
+            default:break;
+        }
+    }
+    #endif 
     #endif
     vTaskDelay(10 / portTICK_RATE_MS);
 }
 
-void heater_init(uint8_t state)
-{
-    gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);  //HEATER MODULE POWER ON
-    ESP_LOGI(TAG, "HEATER MODULE POWER ON,ready to change to heater mode");
-    if(state == 1){
-        vTaskDelay(2000 / portTICK_RATE_MS);
-        parameter_write_FTC533(1);
-    }
-    vTaskDelay(2000 / portTICK_RATE_MS);
-    parameter_write_FTC533(1);
-    vTaskDelay(2000 / portTICK_RATE_MS);
-    parameter_write_FTC533(1);
-}
+
 
 void start_read(void)
 {
     uint8_t key_status = 0;
     #ifdef DEVICE_TYPE_BLISTER
-    key_status = gpio_get_level(GPIO_INPUT_IO_5);
+    key_status = !gpio_get_level(GPIO_INPUT_IO_5);
     ESP_LOGI(TAG, "GPIO_INPUT_IO_5,water:%d",key_status);
     parameter_write_water(key_status);
+    gpio_set_level(GPIO_OUTPUT_LED_4, key_status);  
     key_status = gpio_get_level(GPIO_INPUT_IO_6);
     parameter_write_pressure_alarm(key_status);
-    key_status = !gpio_get_level(GPIO_INPUT_IO_7);
+    gpio_set_level(GPIO_OUTPUT_LED_5, !key_status); 
+    key_status = gpio_get_level(GPIO_INPUT_IO_7);
     parameter_write_liquid_alarm(key_status);
+    gpio_set_level(GPIO_OUTPUT_LED_6, !key_status); 
+    //ESP_LOGI(TAG, "GPIO_INPUT_IO_7,liquid_alarm:%d",key_status);
     #endif
 }
 
@@ -920,84 +1140,7 @@ void gpio_init(void)
 //         quantity = 3;
 //         ESP_LOGI(TAG, "blister_para.mode = 0");}
 // }
-// void blister_press_output(uint8_t io_num)
-// {
-//     uint8_t register_value = 0;
-//     uint8_t register_afterpress = 0;
-//     uint8_t register_emergency_stop = 0;
-//     register_emergency_stop = parameter_read_emergency_stop();
-    
-//     if(register_emergency_stop)
-//     {
-//         // if(io_num == GPIO_INPUT_IO_STOP)
-//         // {
-//         //     ESP_LOGI(TAG, "back to normal mode");
-//         //     register_value = parameter_read_emergency_stop();
-//         //     register_afterpress = UI_press_output(register_value,1);
-//         //     blister_stop_io_out(register_afterpress);
-//         // }
-//         // else{
-//         ESP_LOGI(TAG, "emergency_stop_error_press");
-//         timer_periodic();
-//         //}
-//     }
-//     else
-//     {
-//         switch(io_num)   //BLISTER
-//         {
-//             case GPIO_INPUT_IO_1:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_1");
-//             register_value = parameter_read_heater();
-//             register_afterpress = UI_press_output(register_value,1);
-//             heater_io_out(register_afterpress);            
-//             break;
-//             case GPIO_INPUT_IO_2:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_2");
-//             register_value = parameter_read_mode();
-//             register_afterpress = UI_press_output(register_value,1);
-//             blister_mode_io_out(register_afterpress);
-//             break;
-//             case GPIO_INPUT_IO_3:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_3");
-//             register_value = parameter_read_mode();
-//             register_afterpress = UI_press_output(register_value,2);
-//             blister_mode_io_out(register_afterpress);
-//             break;
-//             case GPIO_INPUT_IO_4:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_4");
-//             // register_afterpress = UI_press_output(quantity,1);
-//             // blister_quantity_io_out(register_afterpress);
-//             break;
-//             case GPIO_INPUT_IO_5:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_5");
-//             // register_afterpress = UI_press_output(quantity,2);
-//             // blister_quantity_io_out(register_afterpress);
-//             break;
-//             case GPIO_INPUT_IO_6:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_6");
-//             parameter_write_FTC533(1);
-//             break;
-//             case GPIO_INPUT_IO_7:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_7");
-//             parameter_write_FTC533(3);
-//             break;
-//             case GPIO_INPUT_IO_STOP:
-//             ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
-//             register_value = parameter_read_emergency_stop();
-//             register_afterpress = UI_press_output(register_value,1);
-//             blister_stop_io_out(register_afterpress,1);
-//             break;
-//             default:
-//             //ESP_LOGI(TAG, "KEY_default");
-//             break;
-//         }
-//         if(io_num == GPIO_INPUT_IO_1 || io_num == GPIO_INPUT_IO_2 || io_num == GPIO_INPUT_IO_3)
-//         {
-//             device_states_publish(0);
-//         }
-//     }
-//     //device_states_publish(0);
-// }
+
 
 
 // void brush_press_output(uint8_t io_num)

@@ -67,6 +67,8 @@
     "esp_wifi_default.h": "c",
     "esp_wifi_types.h": "c",
     "semphr.h": "c",
-    "future": "c"
+    "future": "c",
+    "param.h": "c",
+    "esp_spiffs.h": "c"
   }
 }

@@ -5,7 +5,7 @@
 #include "pressure_i2c.h"
 #include "driver/i2c.h"
 #include "para_list.h"
-
+#include "gpio_ctrl.h"
 
 
 static const char *TAG = "i2c-test";
@@ -87,6 +87,10 @@ void pressure_read(void* arg)
         ESP_LOGI(TAG, "pressure = %d kpa", pressure);
         parameter_write_pressure(pressure);
         vTaskDelay(200 / portTICK_PERIOD_MS);
+        // if(pressure>=1000 && pressure<65535)
+        //     blister_input(GPIO_INPUT_IO_6,0);
+        // else
+        //     blister_input(GPIO_INPUT_IO_6,1);
     }
     /* Demonstrate writing by reseting the MPU9250 */
     // ESP_ERROR_CHECK(register_write_byte(PWR_MGMT_1_REG_ADDR, 1 << RESET_BIT));

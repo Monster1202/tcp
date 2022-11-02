@@ -7,8 +7,8 @@
 #include "sdkconfig.h"
 #include "gpio_ctrl.h"
 #include "timer_app.h"
+#include "para_list.h"
 
-#define GPIO_IO_FTC533 6
 #define FTC533_data_1()    gpio_set_level(GPIO_IO_FTC533, 0);
 #define FTC533_data_0()    gpio_set_level(GPIO_IO_FTC533, 1);
 #define idle_state 0
@@ -23,7 +23,7 @@ static void periodic_timer_callback(void* arg);
 //static void oneshot_timer_callback(void* arg);
 static void FTC533_timer_callback(void* arg);
 
-static const char* TAG = "example";
+static const char* TAG = "timer_example";
 
 
 
@@ -64,15 +64,16 @@ void timer_FTC533(void)
 {
     const esp_timer_create_args_t periodic_timer_args = {
             .callback = &FTC533_timer_callback,
-            .dispatch_method = 1,
+            //.dispatch_method = 1,
             /* name is optional, but may help identify the timer when debugging */
-            .name = "periodic"
+            .name = "timer_FTC533"
     };
 
     esp_timer_handle_t FTC533_timer;
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &FTC533_timer));
 
     ESP_ERROR_CHECK(esp_timer_start_periodic(FTC533_timer, 375));
+    //ESP_ERROR_CHECK(esp_timer_start_periodic(FTC533_timer, 1000));
     ESP_LOGI(TAG, "Started timers, time since boot: %lld us", esp_timer_get_time());
 
     // usleep(100000);
@@ -176,8 +177,8 @@ static void FTC533_timer_callback(void* arg)
             next_state = idle_state;
             cnt_data = 0;
             cnt_time++;
-            LED5_state = !LED5_state;
-            gpio_set_level(GPIO_OUTPUT_LED_5, LED5_state);  
+            // LED5_state = !LED5_state;
+            // gpio_set_level(GPIO_OUTPUT_LED_5, LED5_state);  
             //printf("FTC533_timer_callback:key1_state");
         }
         break;    
@@ -197,8 +198,8 @@ static void FTC533_timer_callback(void* arg)
             next_state = idle_state;
             cnt_data = 0;
             cnt_time++;
-            LED5_state = !LED5_state;
-            gpio_set_level(GPIO_OUTPUT_LED_5, LED5_state);  
+            // LED5_state = !LED5_state;
+            // gpio_set_level(GPIO_OUTPUT_LED_5, LED5_state);  
             //printf("FTC533_timer_callback:key3_state");
         }       
         break;

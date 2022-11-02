@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "esp-idf/timer_app/libtimer_app.a"
+			"path" : "esp-idf/pressure_i2c/libpressure_i2c.a"
 		}
 	],
 	"backtrace" : 2,
@@ -25,7 +25,7 @@
 		"files" : 
 		[
 			"/home/yuan/esp/esp-idf/tools/cmake/component.cmake",
-			"components/timer_app/CMakeLists.txt",
+			"components/pressure_i2c/CMakeLists.txt",
 			"/home/yuan/esp/esp-idf/tools/cmake/utilities.cmake"
 		],
 		"nodes" : 
@@ -226,7 +226,7 @@
 				},
 				{
 					"backtrace" : 13,
-					"path" : "/home/yuan/esp/tcp/components/timer_app/include"
+					"path" : "/home/yuan/esp/tcp/components/pressure_i2c/include"
 				},
 				{
 					"backtrace" : 2,
@@ -452,6 +452,10 @@
 		},
 		{
 			"backtrace" : 5,
+			"id" : "__idf_spiffs::@df881b71474064c86689"
+		},
+		{
+			"backtrace" : 5,
 			"id" : "__idf_protocol_examples_common::@f775e6a13b1007a4569f"
 		},
 		{
@@ -468,16 +472,20 @@
 		},
 		{
 			"backtrace" : 5,
+			"id" : "__idf_mqtt_app::@0b98547767a8b55bcb96"
+		},
+		{
+			"backtrace" : 5,
 			"id" : "__idf_uart485::@7bb0fb65694dbf294544"
 		}
 	],
-	"id" : "__idf_timer_app::@56a6eb85f47ea2282f89",
-	"name" : "__idf_timer_app",
-	"nameOnDisk" : "libtimer_app.a",
+	"id" : "__idf_pressure_i2c::@ed198ea374e3790775c4",
+	"name" : "__idf_pressure_i2c",
+	"nameOnDisk" : "libpressure_i2c.a",
 	"paths" : 
 	{
-		"build" : "esp-idf/timer_app",
-		"source" : "components/timer_app"
+		"build" : "esp-idf/pressure_i2c",
+		"source" : "components/pressure_i2c"
 	},
 	"sourceGroups" : 
 	[
@@ -494,7 +502,7 @@
 		{
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
-			"path" : "components/timer_app/src/timer_app.c",
+			"path" : "components/pressure_i2c/src/pressure_i2c.c",
 			"sourceGroupIndex" : 0
 		}
 	],
