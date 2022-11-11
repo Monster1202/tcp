@@ -114,6 +114,7 @@ void wifi_init_sta(void)
              * However these modes are deprecated and not advisable to be used. Incase your Access point
              * doesn't support WPA2, these mode can be enabled by commenting below line */
 	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+         .threshold.rssi = -80,
         },
     };
     ESP_LOGI(TAG, "strlen(wifi_ssid) + 1:%d",strlen(wifi_ssid) + 1);

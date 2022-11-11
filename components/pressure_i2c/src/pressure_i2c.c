@@ -86,7 +86,7 @@ void pressure_read(void* arg)
         pressure = data[0]+(uint16_t)(data[1]<<8);
         ESP_LOGI(TAG, "pressure = %d kpa", pressure);
         parameter_write_pressure(pressure);
-        vTaskDelay(200 / portTICK_PERIOD_MS);
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
         // if(pressure>=1000 && pressure<65535)
         //     blister_input(GPIO_INPUT_IO_6,0);
         // else

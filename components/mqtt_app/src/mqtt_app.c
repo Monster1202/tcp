@@ -222,25 +222,6 @@ void mqtt_app_start(void)
 }
 
 
-
-void mqtt_init(void)
-{
-    ESP_LOGI(TAG, "[APP] Startup..");
-    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
-    ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
-
-    esp_log_level_set("*", ESP_LOG_INFO);//  CONFIG_LOG_COLORS  
-    esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
-    esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_INFO);////ESP_LOG_DEBUG ESP_LOG_INFO ESP_LOG_WARN
-    esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);
-    esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
-    esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
-    esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
-
-    //vTaskDelay(6000 / portTICK_RATE_MS); 
-    mqtt_app_start();
-}
-
 void data_process(char *data)
 {
     cJSON *json_str_xy = cJSON_Parse(data);
@@ -578,6 +559,23 @@ void ESP32_LOG_publish(char *log_buffer)
     msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_LOG_ESP32, log_buffer, 0, 1, 0);
     cJSON_Delete(root);
 }
+void mqtt_init(void)
+{
+    ESP_LOGI(TAG, "[APP] Startup..");   
+    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
+    ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
+
+    esp_log_level_set("*", ESP_LOG_INFO);//  CONFIG_LOG_COLORS  
+    esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
+    esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_INFO);////ESP_LOG_DEBUG ESP_LOG_INFO ESP_LOG_WARN
+    esp_log_level_set("TRANSPORT_BASE", ESP_LOG_VERBOSE);
+    esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
+    esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
+    esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
+
+    //vTaskDelay(6000 / portTICK_RATE_MS); 
+    mqtt_app_start();
+}
 
 void log_file_clear(char *filename)  
 {
@@ -603,7 +601,7 @@ void log_write_send(const char *format,...)
     va_start(arg, format);
     vprintf(format, arg);
     
-    //ESP_LOGI(TAG, "Opening file");
+    ESP_LOGI(TAG, "Opening file");
     FILE* f = fopen(LOG_FILE_PATH, "a");  //w a 
     if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing");

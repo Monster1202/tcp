@@ -18,8 +18,8 @@ extern "C" {
 #define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
-//#define GPIOTEST
-#define GPIOWORKING
+#define GPIOTEST
+//#define GPIOWORKING
 
 
 
@@ -39,8 +39,8 @@ typedef struct
 }PARAMETER_CONNECTION;
 
 #define GPIO_IO_DS18B20      4//9
-#define I2C_MASTER_SCL_IO           1      /*!< GPIO number used for I2C master clock */
-#define I2C_MASTER_SDA_IO           2      /*!< GPIO number used for I2C master data  */
+#define I2C_MASTER_SCL_IO           4//1      /*!< GPIO number used for I2C master clock */
+#define I2C_MASTER_SDA_IO           5//2      /*!< GPIO number used for I2C master data  */
 #define GPIO_SYS_LED         0
 #define GPIO_BEEP            8
 
@@ -50,8 +50,6 @@ typedef struct
 /////////////////////////////////
 #ifdef DEVICE_TYPE_BRUSH
     #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/brush.bin"
-    #define ECHO_TEST_TXD   (48)
-    #define ECHO_TEST_RXD   (45)
 
 #define GPIO_OUTPUT_IO_STRETCH    14//39
 #define GPIO_OUTPUT_IO_DRAW       13//40
@@ -82,8 +80,6 @@ typedef struct
 #else
     #ifdef DEVICE_TYPE_BLISTER
         #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/blister.bin"
-        #define ECHO_TEST_TXD   (9)
-        #define ECHO_TEST_RXD   (10)
 
         #define GPIO_INPUT_IO_1     35
         #define GPIO_INPUT_IO_2     36
@@ -109,13 +105,15 @@ typedef struct
         #define GPIO_OUTPUT_IO_WATER     13    //high pressure pump power
         #define GPIO_OUTPUT_IO_BUBBLE    12    //diaphragm pump
         #define GPIO_OUTPUT_IO_PUMP      11    // air pump
-        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_IO_FTC533) |(1ULL<<GPIO_OUTPUT_IO_PUMP) |(1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6))  
+        #define GPIO_OUTPUT_IO_5      10//19
+        #define GPIO_OUTPUT_IO_6     9//20
+        #define GPIO_OUTPUT_IO_7     46
+        #define GPIO_OUTPUT_IO_8     3
+        #define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_IO_FTC533) |(1ULL<<GPIO_OUTPUT_IO_PUMP) |(1ULL<<GPIO_OUTPUT_IO_HEATER) |(1ULL<<GPIO_SYS_LED) |(1ULL<<GPIO_BEEP) | (1ULL<<GPIO_OUTPUT_IO_WATER)| (1ULL<<GPIO_OUTPUT_IO_BUBBLE)| (1ULL<<GPIO_OUTPUT_LED_1)| (1ULL<<GPIO_OUTPUT_LED_2)| (1ULL<<GPIO_OUTPUT_LED_3)| (1ULL<<GPIO_OUTPUT_LED_4)| (1ULL<<GPIO_OUTPUT_LED_5)| (1ULL<<GPIO_OUTPUT_LED_6)|(1ULL<<GPIO_OUTPUT_IO_5)|(1ULL<<GPIO_OUTPUT_IO_6)|(1ULL<<GPIO_OUTPUT_IO_7)|(1ULL<<GPIO_OUTPUT_IO_8))  
         #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_1)|(1ULL<<GPIO_INPUT_IO_2)|(1ULL<<GPIO_INPUT_IO_3)|(1ULL<<GPIO_INPUT_IO_4)|(1ULL<<GPIO_INPUT_IO_5)|(1ULL<<GPIO_INPUT_IO_6)|(1ULL<<GPIO_INPUT_IO_7)|(1ULL<<GPIO_INPUT_IO_STOP))
     #else
         #ifdef DEVICE_TYPE_REMOTE
         #define CONFIG_EXAMPLE_FIRMWARE_UPG_URL "http://172.16.171.221:8070/remote.bin"
-        #define ECHO_TEST_TXD   (9)
-        #define ECHO_TEST_RXD   (10)
 
         #define GPIO_INPUT_IO_1     35
         #define GPIO_INPUT_IO_2     36

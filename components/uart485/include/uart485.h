@@ -8,7 +8,7 @@ extern "C" {
 
 void uart485_task(void *arg);
 void heater_water_module_test(uint8_t send_case);
-
+void uart232_task(void *arg);
 //esp_err_t test_app(void);
 
 #ifdef __cplusplus

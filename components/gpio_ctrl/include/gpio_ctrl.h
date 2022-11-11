@@ -17,7 +17,7 @@ extern "C" {
 
 
 
-void sw_key_read(uint8_t io_num,uint8_t state);
+uint8_t sw_key_read(uint8_t io_num,uint8_t state);
 uint8_t KEY_READ(uint8_t io_num);
 void gpio_init(void);
 uint8_t UI_press_output(uint8_t value,uint8_t button);
@@ -48,8 +48,8 @@ void centralizer_io_out(uint8_t value);
 void rotation_io_out(uint8_t value);
 void nozzle_io_out(uint8_t value);
 #endif
-
-
+uint8_t factory_test_gpio(uint8_t io_num,uint8_t state);
+void factory_test_gpio_init_on(void);
 
 #ifdef __cplusplus
 }

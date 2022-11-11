@@ -8,9 +8,10 @@
 #include "gpio_ctrl.h"
 #include "timer_app.h"
 #include "para_list.h"
-
+#ifdef DEVICE_TYPE_BLISTER
 #define FTC533_data_1()    gpio_set_level(GPIO_IO_FTC533, 0);
 #define FTC533_data_0()    gpio_set_level(GPIO_IO_FTC533, 1);
+#endif
 #define idle_state 0
 #define start_state 1
 #define key0_state 2
@@ -84,7 +85,7 @@ void timer_FTC533(void)
     // ESP_LOGI(TAG, "Stopped and deleted timers");
 }
 
-
+#ifdef DEVICE_TYPE_BLISTER
 void data_0_process(uint8_t state)
 {
     if(state%2==0){
@@ -233,7 +234,7 @@ static void FTC533_timer_callback(void* arg)
     }
 }
 
-
+#endif
 
 
 // void timer_app(void)

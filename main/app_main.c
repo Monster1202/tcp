@@ -57,6 +57,7 @@ void print_heapsize(void)
 void app_main(void)
 {
     print_heapsize();
+    spiff_init();
 //parameter_init
     para_init();
 //gpio task in/out     PRIO 10 
@@ -69,22 +70,23 @@ void app_main(void)
     native_ota_app();
 //MQTT enable     MQTT task priority, default is 5,
     mqtt_init();
+
     xTaskCreate(airpump_process, "airpump_process", 1024, NULL, 8, NULL);
-    spiff_init();
     xTaskCreate(log_process, "log_process", 4096, NULL, 3, NULL);
 //uart read/write example without event queue;
 #ifdef DEVICE_TYPE_BLISTER
-    //xTaskCreate(uart485_task, "uart485_task", 2048, NULL, 12, NULL);
 //pressure_read
-    //xTaskCreate(pressure_read, "pressure_read", 4096, NULL, 3, NULL);
-    //xTaskCreate(FTC533_process, "FTC533_process", 2048, NULL, 7, NULL);
-    
+        
     timer_FTC533();
     heater_init(1);
 #endif
 
 // #ifndef DEVICE_TYPE_REMOTE
-
+#ifdef GPIOTEST 
+    xTaskCreate(uart485_task, "uart485_task", 4096, NULL, 10, NULL);
+    xTaskCreate(uart232_task, "uart232_task", 4096, NULL, 11, NULL);
+    xTaskCreate(pressure_read, "pressure_read", 4096, NULL, 2, NULL);
+#endif
 // //DS18B20 task
 //     //xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR
 // #endif

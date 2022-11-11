@@ -22,18 +22,25 @@
 #define ECHO_TEST_CTS   (-1)
 
 #define BUF_SIZE        (127)
-#define BAUD_RATE       (9600)
+#define BAUD_RATE       (115200)
 
 // Read packet timeout
-#define PACKET_READ_TICS        (100 / 1)
+#define PACKET_READ_TICS        (100 / 10)
 // #define ECHO_TASK_STACK_SIZE    (2048)
 // #define ECHO_TASK_PRIO          (12)
-#define ECHO_UART_PORT          (2)
-
+#define ECHO_UART_PORT          (1)
+#define ECHO_TEST_TXD   (2)//(48)//
+#define ECHO_TEST_RXD   (1)//(45)//
 // Timeout threshold for UART = number of symbols (~10 tics) with unchanged state on receive pin
 #define ECHO_READ_TOUT          (3) // 3.5T * 8 = 28 ticks, TOUT=3 -> ~24..33 ticks
 
+#define ECHO_232_PORT          (2)
+#define ECHO_232_TXD   (48)
+#define ECHO_232_RXD   (45)
+
 const int uart_num = ECHO_UART_PORT;
+const int uart232_num = ECHO_232_PORT;
+
 uart_config_t uart_config = {
     .baud_rate = BAUD_RATE,
     .data_bits = UART_DATA_8_BITS,
@@ -52,11 +59,58 @@ static void echo_send(const int port, const char* str, uint8_t length)
         abort();
     }
 }
+void uart232_task(void *arg)
+{
+    ESP_LOGI(TAG, "Start RS232 application test and configure UART.");
+    // Install UART driver (we don't need an event queue here)
+    // In this example we don't even use a buffer for sending data.
+    ESP_ERROR_CHECK(uart_driver_install(uart232_num, BUF_SIZE * 2, 0, 0, NULL, 0));
+    // Configure UART parameters
+    ESP_ERROR_CHECK(uart_param_config(uart232_num, &uart_config));
+    ESP_LOGI(TAG, "UART set pins, mode and install driver.");
+    // Set UART pins as per KConfig settings
+    ESP_ERROR_CHECK(uart_set_pin(uart232_num, ECHO_232_TXD, ECHO_232_RXD, ECHO_TEST_RTS, ECHO_TEST_CTS));
+    // Set RS485 half duplex mode
+    ESP_ERROR_CHECK(uart_set_mode(uart232_num, UART_MODE_RS485_HALF_DUPLEX));
+    // Set read timeout of UART TOUT feature
+    ESP_ERROR_CHECK(uart_set_rx_timeout(uart232_num, ECHO_READ_TOUT));
+    // Allocate buffers for UART
+    uint8_t* data = (uint8_t*) malloc(BUF_SIZE);
+    ESP_LOGI(TAG, "UART start recieve loop.\r\n");
+    echo_send(uart232_num, "Start RS232 UART test.\r\n", 24);
+    while(1) {
+        //Read data from UART
+        int len = uart_read_bytes(uart232_num, data, BUF_SIZE, PACKET_READ_TICS);
+
+        //Write data back to UART
+        if (len > 0) {
+            //echo_send(uart_num, "\r\n", 2);
+            char prefix[] = "RS232 Received: [";
+            echo_send(uart232_num, prefix, (sizeof(prefix) - 1));
+            ESP_LOGI(TAG, "Received %u bytes:", len);
+            ESP_LOGI(TAG, "[ ");
+            for (int i = 0; i < len; i++) {
+                printf("0x%.2X ", (uint8_t)data[i]);
+                echo_send(uart232_num, (const char*)&data[i], 1);
+                // Add a Newline character if you get a return charater from paste (Paste tests multibyte receipt/buffer)
+                if (data[i] == '\r') {
+                    echo_send(uart232_num, "\n", 1);
+                }
+            }
+            printf("] \n");
+            echo_send(uart232_num, "]\r\n", 3);
+        } 
+        else {
+            // Echo a "." to show we are alive while we wait for input
+            //echo_send(uart_num, ".", 1);
+            ESP_ERROR_CHECK(uart_wait_tx_done(uart232_num, 10));
+        }
+    }
+    vTaskDelete(NULL);
+}
 // An example of echo test with hardware flow control on UART
 void uart485_task(void *arg)
 {
-
-
     // Set UART log level
     esp_log_level_set(TAG, ESP_LOG_INFO);
 
@@ -94,25 +148,25 @@ void uart485_task(void *arg)
         if (len > 0) {
             //echo_send(uart_num, "\r\n", 2);
             char prefix[] = "RS485 Received: [";
-            //echo_send(uart_num, prefix, (sizeof(prefix) - 1));
+            echo_send(uart_num, prefix, (sizeof(prefix) - 1));
             ESP_LOGI(TAG, "Received %u bytes:", len);
             ESP_LOGI(TAG, "[ ");
             for (int i = 0; i < len; i++) {
-                ESP_LOGI(TAG, "0x%.2X ", (uint8_t)data[i]);
-                //echo_send(uart_num, (const char*)&data[i], 1);
+                printf("0x%.2X ", (uint8_t)data[i]);
+                echo_send(uart_num, (const char*)&data[i], 1);
                 // Add a Newline character if you get a return charater from paste (Paste tests multibyte receipt/buffer)
-                // if (data[i] == '\r') {
-                //     echo_send(uart_num, "\n", 1);
-                // }
+                if (data[i] == '\r') {
+                    echo_send(uart_num, "\n", 1);
+                }
             }
-            ESP_LOGI(TAG, "] \n");
-            //echo_send(uart_num, "]\r\n", 3);
+            printf("] \n");
+            echo_send(uart_num, "]\r\n", 3);
         } 
-        // else {
-        //     // Echo a "." to show we are alive while we wait for input
-        //     echo_send(uart_num, ".", 1);
-        //     ESP_ERROR_CHECK(uart_wait_tx_done(uart_num, 10));
-        // }
+        else {
+            // Echo a "." to show we are alive while we wait for input
+            //echo_send(uart_num, ".", 1);
+            ESP_ERROR_CHECK(uart_wait_tx_done(uart_num, 10));
+        }
     }
     vTaskDelete(NULL);
 }
