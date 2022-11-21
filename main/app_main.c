@@ -129,12 +129,15 @@ void app_main(void)
             // log_write_send("testttt:%.0f",parameter_read_timestamp());
             // log_read_send('0');  
         }
+        //led blink
+        #ifdef DEVICE_TYPE_BLISTER
         nozzle_mode = parameter_read_mode();
         air_pressure = parameter_read_pressure_alarm();
         if( nozzle_mode == 1 && air_pressure == 1)
             gpio_set_level(GPIO_OUTPUT_LED_2, time_cnt%2);
         if( nozzle_mode == 2 && air_pressure == 1)
-            gpio_set_level(GPIO_OUTPUT_LED_3, time_cnt%2);    
+            gpio_set_level(GPIO_OUTPUT_LED_3, time_cnt%2); 
+        #endif   
         //printf("wifi_sta: %d\n", wifi_sta);
 
         //test_custom_partition();

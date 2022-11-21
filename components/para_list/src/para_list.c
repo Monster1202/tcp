@@ -293,7 +293,15 @@ void parameter_write_water(uint8_t value)
 
 uint8_t parameter_read_water(void)
 {
-    return brush_para.water;
+#ifdef DEVICE_TYPE_BRUSH
+return brush_para.water;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+return blister_para.water;
+#endif
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.water;
+#endif
 }
 
 void parameter_write_pressure_alarm(uint8_t value)
@@ -304,7 +312,15 @@ void parameter_write_pressure_alarm(uint8_t value)
 
 uint8_t parameter_read_pressure_alarm(void)
 {
-    return brush_para.pressure_alarm;
+#ifdef DEVICE_TYPE_BRUSH
+return brush_para.pressure_alarm;
+#endif
+#ifdef DEVICE_TYPE_BLISTER
+return blister_para.pressure_alarm;
+#endif
+#ifdef DEVICE_TYPE_REMOTE
+return remote_para.pressure_alarm;
+#endif
 }
 
 void parameter_write_liquid_alarm(uint8_t value)

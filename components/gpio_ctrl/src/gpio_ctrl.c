@@ -952,11 +952,13 @@ uint8_t sw_key_read(uint8_t io_num,uint8_t state)
 
 void factory_test_gpio_init_on(void)
 {
+        // gpio_set_level(14, 1);
+        // gpio_set_level(GPIO_OUTPUT_LED_1, 1);
         gpio_set_level(14, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);  
 
-        gpio_set_level(13, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_2, 1);
+        gpio_set_level(13, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_2, 0);
 
         gpio_set_level(12, 1);
         gpio_set_level(GPIO_OUTPUT_LED_3, 1);
@@ -1036,29 +1038,33 @@ uint8_t factory_test_gpio(uint8_t io_num,uint8_t state)
         }
     }
 
-    if(state == 1 && io_num == GPIO_INPUT_IO_1)     //reverse  1/0
-    {
-        gpio_set_level(14, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_1 press"); 
-    }
-    else if(state == 0 && io_num == GPIO_INPUT_IO_1)    //press
-    {
-        gpio_set_level(14, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_1 release"); 
-    }
-    else if(state == 1 && io_num == GPIO_INPUT_IO_2)  //reverse 1/0
+    // if(state == 1 && io_num == GPIO_INPUT_IO_1)     //reverse  1/0
+    // {
+    //     gpio_set_level(14, 1);
+    //     gpio_set_level(GPIO_OUTPUT_LED_1, 1);
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_1 press"); 
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_1)    //press
+    // {
+    //     gpio_set_level(14, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_1, 0);
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_1 release"); 
+    // }
+    if(state == 1 && io_num == GPIO_INPUT_IO_2)  //reverse 1/0
     {
         gpio_set_level(13, 1);
         gpio_set_level(GPIO_OUTPUT_LED_2, 1);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_2 press");  
+        gpio_set_level(14, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);
     }
     else if(state == 0 && io_num == GPIO_INPUT_IO_2)
     {
         gpio_set_level(13, 0);
         gpio_set_level(GPIO_OUTPUT_LED_2, 0);
         ESP_LOGI(TAG, "GPIO_INPUT_IO_2 release");  
+        gpio_set_level(14, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);
     }
     // else if(state == 0 && io_num == GPIO_INPUT_IO_3)   //bubble 
     // {

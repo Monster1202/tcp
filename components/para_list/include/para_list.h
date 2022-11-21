@@ -14,12 +14,12 @@ extern "C" {
 // #define MQTT_PRIO 5
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-//#define DEVICE_TYPE_BRUSH 
-#define DEVICE_TYPE_BLISTER
+#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
-#define GPIOTEST
-//#define GPIOWORKING
+//#define GPIOTEST
+#define GPIOWORKING
 
 
 
