@@ -1813,7 +1813,7 @@ rule C_STATIC_LIBRARY_LINKER____idf_pressure_i2c_
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /home/yuan/.espressif/tools/cmake/3.20.3/bin/cmake --regenerate-during-build -S/home/yuan/esp/tcp -B/home/yuan/esp/tcp/build
+  command = /home/yuan/.espressif/tools/cmake/3.20.3/bin/cmake --regenerate-during-build -S/home/yuan/esp/tcp-mqtt -B/home/yuan/esp/tcp-mqtt/build
   description = Re-running CMake...
   generator = 1
 

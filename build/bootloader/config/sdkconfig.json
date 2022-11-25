@@ -293,7 +293,7 @@
     "SPIRAM_SPEED_120M": false,
     "SPIRAM_SPEED_40M": true,
     "SPIRAM_SPEED_80M": false,
-    "SPIRAM_TRY_ALLOCATE_WIFI_LWIP": false,
+    "SPIRAM_TRY_ALLOCATE_WIFI_LWIP": true,
     "SPIRAM_TYPE_AUTO": true,
     "SPIRAM_TYPE_ESPPSRAM16": false,
     "SPIRAM_TYPE_ESPPSRAM32": false,

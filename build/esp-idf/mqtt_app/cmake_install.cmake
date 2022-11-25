@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/mqtt_app
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/mqtt_app
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

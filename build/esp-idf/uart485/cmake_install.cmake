@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/uart485
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/uart485
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

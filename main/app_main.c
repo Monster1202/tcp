@@ -112,7 +112,7 @@ void app_main(void)
         vTaskDelay(200 / portTICK_RATE_MS);
         wifi_sta=parameter_read_wifi_connection();
         time_cnt++;
-        if(wifi_sta==1 || wifi_sta==3){
+        if(wifi_sta>=1){
             if(time_cnt % (5-wifi_sta) == 1){
                 s_led_state = !s_led_state;
                 gpio_set_level(GPIO_SYS_LED, s_led_state);
@@ -125,7 +125,7 @@ void app_main(void)
             //TimeStamp2DateTime(time_int);
             //stamp_to_standard(time_int,time_string);
             //printf("time_string: %s\n", time_string);
-            log_write_send("wifi_sta:%dtime:%s ",wifi_sta,parameter_read_time_string());   //write print
+           // log_write_send("wifi_sta:%dtime:%s ",wifi_sta,parameter_read_time_string());   //write print
             // log_write_send("testttt:%.0f",parameter_read_timestamp());
             // log_read_send('0');  
         }
@@ -140,8 +140,7 @@ void app_main(void)
         #endif   
         //printf("wifi_sta: %d\n", wifi_sta);
 
-        //test_custom_partition();
-        //device_states_publish(cnt%4+1);    
+        //test_custom_partition(); 
         //printf("parameter_read_FTC533:cnt: %d\n", cnt);
     }
 }

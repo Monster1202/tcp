@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/para_list
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/para_list
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

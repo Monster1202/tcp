@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/wifi
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/wifi
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

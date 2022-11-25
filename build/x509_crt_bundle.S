@@ -1,4 +1,4 @@
-/* * Data converted from /home/yuan/esp/tcp/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from /home/yuan/esp/tcp-mqtt/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

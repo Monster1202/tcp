@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/pressure_i2c
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/pressure_i2c
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

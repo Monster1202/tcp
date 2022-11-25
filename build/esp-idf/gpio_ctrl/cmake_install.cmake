@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/gpio_ctrl
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/gpio_ctrl
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

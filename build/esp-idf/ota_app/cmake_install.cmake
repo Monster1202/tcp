@@ -1,4 +1,4 @@
-# Install script for directory: /home/yuan/esp/tcp/components/ota_app
+# Install script for directory: /home/yuan/esp/tcp-mqtt/components/ota_app
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

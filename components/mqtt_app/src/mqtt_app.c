@@ -403,11 +403,13 @@ void device_states_publish(uint8_t button)
     char data_pub_1[300] = "init";
 #ifdef DEVICE_TYPE_BRUSH
     data_publish(data_pub_1,1);   
-    msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
+    log_write_send("log:%s time:%s ",data_pub_1,parameter_read_time_string()); 
+    //msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
 #endif
 #ifdef DEVICE_TYPE_BLISTER
     data_publish(data_pub_1,3);   
-    msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
+    log_write_send("log:%s time:%s ",data_pub_1,parameter_read_time_string()); 
+    //msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
 #endif
 #ifdef DEVICE_TYPE_REMOTE
     switch(button)
@@ -422,12 +424,13 @@ void device_states_publish(uint8_t button)
         msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_EMERGENCY_CONTROL, data_pub_1, 0, 1, 0);break;
         default:break;
     }   
+    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 #endif    
     // if(button == 20){
     //     data_publish(data_pub_1,20);   //case 20 log
     //     msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_LOG_ESP32, data_pub_1, 0, 1, 0);
     // }
-    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+    
 }
 
 
@@ -521,8 +524,9 @@ void data_publish(char *data,uint8_t case_pub)
     //     }
     char *msg = cJSON_Print(root);
     //ESP_LOGI(TAG, "%s",msg); 
-    log_write_send("log:%s time:%s ",msg,parameter_read_time_string()); 
+    //log_write_send("log:%s time:%s ",msg,parameter_read_time_string()); 
     strcpy(data,msg);
+    free(msg);
     cJSON_Delete(root);
 }
 
@@ -548,6 +552,13 @@ void mqtt_reset(void)
     // esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(mqtt_client);
 }
+
+// void STATUS_LOG_WRITE(char *log_buffer)
+// {
+//     char data_pub_1[300] = "init";
+//     cJSON*root = cJSON_CreateObject();
+//     cJSON_Delete(root);
+// }
 
 void ESP32_LOG_publish(char *log_buffer)
 {
@@ -580,11 +591,12 @@ void mqtt_init(void)
 void log_file_clear(char *filename)  
 {
     ESP_LOGI(TAG, "clear_Opening file");
-    FILE* f = fopen(LOG_FILE_PATH, "w");  //w a 
+    FILE* f = fopen(LOG_FILE_PATH, "w+");  //w a 
     if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing");
         return;
     }
+    
     fprintf(f, "ESP32-LOG: ");
     fclose(f);
     ESP_LOGI(TAG, "File clear");
@@ -594,6 +606,8 @@ void log_file_clear(char *filename)
     ESP_LOGI(TAG, "SPIFFS unmounted");
 
     spiff_init();
+    //esp_err_t esp_spiffs_format(const char *partition_label); 
+    //esp_err_t esp_spiffs_check(const char *partition_label)
 }
 void log_write_send(const char *format,...)  
 {
@@ -643,14 +657,20 @@ void log_process(void)
 {
     char line[1000];
     int cnt = 0;
+    uint8_t wifi_sta = 0;
     ESP_LOGI(TAG, "log_process_enable");
     while(1)
     {
         if(cnt%60==30){
+            wifi_sta=parameter_read_wifi_connection();
+            if(wifi_sta < 3)
+                log_write_send("wifi_sta:%dtime:%s ",wifi_sta,parameter_read_time_string());   //write print
+            else if(wifi_sta >= 3)
+                device_states_publish(0);   //status log write
             char *cpSourceFile = LOG_FILE_PATH;
             long long res = getFileSize(cpSourceFile);
             printf("sizeof(/spiffs/log3.txt):%lld\n",res);
-            if(res >= total-1000){
+            if(res >= total*3/4 || res >=1500000){
                 log_file_clear("0");
             }
         }
@@ -753,6 +773,15 @@ void spiff_init(void)
         //ESP_LOGI(TAG, "Partition table: %s", conf.partition_label);
     }
 
+    // ret = esp_spiffs_check(conf.partition_label);
+    // if (ret != ESP_OK) {
+    //     ESP_LOGE(TAG, "check esp_spiffs_info Failed ");
+    // } else {
+    //     ESP_LOGI(TAG, "check ok ");
+    //     //ESP_LOGI(TAG, "Partition table: %s", conf.partition_label);
+    // }
+    // esp_vfs_spiffs_unregister(NULL);
+    // ESP_LOGI(TAG, "SPIFFS unmounted");
     // log_write_send("testttt");
     // log_read_send('0');  
         // All done, unmount partition and disable SPIFFS
