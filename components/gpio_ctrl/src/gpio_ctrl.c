@@ -80,17 +80,17 @@ void rotation_io_out(uint8_t value)
 void nozzle_io_out(uint8_t value)
 {
     if(value == 1){
-        gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
-        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
+        //gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
+        gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
         parameter_write_nozzle(1);
         ESP_LOGI(TAG, "brush_para.nozzle = 1");}
     else if(value == 2){
-        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        //gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 1);
         parameter_write_nozzle(2);
         ESP_LOGI(TAG, "brush_para.nozzle = 2");}
     else{
-        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        //gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
         parameter_write_nozzle(0);
         ESP_LOGI(TAG, "brush_para.nozzle = 0");}
@@ -103,11 +103,12 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEY, 0);
         gpio_set_level(GPIO_OUTPUT_IO_ROTATEX, 0);
-        gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+        gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);  //logic inverted
         gpio_set_level(GPIO_OUTPUT_IO_BUBBLE, 0);
         if(state){
             parameter_write_emergency_stop(1);
-            gpio_set_level(GPIO_OUTPUT_LED_1, 1);    
+            gpio_set_level(GPIO_OUTPUT_IO_7, 1); 
+            //gpio_set_level(GPIO_OUTPUT_LED_1, 1);    
             //gpio_set_level(GPIO_SYS_LED, 1);
             ESP_LOGI(TAG, "brush_para.emergency_stop = 1");
             }
@@ -118,6 +119,7 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
     else{
         if(state){
             parameter_write_emergency_stop(0); 
+            gpio_set_level(GPIO_OUTPUT_IO_7, 0); 
             //gpio_set_level(GPIO_SYS_LED, 0);
             ESP_LOGI(TAG, "brush_para.emergency_stop = 0");
             }
@@ -144,40 +146,66 @@ uint8_t brush_input(uint8_t io_num,uint8_t state)
         ESP_LOGI(TAG, "GPIO_INPUT_IO_6:1");
         gpio_set_level(GPIO_OUTPUT_LED_5, 1);
     }
-    else if(state == 0 && io_num == GPIO_INPUT_IO_7)  //pressure 0/1 input
+    else if(state == 0 && io_num == GPIO_INPUT_IO_5)  //pressure 0/1 input
     {
         parameter_write_pressure_alarm(1);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_7:0");
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_5:0");
         gpio_set_level(GPIO_OUTPUT_LED_6, 0);
     }
-    else if(state == 1 && io_num == GPIO_INPUT_IO_7)
+    else if(state == 1 && io_num == GPIO_INPUT_IO_5)
     {
         parameter_write_pressure_alarm(0);
-        ESP_LOGI(TAG, "GPIO_INPUT_IO_7:1");
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_5:1");
         gpio_set_level(GPIO_OUTPUT_LED_6, 1);
     }
-    else if(io_num == GPIO_INPUT_IO_STOP)
+    else if(state == 0 && io_num == GPIO_INPUT_IO_STOP)
     {
         ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
-        register_value = parameter_read_emergency_stop();
-        register_afterpress = UI_press_output(register_value,1);
-        brush_stop_io_out(register_afterpress,1);  
-        //brush_stop_io_out(state,1);     
+        // register_value = parameter_read_emergency_stop();
+        // register_afterpress = UI_press_output(register_value,1);
+        brush_stop_io_out(1,1);    
     }
-    else if(state == 0 && io_num == GPIO_INPUT_IO_5)   //test air pump
+    else if(state == 1 && io_num == GPIO_INPUT_IO_STOP)
     {
-        parameter_write_air_pump(1);
-        ESP_LOGI(TAG, "air pump open");
-        gpio_set_level(GPIO_OUTPUT_IO_7, 1);
-        gpio_set_level(GPIO_OUTPUT_LED_5, 1);   
+        ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP OFF");
+        // register_value = parameter_read_emergency_stop();
+        // register_afterpress = UI_press_output(register_value,1);
+        brush_stop_io_out(0,1);      
     }
-    else if(state == 1 && io_num == GPIO_INPUT_IO_5)   //test air pump
+    else if(state == 0 && io_num == GPIO_INPUT_IO_7)   
     {
-        parameter_write_air_pump(0);
-        ESP_LOGI(TAG, "air pump stop");
-        gpio_set_level(GPIO_OUTPUT_IO_7, 0);
-        gpio_set_level(GPIO_OUTPUT_LED_5, 0);   
+        ESP_LOGI(TAG, "12V power on");
+        gpio_set_level(GPIO_OUTPUT_IO_8, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 1);   
     }
+    else if(state == 1 && io_num == GPIO_INPUT_IO_7)   
+    {
+        ESP_LOGI(TAG, "12V power off");
+        gpio_set_level(GPIO_OUTPUT_IO_8, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_1, 0);   
+    }
+    // else if(io_num == GPIO_INPUT_IO_STOP)
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
+    //     register_value = parameter_read_emergency_stop();
+    //     register_afterpress = UI_press_output(register_value,1);
+    //     brush_stop_io_out(register_afterpress,1);  
+    //     //brush_stop_io_out(state,1);     
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_5)   //test air pump
+    // {
+    //     parameter_write_air_pump(1);
+    //     ESP_LOGI(TAG, "air pump open");
+    //     gpio_set_level(GPIO_OUTPUT_IO_7, 1);
+    //     gpio_set_level(GPIO_OUTPUT_LED_5, 1);   
+    // }
+    // else if(state == 1 && io_num == GPIO_INPUT_IO_5)   //test air pump
+    // {
+    //     parameter_write_air_pump(0);
+    //     ESP_LOGI(TAG, "air pump stop");
+    //     gpio_set_level(GPIO_OUTPUT_IO_7, 0);
+    //     gpio_set_level(GPIO_OUTPUT_LED_5, 0);   
+    // }
     else
     {
         return 0;
@@ -1146,6 +1174,14 @@ uint8_t factory_test_gpio(uint8_t io_num,uint8_t state)
 void start_read(void)
 {
     uint8_t key_status = 0;
+    key_status = !gpio_get_level(GPIO_INPUT_IO_STOP);
+    parameter_write_emergency_stop(key_status);
+    #ifdef DEVICE_TYPE_BRUSH
+        brush_stop_io_out(key_status,1);    //1 enable
+        key_status = !gpio_get_level(GPIO_INPUT_IO_7);   //12V IO
+        gpio_set_level(GPIO_OUTPUT_IO_8, key_status);
+        gpio_set_level(GPIO_OUTPUT_LED_1, key_status);   
+    #endif
     #ifdef DEVICE_TYPE_BLISTER
     key_status = !gpio_get_level(GPIO_INPUT_IO_5);
     ESP_LOGI(TAG, "GPIO_INPUT_IO_5,water:%d",key_status);
@@ -1243,9 +1279,6 @@ void gpio_init(void)
     // gpio_set_level(GPIO_OUTPUT_LED_5, 0);
     // gpio_set_level(GPIO_OUTPUT_LED_6, 0);
     
-    uint8_t key_status = 0;
-    key_status = !gpio_get_level(GPIO_INPUT_IO_STOP);
-    parameter_write_emergency_stop(key_status);
     start_read();
 }
 

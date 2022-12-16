@@ -160,16 +160,18 @@ void airpump_process(void)
         if(nozzle_state == 2){
             cnt++;
             if(cnt >= 25 && cnt <= 35){
-                gpio_set_level(GPIO_OUTPUT_IO_7, 1);
-                gpio_set_level(GPIO_OUTPUT_LED_5, 1);               
+                gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+                //gpio_set_level(GPIO_OUTPUT_IO_7, 1);
+                //gpio_set_level(GPIO_OUTPUT_LED_5, 1);               
                 //cnt = 0;
             }           
         }
         else{
-            if(air_pump_state != 1){
-                gpio_set_level(GPIO_OUTPUT_LED_5, 0);
-                gpio_set_level(GPIO_OUTPUT_IO_7, 0);
-            }
+            //if(air_pump_state != 1){
+                //gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+                //gpio_set_level(GPIO_OUTPUT_IO_7, 0);
+                gpio_set_level(GPIO_OUTPUT_IO_WATER, 1);
+            //}
             cnt = 0;
         }
         #endif

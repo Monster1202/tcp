@@ -403,13 +403,13 @@ void device_states_publish(uint8_t button)
     char data_pub_1[300] = "init";
 #ifdef DEVICE_TYPE_BRUSH
     data_publish(data_pub_1,1);   
+    msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
     log_write_send("log:%s time:%s ",data_pub_1,parameter_read_time_string()); 
-    //msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
 #endif
 #ifdef DEVICE_TYPE_BLISTER
     data_publish(data_pub_1,3);   
-    log_write_send("log:%s time:%s ",data_pub_1,parameter_read_time_string()); 
-    //msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
+    msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BLISTER_STATES, data_pub_1, 0, 1, 0);
+    log_write_send("log:%s time:%s ",data_pub_1,parameter_read_time_string());
 #endif
 #ifdef DEVICE_TYPE_REMOTE
     switch(button)
