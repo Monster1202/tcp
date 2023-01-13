@@ -852,8 +852,10 @@ uint8_t sw_key_read(uint8_t io_num,uint8_t state)
     #ifdef DEVICE_TYPE_BLISTER
     if(io_num == GPIO_INPUT_IO_1 || io_num == GPIO_INPUT_IO_2 || io_num == GPIO_INPUT_IO_3)
     {
-        if(state == 1){
-            blister_press_output(io_num);}    //no self-lock-button 1234
+        if(KEY_READ(io_num)==1)    //
+            blister_press_output(io_num);
+        // if(state == 1){
+        //     blister_press_output(io_num);}    //no self-lock-button 1234
     }
     else // if(io_num == GPIO_INPUT_IO_4 || io_num == GPIO_INPUT_IO_5 || io_num == GPIO_INPUT_IO_6 || io_num == GPIO_INPUT_IO_7)
     {    blister_input(io_num,state); }  //sensor gpio 567  self-lock-button 8

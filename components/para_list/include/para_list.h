@@ -99,7 +99,7 @@ typedef struct
         #define GPIO_OUTPUT_LED_5         7
         #define GPIO_OUTPUT_LED_6         6
         #define GPIO_SYS_LED         0    //stop
-        #define GPIO_IO_FTC533       21//6   PWR_CTRL_1
+        #define GPIO_IO_FTC533       21//6   PWR_CTRL_2
 
         #define GPIO_OUTPUT_IO_HEATER    14    //heater power
         #define GPIO_OUTPUT_IO_WATER     13    //high pressure pump power
