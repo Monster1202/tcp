@@ -19,6 +19,7 @@ void log_write_send(const char *format,...);
 void log_read_send(const char *format,...);
 void log_process(void);
 void spiff_init(void);
+void ota_debug_process(void);
 #ifdef __cplusplus
 }
 #endif

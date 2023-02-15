@@ -27,6 +27,7 @@
 #include "gpio_ctrl.h"
 #include "wifi_sta.h"
 #include "esp_spiffs.h"
+#include "ota_app.h"
 
 #define TOPIC_TIMESTAMP "/timestamp"
 #define TOPIC_EMERGENCY_CONTROL "/emergency-control"
@@ -51,6 +52,7 @@ static uint16_t buf_disconnect = 0;
 uint8_t flag_write_para = 0;
 uint8_t flag_log = 0;
 size_t total = 0, used = 0;
+uint8_t flag_ota_debug = 0;
 static void log_error_if_nonzero(const char *message, int error_code)
 {
     if (error_code != 0) {
@@ -354,7 +356,7 @@ void data_process(char *data)
         ESP_LOGI(TAG, "broker_url = %s", json_broker_url->valuestring);
         flag_write_para += 2;
     }
-    cJSON *json_update_url = cJSON_GetObjectItem(json_str_xy, "update_url");
+    cJSON *json_update_url = cJSON_GetObjectItem(json_str_xy, "update_url");  //only once able,power down return to flash's url
     if(json_update_url != NULL && json_update_url->type == cJSON_String) {
         parameter_write_update_url(json_update_url->valuestring);
         ESP_LOGI(TAG, "update_url = %s", json_update_url->valuestring);
@@ -380,6 +382,11 @@ void data_process(char *data)
         ESP_LOGI(TAG, "log_read : %d", json_buffer->valueint);
         //log_read_send("0");
         flag_log = 1;
+    }
+    json_buffer = cJSON_GetObjectItem(json_str_xy, "OTA_ready");
+    if(json_buffer != NULL && json_buffer->type == cJSON_Number) {
+        ESP_LOGI(TAG, "OTA_ready : %d", json_buffer->valueint);
+        flag_ota_debug=1;
     }
     // if(flag_write_para)
     //     flashwrite_reset();
@@ -787,6 +794,22 @@ void spiff_init(void)
         // All done, unmount partition and disable SPIFFS
     // esp_vfs_spiffs_unregister(conf.partition_label);
     // ESP_LOGI(TAG, "SPIFFS unmounted");
+}
+
+
+void ota_debug_process(void)
+{
+    while(1)
+    {
+        if(flag_ota_debug){
+            //wifi_reset();
+            flag_ota_debug = 0;
+            //parameter_write_update_url("http://172.16.171.221:8070/blister.bin");
+            vTaskDelay(6000 / portTICK_RATE_MS);
+            native_ota_app();
+        }
+        vTaskDelay(1000 / portTICK_RATE_MS);
+    }
 }
 // void cJSON_init(void)
 // {

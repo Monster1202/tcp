@@ -39,6 +39,8 @@ void blister_mode_io_out(uint8_t value);
 void heater_io_out(uint8_t value);
 void heater_init(uint8_t state);
 uint8_t blister_input(uint8_t io_num,uint8_t state);
+void heater_init_process(void);
+
 #endif
 
 #ifdef DEVICE_TYPE_REMOTE

@@ -70,15 +70,17 @@ void app_main(void)
     native_ota_app();
 //MQTT enable     MQTT task priority, default is 5,
     mqtt_init();
-
+    
     xTaskCreate(airpump_process, "airpump_process", 1024, NULL, 8, NULL);
     xTaskCreate(log_process, "log_process", 4096, NULL, 3, NULL);
 //uart read/write example without event queue;
+    //xTaskCreate(ota_debug_process, "ota_debug_process", 4096, NULL, 12, NULL);
 #ifdef DEVICE_TYPE_BLISTER
 //pressure_read
-        
     timer_FTC533();
-    heater_init(1);
+    xTaskCreate(heater_init_process, "heater_init_process", 4096, NULL, 7, NULL);
+    //heater_init(1);
+    //timer_heater_init();
 #endif
 
 // #ifndef DEVICE_TYPE_REMOTE
@@ -107,6 +109,7 @@ void app_main(void)
     uint8_t nozzle_mode = 0;
     uint8_t air_pressure = 0;
     uint8_t blister_led_state = 0;
+    uint8_t blister_emergency_state = 0;
     while(1) {
         //time_cnt = parameter_read_debug();  
         vTaskDelay(200 / portTICK_RATE_MS);
@@ -131,12 +134,19 @@ void app_main(void)
         }
         //led blink
         #ifdef DEVICE_TYPE_BLISTER
-        nozzle_mode = parameter_read_mode();
-        air_pressure = parameter_read_pressure_alarm();
-        if( nozzle_mode == 1 && air_pressure == 1)
+        blister_emergency_state = parameter_read_emergency_stop();
+        if(blister_emergency_state){
+            
+            gpio_set_level(GPIO_OUTPUT_LED_1, time_cnt%2);
             gpio_set_level(GPIO_OUTPUT_LED_2, time_cnt%2);
-        if( nozzle_mode == 2 && air_pressure == 1)
             gpio_set_level(GPIO_OUTPUT_LED_3, time_cnt%2); 
+        }
+        // nozzle_mode = parameter_read_mode();
+        // air_pressure = parameter_read_pressure_alarm();
+        // if( nozzle_mode == 1 && air_pressure == 1)
+        //     gpio_set_level(GPIO_OUTPUT_LED_2, time_cnt%2);
+        // if( nozzle_mode == 2 && air_pressure == 1)
+        //     gpio_set_level(GPIO_OUTPUT_LED_3, time_cnt%2); 
         #endif   
         //printf("wifi_sta: %d\n", wifi_sta);
 
@@ -160,7 +170,7 @@ void airpump_process(void)
         if(nozzle_state == 2){
             cnt++;
             if(cnt >= 25 && cnt <= 35){
-                gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);
+                gpio_set_level(GPIO_OUTPUT_IO_WATER, 0);   //change I/O to pump
                 //gpio_set_level(GPIO_OUTPUT_IO_7, 1);
                 //gpio_set_level(GPIO_OUTPUT_LED_5, 1);               
                 //cnt = 0;

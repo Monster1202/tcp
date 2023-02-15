@@ -23,7 +23,7 @@ uint8_t LED5_state = 0;
 static void periodic_timer_callback(void* arg);
 //static void oneshot_timer_callback(void* arg);
 static void FTC533_timer_callback(void* arg);
-
+static void heater_init_timer_callback(void* arg);
 static const char* TAG = "timer_example";
 
 
@@ -59,7 +59,54 @@ static void periodic_timer_callback(void* arg)
     gpio_set_level(GPIO_BEEP, beep_state);  
 }
 
+void timer_heater_init(void)
+{
+    const esp_timer_create_args_t periodic_timer_args = {
+            .callback = &heater_init_timer_callback,
+            /* name is optional, but may help identify the timer when debugging */
+            .name = "timer_heater_init"
+    };
 
+    esp_timer_handle_t timer_heater_init;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &timer_heater_init));
+
+    ESP_ERROR_CHECK(esp_timer_start_periodic(timer_heater_init, 2000000));
+    ESP_LOGI(TAG, "Started timers, time since boot: %lld us", esp_timer_get_time());
+
+    //parameter_write_FTC533(1);  //send the first time
+    usleep(6100000);  //6s + ex 0.11s
+
+    ESP_ERROR_CHECK(esp_timer_stop(timer_heater_init));
+    ESP_ERROR_CHECK(esp_timer_delete(timer_heater_init));
+
+    ESP_LOGI(TAG, "Stopped and deleted timers");
+}
+
+static void heater_init_timer_callback(void* arg)
+{
+    int64_t time_since_boot = esp_timer_get_time();
+    uint8_t blister_emergency_state = 0;
+    blister_emergency_state = parameter_read_emergency_stop();
+    ESP_LOGI(TAG, "Periodic timer called, time since boot: %lld us", time_since_boot);
+    //if(blister_emergency_state){
+    if(blister_emergency_state == 0)
+        parameter_write_FTC533(1); //3 times
+    //} 
+}
+
+// void heater_init(uint8_t state)
+// {
+//     //gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);  //HEATER MODULE POWER ON
+//     //ESP_LOGI(TAG, "HEATER MODULE POWER ON,ready to change to heater mode");
+//     if(state == 1){
+//         vTaskDelay(2000 / portTICK_RATE_MS);
+//         parameter_write_FTC533(1);
+//     }
+//     vTaskDelay(2000 / portTICK_RATE_MS);
+//     parameter_write_FTC533(1);
+//     vTaskDelay(2000 / portTICK_RATE_MS);
+//     parameter_write_FTC533(1);
+// }
 
 void timer_FTC533(void)
 {
