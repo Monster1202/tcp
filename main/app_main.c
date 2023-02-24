@@ -38,7 +38,7 @@
 #include "uart485.h"
 #include "esp_partition.h"
 #include "esp_err.h"
-
+#include "twai_app.h"
 
 void flashwrite_reset(void);
 int8_t test_custom_partition();
@@ -88,6 +88,9 @@ void app_main(void)
     xTaskCreate(uart485_task, "uart485_task", 4096, NULL, 10, NULL);
     xTaskCreate(uart232_task, "uart232_task", 4096, NULL, 11, NULL);
     xTaskCreate(pressure_read, "pressure_read", 4096, NULL, 2, NULL);
+#endif
+#ifdef DEVICE_TYPE_BRUSH  
+    twai_init();
 #endif
 // //DS18B20 task
 //     //xTaskCreate(ds18b20_read, "ds18b20_read", 4096, NULL, 24, NULL);///////23 OK  22 2% ERROR

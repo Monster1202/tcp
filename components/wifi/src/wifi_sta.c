@@ -36,6 +36,8 @@ esp_event_handler_instance_t instance_got_ip;
 static const char *TAG = "wifi station";
 static int s_retry_num = 0;
 
+
+
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -78,11 +80,17 @@ void wifi_init_sta(void)
     //uint8_t test_ssid[32] = {0};
     char *wifi_ssid = {0};
     char *wifi_pass = {0};
+    char *wifi_bssid = {0};
+    uint8_t wifi_bssid_set = 0;
     wifi_ssid = parameter_read_wifi_ssid();
     wifi_pass = parameter_read_wifi_pass();
-    ESP_LOGI(TAG, "wifi_ssid:%s",wifi_ssid); 
-    ESP_LOGI(TAG, "wifi_pass:%s",wifi_pass); 
-
+    wifi_bssid_set = parameter_read_wifi_bssid_set();
+    wifi_bssid = parameter_read_wifi_bssid();
+    // ESP_LOGI(TAG, "wifi_ssid:%s",wifi_ssid); 
+    // ESP_LOGI(TAG, "wifi_pass:%s",wifi_pass); 
+    // ESP_LOGI(TAG, "wifi_bssid_set:%d",wifi_bssid_set); 
+    // //ESP_LOGI(TAG, "wifi_bssid:%s",wifi_bssid); 
+    // ESP_LOG_BUFFER_HEX(TAG, wifi_bssid, 6);
     s_wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -113,8 +121,10 @@ void wifi_init_sta(void)
             /* Setting a password implies station will connect to all security modes including WEP/WPA.
              * However these modes are deprecated and not advisable to be used. Incase your Access point
              * doesn't support WPA2, these mode can be enabled by commenting below line */
-	     .threshold.authmode = WIFI_AUTH_WPA_PSK,
-         .threshold.rssi = -70,
+            .threshold.authmode = WIFI_AUTH_WPA_PSK,
+            .threshold.rssi = -70,
+            .bssid_set = 0,
+            .bssid = BACKUP_EXAMPLE_ESP_WIFI_AP_BSSID,    //ap_mac  {0x70,0xf7,0x54,0x9a,0x7b,0xe0},//
         },
     };
     ESP_LOGI(TAG, "strlen(wifi_ssid) + 1:%d",strlen(wifi_ssid) + 1);
@@ -123,9 +133,16 @@ void wifi_init_sta(void)
     ESP_LOGI(TAG, "strlen(wifi_pass) + 1:%d",strlen(wifi_pass) + 1);
     for(uint8_t i=0; i< strlen(wifi_pass) + 1;i++)
         wifi_config.sta.password[i] = wifi_pass[i];
+    //wifi_config.sta.bssid_set = 1;
+    //wifi_config.sta.bssid[] = {0x70,0xf7,0x54,0x9a,0x7b,0xe0};    
+    wifi_config.sta.bssid_set = wifi_bssid_set;
+    for(uint8_t i=0; i< strlen(wifi_bssid) + 1;i++)
+        wifi_config.sta.bssid[i] = wifi_bssid[i];    
     ESP_LOGI(TAG, "wifi_ssid:%s",wifi_config.sta.ssid); 
     ESP_LOGI(TAG, "wifi_pass:%s",wifi_config.sta.password); 
-
+    ESP_LOGI(TAG, "wifi_bssid_set:%d",wifi_config.sta.bssid_set); 
+    ESP_LOG_BUFFER_HEX(TAG, wifi_config.sta.bssid, 6);
+ 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start() );
@@ -326,9 +343,13 @@ int8_t get_rssi(void)
     wifi_ap_record_t ap;
     esp_wifi_sta_get_ap_info(&ap);
     //printf("%d\n", ap.rssi);
-    ESP_LOGI(TAG, "RSSI \t\t%d", ap.rssi);
+    ESP_LOGI(TAG, "RSSI \t\t%d,ap.bssid:", ap.rssi);
+    for(uint8_t i =0;i<6;i++)
+        printf("%x,",ap.bssid[i]);
+    parameter_write_wifi_bssid(ap.bssid);
     return ap.rssi;
 }
+
 void wifi_scan(void)
 {
     int8_t value = 0;
@@ -339,6 +360,6 @@ void wifi_scan(void)
             parameter_write_rssi(value); 
         }
         //vTaskDelay(600000 / portTICK_RATE_MS);      
-        vTaskDelay(6000 / portTICK_RATE_MS);    
+        vTaskDelay(30000 / portTICK_RATE_MS);    
     }
 }

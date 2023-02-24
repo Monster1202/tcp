@@ -14,8 +14,8 @@ extern "C" {
 // #define MQTT_PRIO 5
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-//#define DEVICE_TYPE_BRUSH 
-#define DEVICE_TYPE_BLISTER
+#define DEVICE_TYPE_BRUSH 
+//#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
@@ -29,13 +29,16 @@ extern "C" {
 #define BACKUP_MQTT_BROKER_URL     "mqtt://10.42.0.1"    //"mqtt://172.16.170.48"//
 #define BACKUP_EXAMPLE_ESP_WIFI_SSID      "CLEANING-SYSTEM"   //"SHKJ2020"//
 #define BACKUP_EXAMPLE_ESP_WIFI_PASS      "12345678"    //"shkj1234."//
-
+#define BACKUP_EXAMPLE_ESP_WIFI_AP_BSSID "xxxxx"
 typedef struct
 {
     char wifi_ssid[32];
     char wifi_pass[64];
     char broker_url[60];
     char update_url[60];
+    uint8_t wifi_bssid_set;
+    char wifi_bssid[6];
+//    char tail[6];
 }PARAMETER_CONNECTION;
 
 #define GPIO_IO_DS18B20      4//9
@@ -304,6 +307,20 @@ uint32_t parameter_read_debug(void);
 void parameter_write_air_pump(uint8_t value);
 uint8_t parameter_read_air_pump(void);
 
+void parameter_write_twai_status(uint8_t value);
+uint8_t parameter_read_twai_status(void);
+
+//void parameter_write_remote_xyz(char *speed_x,char *speed_y,char *speed_z);
+void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z);
+//void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z);
+
+void parameter_write_wifi_bssid(uint8_t str_para[]);
+char *parameter_read_wifi_bssid(void);
+void parameter_write_wifi_bssid_set(uint8_t b1);
+uint8_t parameter_read_wifi_bssid_set(void);
+
+void parameter_write_vehicle_battery(uint16_t bat);
+uint16_t parameter_read_vehicle_battery(void);
 
 typedef struct times
 {

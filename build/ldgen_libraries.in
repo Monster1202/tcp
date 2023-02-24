@@ -73,9 +73,10 @@ $<TARGET_FILE:__idf_wifi_provisioning>
 $<TARGET_FILE:__idf_main>
 $<TARGET_FILE:__idf_protocol_examples_common>
 $<TARGET_FILE:__idf_led_strip>
+$<TARGET_FILE:__idf_para_list>
+$<TARGET_FILE:__idf_TWAI_APP>
 $<TARGET_FILE:__idf_backup>
 $<TARGET_FILE:__idf_cJSON>
-$<TARGET_FILE:__idf_para_list>
 $<TARGET_FILE:__idf_wifi>
 $<TARGET_FILE:__idf_ota_app>
 $<TARGET_FILE:__idf_mqtt_app>

@@ -17,6 +17,11 @@ PARAMETER_CONNECTION connection_para;
 static const char *TAG = "para_list";
 uint8_t FTC533_KEY_press = 0;
 uint32_t time_delay = 25;
+uint8_t twai_status = 0;
+double remote_speed[3]= {0};
+//char ap_mac_addr[6] = {0};
+uint16_t vehicle_battery = 20000;
+
 
 esp_err_t get_chip_id(uint32_t* chip_id){
     esp_err_t status = ESP_OK;
@@ -31,21 +36,12 @@ void wifi_url_inital_set_para(void)
     strcpy(connection_para.wifi_pass,BACKUP_EXAMPLE_ESP_WIFI_PASS);
     strcpy(connection_para.broker_url,BACKUP_MQTT_BROKER_URL);
     strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);   //remote   double press
+    connection_para.wifi_bssid_set = 0;
+    strcpy(connection_para.wifi_bssid,BACKUP_EXAMPLE_ESP_WIFI_AP_BSSID);
     if(flash_write_parameter() == -1)
         ESP_LOGI(TAG, "flash_write_parameter_error!");
 }
 
-// void wifi1_url_inital_set_para(void)
-// {
-
-//     strcpy(connection_para.wifi_ssid,EXAMPLE_ESP_WIFI_SSID);
-//     strcpy(connection_para.wifi_pass,EXAMPLE_ESP_WIFI_PASS);
-//     strcpy(connection_para.broker_url,"mqtt://broker.emqx.io");
-//     strcpy(connection_para.update_url,"http://172.16.171.221:8070/brush.bin");
-
-//     if(flash_write_parameter() == -1)
-//         ESP_LOGI(TAG, "flash_write_parameter_error!");
-// }
 
 void para_init(void)
 {
@@ -62,10 +58,6 @@ void para_init(void)
             printf("%x",mac_addr[i]);
         printf("\r\n");
     }
-    // strcpy(connection_para.wifi_ssid,"CLEANING-SYSTEM");
-    // strcpy(connection_para.wifi_pass,"12345678");
-    // strcpy(connection_para.broker_url,"mqtt://10.42.0.1");
-    // strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);
     if(flash_read_parameter() == -1)
         printf("flash_read_parameter error");
 
@@ -159,6 +151,10 @@ int8_t flash_write_parameter(void)
     printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
     printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
     printf("connection_para.update_url:%s\r\n",connection_para.update_url);
+    printf("connection_para.wifi_bssid_set:%d\r\n",connection_para.wifi_bssid_set);
+    printf("connection_para.wifi_bssid:");
+    ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
+    //printf("connection_para.wifi_bssid:%s\r\n",connection_para.wifi_bssid);
     // printf("Read data from custom partition\r\n");
     // if (esp_partition_read(find_partition, 0, dest_data, 1024) != ESP_OK) {
 	//     printf("Read partition data error");
@@ -209,7 +205,9 @@ int8_t flash_erase_parameter(void)
     printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
     printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
     printf("connection_para.update_url:%s\r\n",connection_para.update_url);
-
+    printf("connection_para.wifi_bssid_set:%d\r\n",connection_para.wifi_bssid_set);
+    printf("connection_para.wifi_bssid:");
+    ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
     return 0;
 }
 
@@ -233,7 +231,16 @@ int8_t flash_read_parameter(void)
     printf("connection_para.wifi_pass:%s\r\n",connection_para.wifi_pass);
     printf("connection_para.broker_url:%s\r\n",connection_para.broker_url);
     printf("connection_para.update_url:%s\r\n",connection_para.update_url);
+    printf("connection_para.wifi_bssid_set:%d\r\n",connection_para.wifi_bssid_set);
+    printf("connection_para.wifi_bssid:");
+    ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
+
     if(connection_para.wifi_ssid[0] == 0xff && connection_para.wifi_pass[0] == 0xff){
+        printf("connection_para == ff then write inital parameter");
+        wifi_url_inital_set_para();
+    }
+    
+    if(connection_para.wifi_bssid_set ==0xff  && connection_para.wifi_bssid[0] == 0xff){
         printf("connection_para == ff then write inital parameter");
         wifi_url_inital_set_para();
     }
@@ -245,6 +252,28 @@ int8_t flash_read_parameter(void)
     //printf("Receive data: %s\r\n", (char*)dest_data);
     return 0;
 }
+void parameter_write_wifi_bssid(uint8_t str_para[])
+{   
+    for(uint8_t i=0;i<sizeof(str_para)+2;i++)    //sizeof(str_para) = 4
+        connection_para.wifi_bssid[i] = str_para[i];
+    // printf("connection_para.wifi_bssid:");   
+    // ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
+}
+
+char *parameter_read_wifi_bssid(void)
+{
+    return connection_para.wifi_bssid;
+}
+
+void parameter_write_wifi_bssid_set(uint8_t b1)
+{
+    connection_para.wifi_bssid_set = b1;
+}
+uint8_t parameter_read_wifi_bssid_set(void)
+{
+    return connection_para.wifi_bssid_set;
+}
+
 
 void parameter_write_wifi_ssid(char *str_para)
 {   
@@ -591,6 +620,31 @@ uint32_t parameter_read_debug(void)
     return time_delay;
 }
 
+void parameter_write_twai_status(uint8_t value)
+{   
+    twai_status = value;
+}
+
+uint8_t parameter_read_twai_status(void)
+{
+    return twai_status;
+}
+
+void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z)
+{
+    remote_speed[0] = -speed_x;  //atof(
+    remote_speed[1] = -speed_y;
+    remote_speed[2] = speed_z;    //jiexian  fangxiang
+}
+
+// void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z)
+// {
+//     speed_x = remote_speed[0];
+//     speed_y = remote_speed[1];
+//     speed_z = remote_speed[2];
+// }
+
+
 
 void parameter_write_air_pump(uint8_t value)
 {   
@@ -611,6 +665,16 @@ uint8_t parameter_read_air_pump(void)
     return remote_para.air_pump;
     #endif
 }
+
+void parameter_write_vehicle_battery(uint16_t bat)
+{
+    vehicle_battery = bat;
+}
+uint16_t parameter_read_vehicle_battery(void)
+{
+    return vehicle_battery;
+}
+
 
 
 uint32_t DateTime2Stamp(PST_DATE_TIME pstDateTime)

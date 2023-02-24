@@ -73,9 +73,10 @@
 /home/yuan/esp/tcp-mqtt/build/esp-idf/main/libmain.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/protocol_examples_common/libprotocol_examples_common.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/led_strip/libled_strip.a
+/home/yuan/esp/tcp-mqtt/build/esp-idf/para_list/libpara_list.a
+/home/yuan/esp/tcp-mqtt/build/esp-idf/TWAI_APP/libTWAI_APP.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/backup/libbackup.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/cJSON/libcJSON.a
-/home/yuan/esp/tcp-mqtt/build/esp-idf/para_list/libpara_list.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/wifi/libwifi.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/ota_app/libota_app.a
 /home/yuan/esp/tcp-mqtt/build/esp-idf/mqtt_app/libmqtt_app.a

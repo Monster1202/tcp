@@ -69,6 +69,8 @@
     "semphr.h": "c",
     "future": "c",
     "param.h": "c",
-    "esp_spiffs.h": "c"
+    "esp_spiffs.h": "c",
+    "twai_app.h": "c",
+    "set": "c"
   }
 }

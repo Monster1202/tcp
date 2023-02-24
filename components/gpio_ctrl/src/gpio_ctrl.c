@@ -7,7 +7,7 @@
 #include "mqtt_app.h"
 #include "uart485.h"
 #include "wifi_sta.h"
-
+#include "freertos/semphr.h"
 
 #define ESP_INTR_FLAG_DEFAULT 3
 #define KEY_SPEED_LONG 200 //long press debug time(ms)
@@ -15,6 +15,8 @@
 #define KEY_ONCE 1
 #define KEY_TWICE 2
 #define KEY_LONG 3
+
+//extern SemaphoreHandle_t tx_sem;
 
 uint8_t flag_mqtt_test = 0;
 static const char *TAG = "GPIO_CTRL";
@@ -193,6 +195,72 @@ uint8_t brush_input(uint8_t io_num,uint8_t state)
         gpio_set_level(GPIO_OUTPUT_IO_8, 0);
         gpio_set_level(GPIO_OUTPUT_LED_1, 0);   
     }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_1)  //pressure 0/1 input
+    // {
+        
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_1:0");
+    //     parameter_write_twai_status(0);
+    //     xSemaphoreGive(tx_sem);
+    //     //gpio_set_level(GPIO_OUTPUT_LED_5, 0);
+    // }
+    // else if(state == 1 && io_num == GPIO_INPUT_IO_1)
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_1:1");
+    //     // parameter_write_twai_status(7);
+    //     // xSemaphoreGive(tx_sem);
+    //     //gpio_set_level(GPIO_OUTPUT_LED_5, 1);
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_2)  //pressure 0/1 input
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_2:0");
+    //     parameter_write_twai_status(1);
+    //     xSemaphoreGive(tx_sem);
+    //     //gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    // }
+    // else if(state == 1 && io_num == GPIO_INPUT_IO_2)
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_2:1");
+    //     // parameter_write_twai_status(7);
+    //     // xSemaphoreGive(tx_sem);
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_3)
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_3:0");
+    //     parameter_write_twai_status(2);
+    //     xSemaphoreGive(tx_sem);
+    // }
+    // else if(state == 1 && io_num == GPIO_INPUT_IO_3)
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_3:1");
+    //     // parameter_write_twai_status(7);
+    //     // xSemaphoreGive(tx_sem);
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_4)   
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_4:0");
+    //     parameter_write_twai_status(3);
+    //     xSemaphoreGive(tx_sem);
+    // }
+    // else if(state == 1 && io_num == GPIO_INPUT_IO_4)   
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_4:1");        
+    //     parameter_write_twai_status(7);
+    //     xSemaphoreGive(tx_sem);
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_5)  //pressure 0/1 input
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_2:0");
+    //     parameter_write_twai_status(4);
+    //     xSemaphoreGive(tx_sem);
+    //     //gpio_set_level(GPIO_OUTPUT_LED_6, 0);
+    // }
+    // else if(state == 0 && io_num == GPIO_INPUT_IO_6)
+    // {
+    //     ESP_LOGI(TAG, "GPIO_INPUT_IO_3:0");
+    //     parameter_write_twai_status(5);
+    //     xSemaphoreGive(tx_sem);
+    // }
+
     // else if(io_num == GPIO_INPUT_IO_STOP)
     // {
     //     ESP_LOGI(TAG, "GPIO_INPUT_IO_STOP");
@@ -219,6 +287,9 @@ uint8_t brush_input(uint8_t io_num,uint8_t state)
     {
         return 0;
     }
+
+    if(io_num == GPIO_INPUT_IO_1 ||io_num == GPIO_INPUT_IO_2 || io_num == GPIO_INPUT_IO_3 ||io_num == GPIO_INPUT_IO_4||io_num == GPIO_INPUT_IO_5||io_num == GPIO_INPUT_IO_6)
+        mqtt_connected = 4;
     if(mqtt_connected == 3)
         device_states_publish(0);
     return 1;
