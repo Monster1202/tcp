@@ -58,17 +58,26 @@ void centralizer_io_out(uint8_t value)
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 1);
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
         parameter_write_centralizer(1);
-        ESP_LOGI(TAG, "brush_para.centralizer = 1");}
+        ESP_LOGI(TAG, "brush_para.centralizer = 1");
+        gpio_set_level(GPIO_OUTPUT_LED_3, 1);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        }
     else if(value == 2){
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 1);
         parameter_write_centralizer(2);
-        ESP_LOGI(TAG, "brush_para.centralizer = 2");}
+        ESP_LOGI(TAG, "brush_para.centralizer = 2");
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 1);
+        }
     else{
         gpio_set_level(GPIO_OUTPUT_IO_DRAW, 0);
         gpio_set_level(GPIO_OUTPUT_IO_STRETCH, 0);
         parameter_write_centralizer(0);
-        ESP_LOGI(TAG, "brush_para.centralizer = 0");}
+        ESP_LOGI(TAG, "brush_para.centralizer = 0");
+        gpio_set_level(GPIO_OUTPUT_LED_3, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0);
+        }
 }
 void rotation_io_out(uint8_t value)
 {

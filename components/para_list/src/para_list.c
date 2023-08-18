@@ -12,15 +12,17 @@
 PARAMETER_BRUSH brush_para;
 PARAMETER_BLISTER blister_para;
 PARAMETER_REMOTE remote_para;
+PARAMETER_VEHICLE vehicle_para;
 PARAMETER_CONNECTION connection_para;
 
 static const char *TAG = "para_list";
 uint8_t FTC533_KEY_press = 0;
 uint32_t time_delay = 25;
 uint8_t twai_status = 0;
-double remote_speed[3]= {0};
+double remote_speed[4]= {0};
+uint8_t robot_h_v[5]={0};
 //char ap_mac_addr[6] = {0};
-uint16_t vehicle_battery = 20000;
+//uint16_t vehicle_battery = 20000;
 
 
 esp_err_t get_chip_id(uint32_t* chip_id){
@@ -78,6 +80,7 @@ void para_init(void)
         strcpy(brush_para.version,"1.0.0.0");
         brush_para.rssi = 0;
         brush_para.wifi_connection = 0;
+        brush_para.vehicle = 0;
     #else
         #ifdef DEVICE_TYPE_BLISTER
             //blister_para.uuid = id;
@@ -112,7 +115,16 @@ void para_init(void)
             remote_para.wifi_connection = 0;
         #endif
     #endif
-    
+    vehicle_para.remote_x = 0;
+    vehicle_para.remote_y = 0;
+    vehicle_para.remote_z = 0;
+    vehicle_para.robot_axes3 = 0;
+    vehicle_para.horizontal = 0;
+    vehicle_para.vertical = 0;
+    vehicle_para.robot_servo = 0;
+    vehicle_para.robot_video = 0;
+    vehicle_para.robot_scale = 5;
+    vehicle_para.robot_bak = 0;
 }
 
 int8_t flash_write_parameter(void)
@@ -379,6 +391,11 @@ void get_remote_parameter(PARAMETER_REMOTE *remote_t)
     memcpy(remote_t,&remote_para,sizeof(PARAMETER_REMOTE));
 }
 
+void get_vehicle_parameter(PARAMETER_VEHICLE *vehicle_t)
+{
+    memcpy(vehicle_t,&vehicle_para,sizeof(PARAMETER_VEHICLE));
+}
+
 void parameter_write_version(char *str_version)
 {   
     strcpy(brush_para.version,str_version);
@@ -630,11 +647,26 @@ uint8_t parameter_read_twai_status(void)
     return twai_status;
 }
 
-void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z)
+void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z,double speed_axes3)
 {
-    remote_speed[0] = -speed_x;  //atof(
-    remote_speed[1] = -speed_y;
+    remote_speed[0] = speed_x;  //atof(
+    remote_speed[1] = speed_y;
     remote_speed[2] = speed_z;    //jiexian  fangxiang
+    remote_speed[3] = speed_axes3; 
+    vehicle_para.remote_x = speed_x;  //atof(
+    vehicle_para.remote_y = speed_y;
+    vehicle_para.remote_z = speed_z;    //jiexian  fangxiang
+    vehicle_para.robot_axes3 = speed_axes3; 
+}
+
+void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t servo,uint8_t video,uint8_t scale,uint8_t bakup)
+{
+    vehicle_para.horizontal = horizontal;
+    vehicle_para.vertical = vertical;
+    vehicle_para.robot_servo = servo;
+    vehicle_para.robot_video = video;
+    vehicle_para.robot_scale = scale;
+    vehicle_para.robot_bak = bakup;
 }
 
 // void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z)
@@ -666,16 +698,23 @@ uint8_t parameter_read_air_pump(void)
     #endif
 }
 
-void parameter_write_vehicle_battery(uint16_t bat)
-{
-    vehicle_battery = bat;
-}
-uint16_t parameter_read_vehicle_battery(void)
-{
-    return vehicle_battery;
-}
+// void parameter_write_vehicle_battery(uint16_t bat)
+// {
+//     vehicle_battery = bat;
+// }
+// uint16_t parameter_read_vehicle_battery(void)
+// {
+//     return vehicle_battery;
+// }
 
-
+void parameter_write_vehicle_status(uint8_t vehicle)
+{
+    brush_para.vehicle = vehicle;
+}
+uint8_t parameter_read_vehicle_status(void)
+{
+    return brush_para.vehicle;
+}
 
 uint32_t DateTime2Stamp(PST_DATE_TIME pstDateTime)
 {

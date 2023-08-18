@@ -222,6 +222,7 @@ typedef struct
     int8_t rssi;
     uint8_t wifi_connection;    //0\1  wifi_con  2\3 mqtt_con
     uint8_t air_pump;
+    uint8_t vehicle;
     int time_int;
     char time_string[20];
 }PARAMETER_BRUSH;
@@ -269,10 +270,26 @@ typedef struct
     char time_string[20];
 }PARAMETER_REMOTE;
 
+typedef struct
+{
+    uint8_t robot_servo;     
+    uint8_t robot_video;
+    uint8_t robot_scale;
+    uint8_t robot_bak;
+    uint8_t horizontal;
+    uint8_t vertical;
+    double remote_x;
+    double remote_y;
+    double remote_z;
+    double robot_axes3;
+
+}PARAMETER_VEHICLE;
+
 void parameter_write_version(char *str_version);
 void get_parameter(PARAMETER_BRUSH *brush_t);
 void get_blister_parameter(PARAMETER_BLISTER *blister_t);
 void get_remote_parameter(PARAMETER_REMOTE *remote_t);
+void get_vehicle_parameter(PARAMETER_VEHICLE *vehicle_t);
 void parameter_write_rssi(int8_t value);
 
 void parameter_write_wifi_connection(uint8_t value);
@@ -311,16 +328,20 @@ void parameter_write_twai_status(uint8_t value);
 uint8_t parameter_read_twai_status(void);
 
 //void parameter_write_remote_xyz(char *speed_x,char *speed_y,char *speed_z);
-void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z);
+void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z,double speed_axes3);
 //void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z);
+void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t servo,uint8_t video,uint8_t scale,uint8_t bakup);
+
 
 void parameter_write_wifi_bssid(uint8_t str_para[]);
 char *parameter_read_wifi_bssid(void);
 void parameter_write_wifi_bssid_set(uint8_t b1);
 uint8_t parameter_read_wifi_bssid_set(void);
 
-void parameter_write_vehicle_battery(uint16_t bat);
-uint16_t parameter_read_vehicle_battery(void);
+// void parameter_write_vehicle_battery(uint16_t bat);
+// uint16_t parameter_read_vehicle_battery(void);
+void parameter_write_vehicle_status(uint8_t vehicle);
+uint8_t parameter_read_vehicle_status(void);
 
 typedef struct times
 {
