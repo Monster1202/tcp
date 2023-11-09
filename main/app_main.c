@@ -79,6 +79,7 @@ void app_main(void)
 //pressure_read
     timer_FTC533();
     xTaskCreate(heater_init_process, "heater_init_process", 4096, NULL, 7, NULL);
+    twai_init();
     //heater_init(1);
     //timer_heater_init();
 #endif

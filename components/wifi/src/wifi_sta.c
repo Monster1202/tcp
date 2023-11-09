@@ -122,7 +122,7 @@ void wifi_init_sta(void)
              * However these modes are deprecated and not advisable to be used. Incase your Access point
              * doesn't support WPA2, these mode can be enabled by commenting below line */
             .threshold.authmode = WIFI_AUTH_WPA_PSK,
-            .threshold.rssi = -70,
+            .threshold.rssi = -99,
             .bssid_set = 0,
             .bssid = BACKUP_EXAMPLE_ESP_WIFI_AP_BSSID,    //ap_mac  {0x70,0xf7,0x54,0x9a,0x7b,0xe0},//
         },

@@ -16,7 +16,7 @@
 #define KEY_TWICE 2
 #define KEY_LONG 3
 
-//extern SemaphoreHandle_t tx_sem;
+extern SemaphoreHandle_t tx_sem;
 
 uint8_t flag_mqtt_test = 0;
 static const char *TAG = "GPIO_CTRL";
@@ -135,6 +135,8 @@ void brush_stop_io_out(uint8_t value,uint8_t state) //state 0 :from mqtt don't c
         parameter_write_centralizer(0);
         parameter_write_rotation(0);
         parameter_write_nozzle(0);
+        parameter_write_robot_para(0,0,0,0,5,0,0,0);
+        xSemaphoreGive(tx_sem);
         }
     else{
         if(state){

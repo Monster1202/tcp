@@ -76,8 +76,9 @@ void flashwrite_reset(void)
         vTaskDelay(1000 / portTICK_RATE_MS);
         mqtt_reset();
     }
-    if (flag_write_para == 4)
+    if (flag_write_para == 4 || flag_write_para == 5)
     {
+        vTaskDelay(2000 / portTICK_RATE_MS);
         esp_restart();
     }
     flag_write_para = 0;
@@ -111,9 +112,11 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         msg_id = esp_mqtt_client_subscribe(client, TOPIC_BRUSH_CONTROL, 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
         
-        // msg_id = esp_mqtt_client_subscribe(client, TOPIC_VEHICLE_CONTROL, 0);
-        // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        msg_id = esp_mqtt_client_subscribe(client, TOPIC_VEHICLE_CONTROL, 0);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
+        data_publish(data_pub_1, 11);
+        msg_id = esp_mqtt_client_publish(client, TOPIC_LOG_ESP32, data_pub_1, 0, 1, 0);
         // data_publish(data_pub_1, 1);
         // msg_id = esp_mqtt_client_publish(client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
         // ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
@@ -188,12 +191,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             msg_id = esp_mqtt_client_publish(client, TOPIC_LOG_ESP32, data_pub_1, 0, 1, 0);
         }
 #ifdef DEVICE_TYPE_BRUSH
-        if (data_ctr == 1)
+        if (data_ctr == 1 || data_ctr == 10)
         {
             data_publish(data_pub_1, 1);
             msg_id = esp_mqtt_client_publish(client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0);
         }
-        if(parameter_read_vehicle_status())    //
+        if(parameter_read_vehicle_status() == 1)    //
         {
             data_publish(data_pub_1, 12); // speed no respond
             msg_id = esp_mqtt_client_publish(client, TOPIC_VEHICLE_STATES, data_pub_1, 0, 1, 0);
@@ -253,6 +256,11 @@ void mqtt_app_start(void)
 
 uint8_t data_process(char *data)
 {
+    uint8_t cnt_msg_pad = 0;
+    uint8_t buf_borot_para[3] ={0};//{0,0,0,0,0,0};
+    static uint8_t buf_para[5] = {0,5,0,0,0};
+    uint8_t flag_device_enable = 0;
+    flag_device_enable = parameter_read_device_enable();
     cJSON *json_str_xy = cJSON_Parse(data);
     if (json_str_xy == NULL)
     {
@@ -266,31 +274,38 @@ uint8_t data_process(char *data)
         // brush_para.emergency_stop = json_emergency_stop->valueint;
         ESP_LOGI(TAG, "emergency_stop = %d", json_emergency_stop->valueint);
         brush_stop_io_out(json_emergency_stop->valueint, 0);
+        buf_para[3] = 0;
+        cnt_msg_pad++;
     }
-    cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
-    if (json_switch_name != NULL && json_switch_name->type == cJSON_String)
-    {
-        ESP_LOGI(TAG, "switch_name = %s", json_switch_name->valuestring);
-        cJSON *json_value = cJSON_GetObjectItem(json_str_xy, "value");
-        uint8_t register_emergency_stop = 0;
-        register_emergency_stop = parameter_read_emergency_stop();
-        if (json_value != NULL && json_value->type == cJSON_Number)
+    if(flag_device_enable){
+        cJSON *json_switch_name = cJSON_GetObjectItem(json_str_xy, "switch_name");
+        if (json_switch_name != NULL && json_switch_name->type == cJSON_String)
         {
-            ESP_LOGI(TAG, "value = %d", json_value->valueint);
-            if (strcmp(json_switch_name->valuestring, "nozzle") == 0)
+            ESP_LOGI(TAG, "switch_name = %s", json_switch_name->valuestring);
+            cJSON *json_value = cJSON_GetObjectItem(json_str_xy, "value");
+            uint8_t register_emergency_stop = 0;
+            register_emergency_stop = parameter_read_emergency_stop();
+            if (json_value != NULL && json_value->type == cJSON_Number)
             {
-                if (register_emergency_stop == 0)
-                    nozzle_io_out(json_value->valueint);
-            }
-            else if (strcmp(json_switch_name->valuestring, "centralizer") == 0)
-            {
-                if (register_emergency_stop == 0)
-                    centralizer_io_out(json_value->valueint);
-            }
-            else if (strcmp(json_switch_name->valuestring, "rotation") == 0)
-            {
-                if (register_emergency_stop == 0)
-                    rotation_io_out(json_value->valueint);
+                ESP_LOGI(TAG, "value = %d", json_value->valueint);
+                if (strcmp(json_switch_name->valuestring, "nozzle") == 0)
+                {
+                    if (register_emergency_stop == 0)
+                        nozzle_io_out(json_value->valueint);
+                }
+                else if (strcmp(json_switch_name->valuestring, "centralizer") == 0)
+                {
+                    if (register_emergency_stop == 0)
+                        centralizer_io_out(json_value->valueint);
+                }
+                else if (strcmp(json_switch_name->valuestring, "rotation") == 0)
+                {
+                    if (register_emergency_stop == 0){
+                        rotation_io_out(json_value->valueint);
+                        buf_para[3] = json_value->valueint;
+                        cnt_msg_pad++;
+                    }
+                }
             }
         }
     }
@@ -449,6 +464,13 @@ uint8_t data_process(char *data)
         parameter_write_wifi_bssid_set(json_buffer->valueint);
         flag_write_para = 4;
     }
+    json_buffer = cJSON_GetObjectItem(json_str_xy, "device_enable");
+    if (json_buffer != NULL && json_buffer->type == cJSON_Number)
+    {
+        ESP_LOGI(TAG, "device_enable : %d", json_buffer->valueint);
+        parameter_write_device_enable(json_buffer->valueint);
+        flag_write_para = 5;
+    }
 
     json_buffer = cJSON_GetObjectItem(json_str_xy, "esp_restart");
     if (json_buffer != NULL && json_buffer->type == cJSON_Number)
@@ -496,8 +518,7 @@ uint8_t data_process(char *data)
         // cJSON_Delete(json_str_xy);
         // return 10;
     }
-    uint8_t cnt_msg_pad = 0;
-    uint8_t buf_borot_para[6] ={0};
+
     cJSON *json_robot_servo = cJSON_GetObjectItem(json_str_xy, "robot_servo");
     if (json_robot_servo != NULL && json_robot_servo->type == cJSON_Number)
     {
@@ -509,14 +530,16 @@ uint8_t data_process(char *data)
     if (json_robot_video != NULL && json_robot_video->type == cJSON_Number)
     {
         ESP_LOGI(TAG, "json_robot_video = %d", json_robot_video->valueint);
-        buf_borot_para[3] = json_robot_video->valueint;
+        //buf_borot_para[3] = json_robot_video->valueint;
+        buf_para[0] = json_robot_video->valueint;
         cnt_msg_pad++;
     }
     cJSON *json_robot_scale = cJSON_GetObjectItem(json_str_xy, "robot_scale");
     if (json_robot_scale != NULL && json_robot_scale->type == cJSON_Number)
     {
         ESP_LOGI(TAG, "json_robot_scale = %d", json_robot_scale->valueint);
-        buf_borot_para[4] = json_robot_scale->valueint;
+        //buf_borot_para[4] = json_robot_scale->valueint;
+        buf_para[1] = json_robot_scale->valueint;
         cnt_msg_pad++;
     }
 
@@ -524,7 +547,8 @@ uint8_t data_process(char *data)
     if (json_robot_bak != NULL && json_robot_bak->type == cJSON_Number)
     {
         ESP_LOGI(TAG, "json_robot_bak = %d", json_robot_bak->valueint);
-        buf_borot_para[5] = json_robot_bak->valueint;
+        //buf_borot_para[5] = json_robot_bak->valueint;
+        buf_para[2] = json_robot_bak->valueint;
         cnt_msg_pad++;
     }
 
@@ -533,12 +557,14 @@ uint8_t data_process(char *data)
     {
         ESP_LOGI(TAG, "json_robot_horizontal = %d", json_robot_horizontal->valueint);
         buf_borot_para[0] = json_robot_horizontal->valueint;
+        cnt_msg_pad++;
     }
     cJSON *json_robot_vertical = cJSON_GetObjectItem(json_str_xy, "robot_vertical");
     if (json_robot_vertical != NULL && json_robot_vertical->type == cJSON_Number)
     {
         ESP_LOGI(TAG, "json_robot_vertical = %d", json_robot_vertical->valueint);
         buf_borot_para[1] = json_robot_vertical->valueint;
+        cnt_msg_pad++;
         // parameter_write_robot_h_v(json_robot_horizontal->valueint, json_robot_vertical->valueint, json_robot_servo->valueint,json_robot_video->valueint,json_robot_bak->valueint);
         // xSemaphoreGive(tx_sem);
         // cJSON_Delete(json_str_xy);
@@ -548,7 +574,8 @@ uint8_t data_process(char *data)
 
     if(cnt_msg_pad>=1)
     {
-        parameter_write_robot_para(buf_borot_para[0],buf_borot_para[1],buf_borot_para[2],buf_borot_para[3],buf_borot_para[4],buf_borot_para[5]);
+        //parameter_write_robot_para(buf_borot_para[0],buf_borot_para[1],buf_borot_para[2],buf_borot_para[3],buf_borot_para[4],buf_borot_para[5]);
+        parameter_write_robot_para(buf_borot_para[0],buf_borot_para[1],buf_borot_para[2],buf_para[0],buf_para[1],buf_para[2],buf_para[3],buf_para[4]);
         xSemaphoreGive(tx_sem);
         return 10;
     }
@@ -572,7 +599,7 @@ void hex2str(uint8_t *input, uint16_t input_len, char *output)
 void device_states_publish(uint8_t button)
 {
     int msg_id = 0;
-    char data_pub_1[400] = "init";
+    char data_pub_1[300] = "init";    //400 stack overflow
 #ifdef DEVICE_TYPE_BRUSH
     data_publish(data_pub_1, 1);
     msg_id = esp_mqtt_client_publish(mqtt_client, TOPIC_BRUSH_STATES, data_pub_1, 0, 1, 0); // 60s status publish
@@ -725,6 +752,8 @@ void data_publish(char *data, uint8_t case_pub)
         char *wifi_bssid = {0};
         uint8_t wifi_bssid_set = 0;
         char string_bssid[20] = "0"; // 7cdfa1e592e0
+        uint8_t flag_device_enable = 0;
+        flag_device_enable = parameter_read_device_enable();
         wifi_bssid_set = parameter_read_wifi_bssid_set();
         wifi_bssid = parameter_read_wifi_bssid();
         cJSON_AddNumberToObject(root, "wifi_bssid_set", wifi_bssid_set);
@@ -732,6 +761,7 @@ void data_publish(char *data, uint8_t case_pub)
         // ESP_LOG_BUFFER_HEX(TAG, wifi_bssid, 6);
         hex2str((uint8_t *)wifi_bssid, 6, string_bssid);
         cJSON_AddItemToObject(root, "wifi_bssid", cJSON_CreateString(string_bssid));
+        cJSON_AddNumberToObject(root, "device_enable", flag_device_enable);
     }
     else if (case_pub == 12)
     {
@@ -740,6 +770,7 @@ void data_publish(char *data, uint8_t case_pub)
         cJSON_AddNumberToObject(root, "robot_video", vehicle_buf.robot_video);
         cJSON_AddNumberToObject(root, "robot_scale", vehicle_buf.robot_scale);
         cJSON_AddNumberToObject(root, "robot_bak", vehicle_buf.robot_bak);
+        cJSON_AddNumberToObject(root, "robot_brush", vehicle_buf.robot_brush);
         cJSON_AddNumberToObject(root, "remote_x", vehicle_buf.remote_x);
         cJSON_AddNumberToObject(root, "remote_y", vehicle_buf.remote_y);
         cJSON_AddNumberToObject(root, "remote_z", vehicle_buf.remote_z);

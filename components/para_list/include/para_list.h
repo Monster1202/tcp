@@ -14,8 +14,8 @@ extern "C" {
 // #define MQTT_PRIO 5
 // #define PRINTF_LEVEL ESP_LOG_DEBUG
 
-#define DEVICE_TYPE_BRUSH 
-//#define DEVICE_TYPE_BLISTER
+//#define DEVICE_TYPE_BRUSH 
+#define DEVICE_TYPE_BLISTER
 //#define DEVICE_TYPE_REMOTE 
 
 //#define GPIOTEST
@@ -38,6 +38,7 @@ typedef struct
     char update_url[60];
     uint8_t wifi_bssid_set;
     char wifi_bssid[6];
+    uint8_t device_enable;
 //    char tail[6];
 }PARAMETER_CONNECTION;
 
@@ -278,6 +279,8 @@ typedef struct
     uint8_t robot_bak;
     uint8_t horizontal;
     uint8_t vertical;
+    uint8_t robot_brush;
+    uint8_t robot_bak2;
     double remote_x;
     double remote_y;
     double remote_z;
@@ -330,7 +333,7 @@ uint8_t parameter_read_twai_status(void);
 //void parameter_write_remote_xyz(char *speed_x,char *speed_y,char *speed_z);
 void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z,double speed_axes3);
 //void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z);
-void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t servo,uint8_t video,uint8_t scale,uint8_t bakup);
+void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t servo,uint8_t video,uint8_t scale,uint8_t bakup,uint8_t brush,uint8_t bakup2);
 
 
 void parameter_write_wifi_bssid(uint8_t str_para[]);
@@ -342,6 +345,9 @@ uint8_t parameter_read_wifi_bssid_set(void);
 // uint16_t parameter_read_vehicle_battery(void);
 void parameter_write_vehicle_status(uint8_t vehicle);
 uint8_t parameter_read_vehicle_status(void);
+
+void parameter_write_device_enable(uint8_t b1);
+uint8_t parameter_read_device_enable(void);
 
 typedef struct times
 {
