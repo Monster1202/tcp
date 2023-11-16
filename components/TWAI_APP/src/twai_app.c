@@ -42,10 +42,12 @@
 #define MSG_ID                  0x181   //11 bit standard format ID
 #define MSG_ID_2                  0x182   //11 bit standard format ID
 #define MSG_ID_3                  0x00000337   //exp 29 bit standard format ID
+#define MSG_ID_4                  0x00000937   //exp 29 bit standard format ID
+#define MSG_ID_5                   0x101
 #define EXAMPLE_TAG             "TWAI Test"
 
 #define SPEED_DEX 1000
- 
+#define SPEED_RPM_MAX 12000
 static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();  //TWAI_TIMING_CONFIG_25KBITS      TWAI_TIMING_CONFIG_1MBITS(); //
 //Filter all other IDs except MSG_ID    
 static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
@@ -77,7 +79,7 @@ typedef enum
 uint8_t MM_MSG_BUFFER[8] = {0};
 void Msg_Clear(uint8_t *MM_MSG);
 void Speed_2_Msg(uint8_t *MM_MSG, float speed, MM_DIRECTION direction);
-extern double remote_speed[4];
+extern double remote_speed[5];
 //extern uint8_t robot_h_v[5];
 extern PARAMETER_VEHICLE vehicle_para;
 void Speed_2_can(uint8_t *MM_MSG);
@@ -88,20 +90,58 @@ uint8_t flag_can_send_div = 0;
 static void twai_transmit_task(void *arg)
 {
     uint8_t status = 0;
+    static uint32_t lost_count = 0;
+    uint32_t vesc_id_t = 0;
+    vesc_id_t = (parameter_read_vesc_id() | 0x00000300);
     twai_message_t tx_msg = {.data_length_code = 8, .identifier = MSG_ID, .self = 1};
     //for (int iter = 0; iter < 1; iter++)
     while(1) {
-        if(flag_enable_send){
-            xSemaphoreTake(tx_sem, portMAX_DELAY);
-            
-            //if(robot_h_v[0]||robot_h_v[1]||robot_h_v[2]||robot_h_v[3]||robot_h_v[4]){
+        if(flag_enable_send){  
+            //xSemaphoreTake(tx_sem, portMAX_DELAY);
+            if(flag_can_send_div == 3){
+                Msg_Clear(tx_msg.data);
+                //vesc_ctl(tx_msg.data);
+                Vesc_Speed(tx_msg.data);
+                tx_msg.extd = 1;
+                tx_msg.data_length_code = 4;
+                tx_msg.identifier = vesc_id_t;
+                ESP_ERROR_CHECK(twai_transmit(&tx_msg, portMAX_DELAY));
+                flag_can_send_div = 0;
+                lost_count = 60000;
+                //ESP_LOGI(EXAMPLE_TAG, "vesc_ctl can");
+            }
+            else if(flag_can_send_div == 4){
+                Msg_Clear(tx_msg.data);
+                //vesc_ctl(tx_msg.data);
+                Vesc_Speed(tx_msg.data);
+                tx_msg.extd = 1;
+                tx_msg.data_length_code = 4;
+                tx_msg.identifier = vesc_id_t;
+                ESP_ERROR_CHECK(twai_transmit(&tx_msg, portMAX_DELAY));
+                flag_can_send_div = 0;
+                lost_count = 0;
+            }
+            else if(flag_can_send_div == 0){
+                //ESP_LOGI(EXAMPLE_TAG, "vesc_ctl can:lost_count:%d",lost_count);
+                if(lost_count > 0){
+                    if(lost_count % 3 == 1){
+                        Msg_Clear(tx_msg.data);
+                        Vesc_Speed(tx_msg.data);
+                        tx_msg.extd = 1;
+                        tx_msg.data_length_code = 4;
+                        tx_msg.identifier = vesc_id_t;
+                        ESP_ERROR_CHECK(twai_transmit(&tx_msg, portMAX_DELAY));
+                    }
+                    lost_count--;
+                }
+            }
+            else if(flag_can_send_div == 1){
+                tx_msg.data_length_code = 8;
                 tx_msg.extd = 0;
                 Msg_Clear(tx_msg.data);
                 msg_2_can(tx_msg.data);
                 tx_msg.identifier = MSG_ID_2;
                 ESP_ERROR_CHECK(twai_transmit(&tx_msg, portMAX_DELAY));
-            //}
-            //else{
                 // status = parameter_read_twai_status();
                 Msg_Clear(tx_msg.data);
                 // Speed_2_Msg(tx_msg.data,0.5,status);
@@ -109,15 +149,8 @@ static void twai_transmit_task(void *arg)
                 //for (int iter = 0; iter < NO_OF_ITERS; iter++)
                 tx_msg.identifier = MSG_ID;
                 ESP_ERROR_CHECK(twai_transmit(&tx_msg, portMAX_DELAY));
-            if(flag_can_send_div == 3){
-                Msg_Clear(tx_msg.data);
-                vesc_ctl(tx_msg.data);
-                tx_msg.extd = 1;
-                tx_msg.data_length_code = 4;
-                tx_msg.identifier = MSG_ID_3;
-                ESP_ERROR_CHECK(twai_transmit(&tx_msg, portMAX_DELAY));
-                }
-            //}
+                flag_can_send_div = 0;
+            }
             //ESP_LOGI(EXAMPLE_TAG, "twai_transmit:%d",status);
             vTaskDelay(pdMS_TO_TICKS(10));
             // for (int i = 0; i < NO_OF_MSGS; i++) {
@@ -127,7 +160,7 @@ static void twai_transmit_task(void *arg)
             //     vTaskDelay(pdMS_TO_TICKS(10));
             // }
         }
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
     //vTaskDelete(NULL);
 }
@@ -141,6 +174,8 @@ static void twai_receive_task(void *arg)
     int32_t value_erpm = 0;
     float value_current = 0;
     float value_puty = 0;
+    uint32_t vesc_id_r = 0;
+    vesc_id_r = (parameter_read_vesc_id() | 0x00000900);
     while(1)
     {
         //xSemaphoreTake(rx_sem, portMAX_DELAY);
@@ -148,7 +183,7 @@ static void twai_receive_task(void *arg)
         receive_status = twai_receive(&rx_message, pdMS_TO_TICKS(1000));
         if(receive_status == ESP_OK)
         {
-            if(rx_message.identifier == 0x101){
+            if(rx_message.identifier == MSG_ID_5){
                 // ESP_LOGI(EXAMPLE_TAG, "rx_message.identifier:%d",rx_message.identifier);
                 // ESP_LOG_BUFFER_HEX(EXAMPLE_TAG, rx_message.data, 8);
                 // voltage = (uint16_t)((rx_message.data[5]<<8) + rx_message.data[4]);
@@ -158,11 +193,13 @@ static void twai_receive_task(void *arg)
                 parameter_write_vehicle_status(1);
                 timer_cnt = 0;
             }
-            else if(rx_message.identifier == 0x937){
+            else if(rx_message.identifier == vesc_id_r){
+                //ESP_LOG_BUFFER_HEX(EXAMPLE_TAG, rx_message.data, 8);
                 value_erpm = ((uint32_t)rx_message.data[0]) <<24 | ((uint32_t)rx_message.data[1]) <<16 | ((uint32_t)rx_message.data[2]) <<8 | ((uint32_t)rx_message.data[3]);
                 value_current = (float)((((uint16_t)rx_message.data[4]) <<8 | ((uint16_t)rx_message.data[5]))/10.0f);
-                value_puty = (float)((((uint16_t)rx_message.data[6]) <<8 | ((uint16_t)rx_message.data[7]))/10.0f);
-                //ESP_LOGI(EXAMPLE_TAG, "value_erpm:%d,%f,%f",value_erpm,value_current,value_puty);
+                value_puty = (float)((int16_t)(((uint16_t)rx_message.data[6]) <<8 | ((uint16_t)rx_message.data[7]))/10.0f);
+                parameter_write_motor_para(value_erpm,value_current,value_puty);
+                //ESP_LOGW(EXAMPLE_TAG, "value_erpm:%d,%f,%f",value_erpm,value_current,value_puty);
             }
             // else{
             //     ESP_LOGI(EXAMPLE_TAG, "rx_message.identifier:%x",rx_message.identifier);
@@ -264,15 +301,26 @@ void twai_init(void)
 
 }
 
-void vesc_ctl(uint8_t *MM_MSG)
+void vesc_ctl(uint8_t *MM_MSG,uint8_t cnt)
 {
+    
     MM_MSG[0] = 0;
     MM_MSG[1] = 0;
     MM_MSG[2] = 0x03;
     MM_MSG[3] = 0xE8;
 
 }
+void Vesc_Speed(uint8_t *MM_MSG)
+{
+    if(remote_speed[4] < MM_MIX_SPEED) remote_speed[4] = MM_MIX_SPEED;
+    if(remote_speed[4] > MM_MAX_SPEED) remote_speed[4] = MM_MAX_SPEED;
 
+    MM_MSG[0] = (int32_t)(remote_speed[4]*SPEED_RPM_MAX)>>24;
+    MM_MSG[1] = (int32_t)(remote_speed[4]*SPEED_RPM_MAX)>>16;
+    MM_MSG[2] = (int32_t)(remote_speed[4]*SPEED_RPM_MAX)>>8;
+    MM_MSG[3] = (int32_t)(remote_speed[4]*SPEED_RPM_MAX);
+
+}
 void msg_2_can(uint8_t *MM_MSG)
 {
     MM_MSG[0] = vehicle_para.horizontal;

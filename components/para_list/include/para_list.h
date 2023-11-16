@@ -39,6 +39,7 @@ typedef struct
     uint8_t wifi_bssid_set;
     char wifi_bssid[6];
     uint8_t device_enable;
+    uint8_t vesc_id;
 //    char tail[6];
 }PARAMETER_CONNECTION;
 
@@ -285,7 +286,11 @@ typedef struct
     double remote_y;
     double remote_z;
     double robot_axes3;
-
+    int32_t motor_erpm;
+    double motor_current;
+    double motor_puty;
+    uint8_t motor_brush;
+    
 }PARAMETER_VEHICLE;
 
 void parameter_write_version(char *str_version);
@@ -332,9 +337,12 @@ uint8_t parameter_read_twai_status(void);
 
 //void parameter_write_remote_xyz(char *speed_x,char *speed_y,char *speed_z);
 void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z,double speed_axes3);
+void parameter_write_remote_speed(double speed);
+void parameter_write_robot_motor_brush(uint8_t direction);
+uint8_t parameter_read_robot_motor_brush(void);
 //void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z);
 void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t servo,uint8_t video,uint8_t scale,uint8_t bakup,uint8_t brush,uint8_t bakup2);
-
+void parameter_write_motor_para(int32_t motor_erpm,double motor_current,double motor_puty);
 
 void parameter_write_wifi_bssid(uint8_t str_para[]);
 char *parameter_read_wifi_bssid(void);
@@ -348,6 +356,8 @@ uint8_t parameter_read_vehicle_status(void);
 
 void parameter_write_device_enable(uint8_t b1);
 uint8_t parameter_read_device_enable(void);
+void parameter_write_vesc_id(uint8_t value);
+uint8_t parameter_read_vesc_id(void);
 
 typedef struct times
 {
@@ -375,6 +385,8 @@ ST_DATE_TIME TimeStamp2DateTime(uint32_t Stamp);
 
 
 char *parameter_read_time_string(void);
+
+
 
 #ifdef __cplusplus
 }

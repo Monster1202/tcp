@@ -19,7 +19,7 @@ static const char *TAG = "para_list";
 uint8_t FTC533_KEY_press = 0;
 uint32_t time_delay = 25;
 uint8_t twai_status = 0;
-double remote_speed[4]= {0};
+double remote_speed[5]= {0};
 uint8_t robot_h_v[5]={0};
 //char ap_mac_addr[6] = {0};
 //uint16_t vehicle_battery = 20000;
@@ -40,7 +40,8 @@ void wifi_url_inital_set_para(void)
     strcpy(connection_para.update_url,CONFIG_EXAMPLE_FIRMWARE_UPG_URL);   //remote   double press
     connection_para.wifi_bssid_set = 0;
     strcpy(connection_para.wifi_bssid,BACKUP_EXAMPLE_ESP_WIFI_AP_BSSID);
-    connection_para.wifi_bssid_set = 0;
+    connection_para.device_enable = 0;
+    connection_para.vesc_id = 0x34;
     if(flash_write_parameter() == -1)
         ESP_LOGI(TAG, "flash_write_parameter_error!");
 }
@@ -168,6 +169,7 @@ int8_t flash_write_parameter(void)
     printf("connection_para.wifi_bssid:");
     ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
     printf("connection_para.device_enable:%d\r\n",connection_para.device_enable);
+    printf("connection_para.vesc_id:%d\r\n",connection_para.vesc_id);
     //printf("connection_para.wifi_bssid:%s\r\n",connection_para.wifi_bssid);
     // printf("Read data from custom partition\r\n");
     // if (esp_partition_read(find_partition, 0, dest_data, 1024) != ESP_OK) {
@@ -223,6 +225,7 @@ int8_t flash_erase_parameter(void)
     printf("connection_para.wifi_bssid:");
     ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
     printf("connection_para.device_enable:%d\r\n",connection_para.device_enable);
+    printf("connection_para.vesc_id:%d\r\n",connection_para.vesc_id);
     return 0;
 }
 
@@ -250,13 +253,18 @@ int8_t flash_read_parameter(void)
     printf("connection_para.wifi_bssid:");
     ESP_LOG_BUFFER_HEX(TAG, connection_para.wifi_bssid, 6);
     printf("connection_para.device_enable:%d\r\n",connection_para.device_enable);
-
+    printf("connection_para.vesc_id:%d\r\n",connection_para.vesc_id);
+    
     if(connection_para.wifi_ssid[0] == 0xff && connection_para.wifi_pass[0] == 0xff){
         printf("connection_para == ff then write inital parameter");
         wifi_url_inital_set_para();
     }
     
     if(connection_para.wifi_bssid_set ==0xff  && connection_para.wifi_bssid[0] == 0xff){
+        printf("connection_para == ff then write inital parameter");
+        wifi_url_inital_set_para();
+    }
+    if(connection_para.vesc_id ==0xff){
         printf("connection_para == ff then write inital parameter");
         wifi_url_inital_set_para();
     }
@@ -672,6 +680,21 @@ void parameter_write_remote_xyz(double speed_x,double speed_y,double speed_z,dou
     vehicle_para.robot_axes3 = speed_axes3; 
 }
 
+void parameter_write_remote_speed(double speed)
+{
+    remote_speed[4] = speed; 
+}
+
+void parameter_write_robot_motor_brush(uint8_t direction)
+{
+    vehicle_para.motor_brush = direction; 
+}
+
+uint8_t parameter_read_robot_motor_brush(void)
+{
+    return vehicle_para.motor_brush; 
+}
+
 void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t servo,uint8_t video,uint8_t scale,uint8_t bakup,uint8_t brush,uint8_t bakup2)
 {
     vehicle_para.horizontal = horizontal;
@@ -682,6 +705,13 @@ void parameter_write_robot_para(uint8_t horizontal,uint8_t vertical,uint8_t serv
     vehicle_para.robot_bak = bakup;
     vehicle_para.robot_brush = brush;
     vehicle_para.robot_bak2 = bakup2;
+}
+
+void parameter_write_motor_para(int32_t motor_erpm,double motor_current,double motor_puty)
+{
+    vehicle_para.motor_erpm = motor_erpm;
+    vehicle_para.motor_current = motor_current;
+    vehicle_para.motor_puty = motor_puty;
 }
 
 // void parameter_read_remote_xyz(double speed_x,double speed_y,double speed_z)
@@ -827,3 +857,11 @@ return remote_para.time_string;
 }
 
 
+void parameter_write_vesc_id(uint8_t value)
+{   
+    connection_para.vesc_id = value;
+}
+uint8_t parameter_read_vesc_id(void)
+{   
+    return connection_para.vesc_id;
+}
