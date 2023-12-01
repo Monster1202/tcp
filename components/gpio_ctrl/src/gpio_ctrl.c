@@ -1348,11 +1348,13 @@ void start_read(void)
     if(gpio_get_level(GPIO_INPUT_IO_4) == 0) // power ctl //liquid_alarm 0/1 input
     {
         ESP_LOGI(TAG, "GPIO_INPUT_IO_4,power ctl:%d",0);
-        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);     
+        gpio_set_level(GPIO_OUTPUT_IO_HEATER, 1);  
+        gpio_set_level(GPIO_OUTPUT_LED_4, 1);    
     }
     else{
         ESP_LOGI(TAG, "GPIO_INPUT_IO_4,power ctl:%d",1);
         gpio_set_level(GPIO_OUTPUT_IO_HEATER, 0);
+        gpio_set_level(GPIO_OUTPUT_LED_4, 0); 
     }
     #endif
     #ifdef GPIOTEST

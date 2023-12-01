@@ -47,7 +47,7 @@
 #define EXAMPLE_TAG             "TWAI Test"
 
 #define SPEED_DEX 1000
-#define SPEED_RPM_MAX 12000
+#define SPEED_RPM_MAX 15000
 static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();  //TWAI_TIMING_CONFIG_25KBITS      TWAI_TIMING_CONFIG_1MBITS(); //
 //Filter all other IDs except MSG_ID    
 static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
@@ -312,8 +312,8 @@ void vesc_ctl(uint8_t *MM_MSG,uint8_t cnt)
 }
 void Vesc_Speed(uint8_t *MM_MSG)
 {
-    if(remote_speed[4] < MM_MIX_SPEED) remote_speed[4] = MM_MIX_SPEED;
-    if(remote_speed[4] > MM_MAX_SPEED) remote_speed[4] = MM_MAX_SPEED;
+    // if(remote_speed[4] < MM_MIX_SPEED) remote_speed[4] = MM_MIX_SPEED;
+    // if(remote_speed[4] > MM_MAX_SPEED) remote_speed[4] = MM_MAX_SPEED;
 
     MM_MSG[0] = (int32_t)(remote_speed[4]*SPEED_RPM_MAX)>>24;
     MM_MSG[1] = (int32_t)(remote_speed[4]*SPEED_RPM_MAX)>>16;

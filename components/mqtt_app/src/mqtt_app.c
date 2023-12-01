@@ -154,10 +154,10 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DISCONNECTED:
         parameter_write_wifi_connection(2);
-        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d", buf_disconnect);
+        ESP_LOGE(TAG, "MQTT_EVENT_DISCONNECTED buf_disconnect=%d", buf_disconnect);
 //#ifndef DEVICE_TYPE_BLISTER
         buf_disconnect++;
-        if (buf_disconnect == 15) // 10=1minute
+        if (buf_disconnect >= 10) // 10=1minute
             mqtt_reset(); //esp_restart();
 //#endif
         // uint8_t wifi_sta = 0;
@@ -227,7 +227,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         buf_disconnect = 0;
         break;
     case MQTT_EVENT_ERROR:
-        ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+        //ESP_LOGE(TAG, "MQTT_EVENT_ERROR");
         if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT)
         {
             log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
@@ -235,6 +235,11 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             log_error_if_nonzero("captured as transport's socket errno", event->error_handle->esp_transport_sock_errno);
             ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
         }
+        parameter_write_wifi_connection(2);
+        ESP_LOGE(TAG, "MQTT_EVENT_ERROR buf_disconnect=%d", buf_disconnect);
+        buf_disconnect++;
+        if (buf_disconnect >= 10) // 10=1minute
+            esp_restart(); //esp_restart();
         break;
     default:
         ESP_LOGI(TAG, "Other event id:%d", event->event_id);
